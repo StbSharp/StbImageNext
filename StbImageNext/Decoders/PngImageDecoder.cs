@@ -132,7 +132,7 @@ namespace StbImageNext.Decoders
 			return t1;
 		}
 
-		private static void stbi__create_png_alpha_expand8(OutputBuffer<byte> dest, OutputBuffer<byte> src, uint x, int img_n)
+		private static void stbi__create_png_alpha_expand8(DataBuffer<byte> dest, DataBuffer<byte> src, uint x, int img_n)
 		{
 			var i = 0;
 			if (img_n == 1)
@@ -171,11 +171,11 @@ namespace StbImageNext.Decoders
 			img_width_bytes = (uint)((img_n * x * depth + 7) >> 3);
 			if (stbi__mad2sizes_valid((int)img_width_bytes, (int)y, (int)img_width_bytes) == 0)
 				throw new Exception("too large");
-			a._out_ = new OutputBuffer<byte>(x * y * output_bytes);
+			a._out_ = new DataBuffer<byte>(x * y * output_bytes);
 			img_len = (img_width_bytes + 1) * y;
 			if (raw_len < img_len)
 				throw new Exception("not enough pixels");
-			var filter_buf = new OutputBuffer<byte>(img_width_bytes * 2);
+			var filter_buf = new DataBuffer<byte>(img_width_bytes * 2);
 			if (filter_buf == null)
 				throw new Exception("outofmem");
 			if (depth < 8)
@@ -300,7 +300,7 @@ namespace StbImageNext.Decoders
 				return 1;
 			}
 
-			var final = new OutputBuffer<byte>(a.s.img_x * a.s.img_y * out_bytes);
+			var final = new DataBuffer<byte>(a.s.img_x * a.s.img_y * out_bytes);
 
 			var xorig = stackalloc int[] { 0, 4, 0, 2, 0, 1, 0 };
 			var yorig = stackalloc int[] { 0, 0, 4, 0, 2, 0, 1 };
@@ -370,7 +370,7 @@ namespace StbImageNext.Decoders
 			var pixel_count = a.s.img_x * a.s.img_y;
 			var orig = a._out_;
 
-			var p = new OutputBuffer<byte>(pixel_count * pal_img_n);
+			var p = new DataBuffer<byte>(pixel_count * pal_img_n);
 			if (pal_img_n == 3)
 			{
 				for (i = 0; i < pixel_count; ++i)
@@ -629,7 +629,7 @@ namespace StbImageNext.Decoders
 
 								if (z.idata == null)
 								{
-									z.idata = new OutputBuffer<byte>(idata_limit);
+									z.idata = new DataBuffer<byte>(idata_limit);
 								}
 								else
 								{
@@ -639,7 +639,7 @@ namespace StbImageNext.Decoders
 
 							if (z.idata == null)
 							{
-								z.idata = new OutputBuffer<byte>((int)(ioff + c.length));
+								z.idata = new DataBuffer<byte>((int)(ioff + c.length));
 								idata_limit = (uint)z.idata.Length;
 							}
 
@@ -731,9 +731,9 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		private static OutputBuffer<byte> stbi__do_png(stbi__png p, int req_comp)
+		private static DataBuffer<byte> stbi__do_png(stbi__png p, int req_comp)
 		{
-			OutputBuffer<byte> result = null;
+			DataBuffer<byte> result = null;
 			if (req_comp < 0 || req_comp > 4)
 				throw new Exception("bad req_comp");
 
@@ -780,10 +780,10 @@ namespace StbImageNext.Decoders
 
 		private class stbi__png
 		{
-			public OutputBuffer<byte> _out_;
+			public DataBuffer<byte> _out_;
 			public int depth;
 			public byte[] expanded;
-			public OutputBuffer<byte> idata;
+			public DataBuffer<byte> idata;
 			public stbi__context s;
 		}
 

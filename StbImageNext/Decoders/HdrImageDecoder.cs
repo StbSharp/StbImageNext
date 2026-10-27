@@ -139,7 +139,7 @@ namespace StbImageNext.Decoders
 			if (stbi__mad4sizes_valid(width, height, req_comp, sizeof(float), 0) == 0)
 				throw new Exception("too large");
 
-			var hdr_data = new OutputBuffer<float>(width * height * req_comp);
+			var hdr_data = new DataBuffer<float>(width * height * req_comp);
 			if (width < 8 || width >= 32768)
 			{
 				for (; j < height; ++j)
@@ -294,7 +294,7 @@ namespace StbImageNext.Decoders
 			return buffer;
 		}
 
-		private static unsafe void stbi__hdr_convert(OutputBuffer<float> output, byte* input, int req_comp)
+		private static unsafe void stbi__hdr_convert(DataBuffer<float> output, byte* input, int req_comp)
 		{
 			if (input[3] != 0)
 			{

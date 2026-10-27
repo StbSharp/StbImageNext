@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using static StbImageNext.StbImage;
 
 namespace StbImageNext
 {
@@ -15,20 +17,63 @@ namespace StbImageNext
 			return result;
 		}
 
+		public static byte stbi__get8(this Stream s)
+		{
+			var b = s.ReadByte();
+			if (b == -1) return 0;
+
+			return (byte)b;
+		}
+
+		public static int stbi__get16be(this Stream s)
+		{
+			int z = s.stbi__get8();
+			return (z << 8) + s.stbi__get8();
+		}
+
+		public static uint stbi__get32be(this Stream s)
+		{
+			var z = (uint)s.stbi__get16be();
+			return (uint)((z << 16) + s.stbi__get16be());
+		}
+
+		public static int stbi__get16le(this Stream s)
+		{
+			int z = s.stbi__get8();
+			return z + (s.stbi__get8() << 8);
+		}
+
+		public static uint stbi__get32le(this Stream s)
+		{
+			var z = (uint)s.stbi__get16le();
+			z += (uint)s.stbi__get16le() << 16;
+			return z;
+		}
+
+		public static void stbi__rewind(this Stream s)
+		{
+			s.Seek(0, SeekOrigin.Begin);
+		}
+
+		public static void stbi__skip(this Stream s, int skip)
+		{
+			s.Seek(skip, SeekOrigin.Current);
+		}
+
 		private static byte stbi__compute_y(int r, int g, int b)
 		{
 			return (byte)((r * 77 + g * 150 + 29 * b) >> 8);
 		}
 
 
-		public static OutputBuffer<byte> stbi__convert_format(OutputBuffer<byte> data, int img_n, int req_comp, uint x, uint y)
+		public static DataBuffer<byte> stbi__convert_format(DataBuffer<byte> data, int img_n, int req_comp, uint x, uint y)
 		{
 			var i = 0;
 			var j = 0;
 			if (req_comp == img_n)
 				return data;
-			
-			var good = new OutputBuffer<byte>(req_comp * x * y);
+
+			var good = new DataBuffer<byte>(req_comp * x * y);
 			for (j = 0; j < (int)y; ++j)
 			{
 				var src = data + j * x * img_n;

@@ -206,7 +206,7 @@ namespace StbImageNext.Decoders
 
 			if (stbi__mad3sizes_valid(tga_width, tga_height, tga_comp, 0) == 0)
 				throw new Exception("too large");
-			var tga_data = new OutputBuffer<byte>(tga_width * tga_height * tga_comp);
+			var tga_data = new DataBuffer<byte>(tga_width * tga_height * tga_comp);
 
 			stbi__skip(s, tga_offset);
 			if (tga_indexed == 0 && tga_is_RLE == 0 && tga_rgb16 == 0)

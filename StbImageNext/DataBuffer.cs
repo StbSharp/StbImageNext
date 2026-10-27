@@ -1,9 +1,8 @@
 ﻿using System;
-using System.IO;
 
 namespace StbImageNext
 {
-	internal class OutputBuffer<T> where T : unmanaged
+	internal class DataBuffer<T> where T : unmanaged
 	{
 		private T[] _data;
 		private long _offset;
@@ -21,21 +20,21 @@ namespace StbImageNext
 		public int Length => _data.Length;
 
 
-		public OutputBuffer(long size)
+		public DataBuffer(long size)
 		{
 			_data = new T[size];
 			_offset = 0;
 		}
 
-		private OutputBuffer(T[] data, long offset)
+		private DataBuffer(T[] data, long offset)
 		{
 			_data = data;
 			_offset = offset;
 		}
 
-		public OutputBuffer<T> SubBuffer(long offset)
+		public DataBuffer<T> SubBuffer(long offset)
 		{
-			return new OutputBuffer<T>(_data, _offset + offset);
+			return new DataBuffer<T>(_data, _offset + offset);
 		}
 
 		public void Write(T value)
@@ -62,14 +61,14 @@ namespace StbImageNext
 
 		public void Set(T value) => Set(value, _data.Length - _offset);
 
-		public void Copy(long offset, OutputBuffer<T> source, long sourceOffset, long size)
+		public void Copy(long offset, DataBuffer<T> source, long sourceOffset, long size)
 		{
 			Array.Copy(source._data, source._offset + sourceOffset, _data, _offset + offset, size);
 		}
 
-		public void Copy(OutputBuffer<T> source, long sourceOffset, long size) => Copy(0, source, sourceOffset, size);
+		public void Copy(DataBuffer<T> source, long sourceOffset, long size) => Copy(0, source, sourceOffset, size);
 
-		public void Copy(OutputBuffer<T> source, long size) => Copy(0, source, 0, size);
+		public void Copy(DataBuffer<T> source, long size) => Copy(0, source, 0, size);
 
 		public void Copy(T[] source, long size)
 		{
@@ -86,19 +85,19 @@ namespace StbImageNext
 
 		public unsafe void Copy(T* source, long size) => Copy(0, source, size);
 
-		public OutputBuffer<T> Expand(long newSize)
+		public DataBuffer<T> Expand(long newSize)
 		{
 			if (newSize <= _data.Length)
 				return this;
-			var newBuffer = new OutputBuffer<T>(newSize);
+			var newBuffer = new DataBuffer<T>(newSize);
 			Array.Copy(_data, 0, newBuffer._data, 0, _data.Length);
 			newBuffer._offset = _offset;
 			return newBuffer;
 		}
 
-		public static OutputBuffer<T> operator +(OutputBuffer<T> buffer, long offset)
+		public static DataBuffer<T> operator +(DataBuffer<T> buffer, long offset)
 		{
-			return new OutputBuffer<T>(buffer._data, buffer._offset + offset);
+			return new DataBuffer<T>(buffer._data, buffer._offset + offset);
 		}
 	}
 }

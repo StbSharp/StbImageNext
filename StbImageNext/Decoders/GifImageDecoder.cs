@@ -267,7 +267,7 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		internal unsafe static OutputBuffer<byte> stbi__gif_load_next(stbi__context s, stbi__gif g, int req_comp, byte* two_back)
+		internal unsafe static DataBuffer<byte> stbi__gif_load_next(stbi__context s, stbi__gif g, int req_comp, byte* two_back)
 		{
 			var dispose = 0;
 			var first_frame = 0;
@@ -280,7 +280,7 @@ namespace StbImageNext.Decoders
 				if (stbi__mad3sizes_valid(4, g.w, g.h, 0) == 0)
 					throw new Exception("too large");
 				pcount = g.w * g.h;
-				g._out_ = new OutputBuffer<byte>(4 * pcount);
+				g._out_ = new DataBuffer<byte>(4 * pcount);
 				g.background = (byte*)stbi__malloc((ulong)(4 * pcount));
 				g.history = (byte*)stbi__malloc((ulong)pcount);
 				if (g._out_ == null || g.background == null || g.history == null)
@@ -441,7 +441,7 @@ namespace StbImageNext.Decoders
 
 		internal unsafe class stbi__gif
 		{
-			public OutputBuffer<byte> _out_;
+			public DataBuffer<byte> _out_;
 			public byte* background;
 			public int bgindex;
 			public stbi__gif_lzw[] codes = new stbi__gif_lzw[8192];

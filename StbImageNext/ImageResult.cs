@@ -22,9 +22,9 @@ namespace StbImageNext
 				return PngImageDecoder.Decode(context, requiredComponents);
 			}
 
-			if (BmpImageDecoder.Test(context))
+			if (BmpImageDecoder.Test(stream))
 			{
-				return BmpImageDecoder.Load(context, requiredComponents);
+				return BmpImageDecoder.Load(stream, requiredComponents);
 			}
 
 			if (GifImageDecoder.Test(context))

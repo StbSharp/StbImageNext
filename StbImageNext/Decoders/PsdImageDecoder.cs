@@ -95,7 +95,7 @@ namespace StbImageNext.Decoders
 			if (stbi__mad3sizes_valid(4, w, h, 0) == 0)
 				throw new Exception("too large");
 
-			var _out_ = new OutputBuffer<byte>(4 * w * h);
+			var _out_ = new DataBuffer<byte>(4 * w * h);
 
 			pixelCount = w * h;
 			if (compression != 0)
@@ -187,7 +187,7 @@ namespace StbImageNext.Decoders
 			return result;
 		}
 
-		private static int stbi__psd_decode_rle(stbi__context s, OutputBuffer<byte> p, int pixelCount)
+		private static int stbi__psd_decode_rle(stbi__context s, DataBuffer<byte> p, int pixelCount)
 		{
 			var count = 0;
 			var nleft = 0;

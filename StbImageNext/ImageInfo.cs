@@ -20,9 +20,9 @@ namespace StbImageNext
 				return PngImageDecoder.Info(context);
 			}
 
-			if (BmpImageDecoder.Test(context))
+			if (BmpImageDecoder.Test(stream))
 			{
-				return BmpImageDecoder.Info(context);
+				return BmpImageDecoder.Info(stream);
 			}
 
 			if (GifImageDecoder.Test(context))

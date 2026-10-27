@@ -27,7 +27,7 @@ namespace StbImageNext
 			};
 
 			var comp = (int)Comp;
-			var output = new OutputBuffer<byte>(Width * Height * comp);
+			var output = new DataBuffer<byte>(Width * Height * comp);
 
 			int n;
 			if ((comp & 1) != 0)

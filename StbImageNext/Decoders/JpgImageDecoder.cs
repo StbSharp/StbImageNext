@@ -9,7 +9,7 @@ namespace StbImageNext.Decoders
 	{
 		private delegate void delegate0(byte* arg0, int arg1, short* arg2);
 
-		private delegate void delegate1(OutputBuffer<byte> arg0, byte* arg1, byte* arg2, byte* arg3, int arg4, int arg5);
+		private delegate void delegate1(DataBuffer<byte> arg0, byte* arg1, byte* arg2, byte* arg3, int arg4, int arg5);
 
 		private delegate byte* delegate2(byte* arg0, byte* arg1, byte* arg2, int arg3, int arg4);
 
@@ -1419,7 +1419,7 @@ namespace StbImageNext.Decoders
 			return _out_;
 		}
 
-		private static void stbi__YCbCr_to_RGB_row(OutputBuffer<byte> _out_, byte* y, byte* pcb, byte* pcr, int count, int step)
+		private static void stbi__YCbCr_to_RGB_row(DataBuffer<byte> _out_, byte* y, byte* pcb, byte* pcr, int count, int step)
 		{
 			var i = 0;
 			for (i = 0; i < count; ++i)
@@ -1481,7 +1481,7 @@ namespace StbImageNext.Decoders
 			stbi__free_jpeg_components(j, j.s.img_n);
 		}
 
-		private static OutputBuffer<byte> load_jpeg_image(stbi__jpeg z, int* out_x, int* out_y, int* comp, int req_comp)
+		private static DataBuffer<byte> load_jpeg_image(stbi__jpeg z, int* out_x, int* out_y, int* comp, int req_comp)
 		{
 			var n = 0;
 			var decode_n = 0;
@@ -1511,7 +1511,7 @@ namespace StbImageNext.Decoders
 				var k = 0;
 				uint i = 0;
 				uint j = 0;
-				OutputBuffer<byte> output;
+				DataBuffer<byte> output;
 				var coutput = stackalloc byte*[] { null, null, null, null };
 				var res_comp = new stbi__resample[4];
 				res_comp[0] = new stbi__resample();
@@ -1546,7 +1546,7 @@ namespace StbImageNext.Decoders
 						r.resample = stbi__resample_row_generic;
 				}
 
-				output = new OutputBuffer<byte>(n * z.s.img_x * z.s.img_y);
+				output = new DataBuffer<byte>(n * z.s.img_x * z.s.img_y);
 				for (j = 0; j < z.s.img_y; ++j)
 				{
 					var _out_ = output + n * z.s.img_x * j;

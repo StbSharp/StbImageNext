@@ -15,10 +15,10 @@ namespace StbImageNext
 				a = (a + data[offset + i]) % mod;
 				b = (b + a) % mod;
 			}
-			return ((b << 16) | a);
+			return (b << 16) | a;
 		}
 
-		internal static byte[] stbi_zlib_decode_malloc_guesssize_headerflag(OutputBuffer<byte> buffer, int len, int initial_size, int parse_header)
+		internal static byte[] stbi_zlib_decode_malloc_guesssize_headerflag(DataBuffer<byte> buffer, int len, int initial_size, int parse_header)
 		{
 			if (buffer == null || len <= 0)
 				return null;
