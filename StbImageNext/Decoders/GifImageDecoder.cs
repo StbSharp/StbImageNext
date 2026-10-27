@@ -39,7 +39,7 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		private static void ParseHeader(stbi__context s, stbi__gif2 g, bool onlyInfo)
+		private static void ParseHeader(stbi__context s, stbi__gif g, bool onlyInfo)
 		{
 			byte version = 0;
 			if (stbi__get8(s) != 71 || stbi__get8(s) != 73 || stbi__get8(s) != 70 || stbi__get8(s) != 56)
@@ -75,7 +75,7 @@ namespace StbImageNext.Decoders
 		{
 			try
 			{
-				var g = new stbi__gif2();
+				var g = new stbi__gif();
 				ParseHeader(s, g, true);
 
 				var info = new ImageInfo
@@ -93,7 +93,7 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		private static unsafe void stbi__out_gif_code(stbi__gif2 g, ushort code)
+		private static unsafe void stbi__out_gif_code(stbi__gif g, ushort code)
 		{
 			var idx = 0;
 			if (g.codes[code].prefix >= 0)
@@ -126,7 +126,7 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		private static unsafe bool stbi__process_gif_raster(stbi__context s, stbi__gif2 g)
+		private static unsafe bool stbi__process_gif_raster(stbi__context s, stbi__gif g)
 		{
 			byte lzw_cs = 0;
 			var len = 0;
@@ -232,7 +232,7 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		internal unsafe static OutputBuffer<byte> stbi__gif_load_next(stbi__context s, stbi__gif2 g, int req_comp, byte* two_back)
+		internal unsafe static OutputBuffer<byte> stbi__gif_load_next(stbi__context s, stbi__gif g, int req_comp, byte* two_back)
 		{
 			var dispose = 0;
 			var first_frame = 0;
@@ -405,7 +405,7 @@ namespace StbImageNext.Decoders
 
 		public static unsafe ImageResult Decode(stbi__context s, ColorComponents req_comp)
 		{
-			var g = new stbi__gif2();
+			var g = new stbi__gif();
 			try
 			{
 				var u = stbi__gif_load_next(s, g, (int)req_comp, null);
@@ -438,7 +438,7 @@ namespace StbImageNext.Decoders
 
 		}
 
-		internal unsafe class stbi__gif2
+		internal unsafe class stbi__gif
 		{
 			public OutputBuffer<byte> _out_;
 			public byte* background;

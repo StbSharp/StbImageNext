@@ -11,7 +11,7 @@ namespace StbImageNext
 	internal class AnimatedGifEnumerator : IEnumerator<AnimatedFrameResult>
 	{
 		private readonly StbImage.stbi__context _context;
-		private stbi__gif2 _gif;
+		private stbi__gif _gif;
 		private readonly ColorComponents _colorComponents;
 
 		public AnimatedGifEnumerator(Stream input, ColorComponents colorComponents)
@@ -25,7 +25,7 @@ namespace StbImageNext
 				throw new Exception("Input stream is not GIF file.");
 			}
 
-			_gif = new stbi__gif2();
+			_gif = new stbi__gif();
 			_colorComponents = colorComponents;
 		}
 

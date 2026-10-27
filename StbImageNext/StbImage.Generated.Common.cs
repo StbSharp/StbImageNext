@@ -218,8 +218,6 @@ namespace StbImageNext
 				return stbi__png_load(s, x, y, comp, req_comp, ri);
 			if (stbi__psd_test(s) != 0)
 				return stbi__psd_load(s, x, y, comp, req_comp, ri, bpc);
-			if (stbi__jpeg_test(s) != 0)
-				return stbi__jpeg_load(s, x, y, comp, req_comp, ri);
 			if (stbi__hdr_test(s) != 0)
 			{
 				var hdr = stbi__hdr_load(s, x, y, comp, req_comp, ri);
@@ -729,8 +727,6 @@ namespace StbImageNext
 
 		public static int stbi__info_main(stbi__context s, int* x, int* y, int* comp)
 		{
-			if (stbi__jpeg_info(s, x, y, comp) != 0)
-				return 1;
 			if (stbi__png_info(s, x, y, comp) != 0)
 				return 1;
 			if (stbi__psd_info(s, x, y, comp) != 0)

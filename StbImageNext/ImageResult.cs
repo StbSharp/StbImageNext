@@ -39,7 +39,23 @@ namespace StbImageNext
 			ColorComponents requiredComponents = ColorComponents.Default)
 		{
 			var context = new StbImage.stbi__context(stream);
-			return BmpImageDecoder.Decode(context, requiredComponents);
+
+			if (BmpImageDecoder.Test(context))
+			{
+				return BmpImageDecoder.Decode(context, requiredComponents);
+			}
+
+			if (GifImageDecoder.Test(context))
+			{
+				return GifImageDecoder.Decode(context, requiredComponents);
+			}
+
+			if (JpgImageDecoder.Test(context))
+			{
+				return JpgImageDecoder.Decode(context, requiredComponents);
+			}
+
+			throw new NotSupportedException("Image format is not supported");
 		}
 
 		public static ImageResult FromMemory(byte[] data, ColorComponents requiredComponents = ColorComponents.Default)
