@@ -54,7 +54,7 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		public static unsafe ImageInfo Info(Stream s)
+		public static ImageInfo Info(Stream s)
 		{
 			try
 			{
@@ -123,12 +123,12 @@ namespace StbImageNext.Decoders
 						throw new NotSupportedException("Only 8-bit TGA are supported");
 					}
 
-					tga_comp = stbi__tga_get_comp(tga_colormap_bpp, 0, null);
+					tga_comp = stbi__tga_get_comp(tga_colormap_bpp, 0, out bool is_rgb16);
 				}
 				else
 				{
 					tga_comp = stbi__tga_get_comp(tga_bits_per_pixel, tga_image_type == 3 || tga_image_type == 11 ? 1 : 0,
-						null);
+						out bool is_rgb16);
 				}
 
 				if (tga_comp == 0)
@@ -149,7 +149,7 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		public static unsafe ImageResult Load(Stream s, ColorComponents req_comp)
+		public static ImageResult Load(Stream s, ColorComponents req_comp)
 		{
 			int tga_offset = s.stbi__get8();
 			int tga_indexed = s.stbi__get8();
@@ -164,7 +164,6 @@ namespace StbImageNext.Decoders
 			var tga_height = s.stbi__get16le();
 			int tga_bits_per_pixel = s.stbi__get8();
 			var tga_comp = 0;
-			var tga_rgb16 = 0;
 			int tga_inverted = s.stbi__get8();
 			var i = 0;
 			var j = 0;
@@ -185,10 +184,12 @@ namespace StbImageNext.Decoders
 			}
 
 			tga_inverted = 1 - ((tga_inverted >> 5) & 1);
+
+			bool tga_rgb16;
 			if (tga_indexed != 0)
-				tga_comp = stbi__tga_get_comp(tga_palette_bits, 0, &tga_rgb16);
+				tga_comp = stbi__tga_get_comp(tga_palette_bits, 0, out tga_rgb16);
 			else
-				tga_comp = stbi__tga_get_comp(tga_bits_per_pixel, tga_image_type == 3 ? 1 : 0, &tga_rgb16);
+				tga_comp = stbi__tga_get_comp(tga_bits_per_pixel, tga_image_type == 3 ? 1 : 0, out tga_rgb16);
 			if (tga_comp == 0)
 				throw new Exception("bad format");
 
@@ -206,7 +207,7 @@ namespace StbImageNext.Decoders
 			var tga_data = new DataBuffer<byte>(tga_width * tga_height * tga_comp);
 
 			s.stbi__skip(tga_offset);
-			if (tga_indexed == 0 && tga_is_RLE == 0 && tga_rgb16 == 0)
+			if (tga_indexed == 0 && tga_is_RLE == 0 && !tga_rgb16)
 			{
 				for (i = 0; i < tga_height; ++i)
 				{
@@ -227,7 +228,7 @@ namespace StbImageNext.Decoders
 
 					s.stbi__skip(tga_palette_start);
 					tga_palette = new DataBuffer<byte>(tga_palette_len * tga_comp);
-					if (tga_rgb16 != 0)
+					if (tga_rgb16)
 					{
 						var pal_entry = tga_palette;
 						for (i = 0; i < tga_palette_len; ++i)
@@ -274,7 +275,7 @@ namespace StbImageNext.Decoders
 							for (j = 0; j < tga_comp; ++j)
 								raw_data[j] = tga_palette[pal_idx + j];
 						}
-						else if (tga_rgb16 != 0)
+						else if (tga_rgb16)
 						{
 							stbi__tga_read_rgb16(s, raw_data);
 						}
@@ -310,7 +311,7 @@ namespace StbImageNext.Decoders
 				}
 			}
 
-			if (tga_comp >= 3 && tga_rgb16 == 0)
+			if (tga_comp >= 3 && !tga_rgb16)
 			{
 				var tga_pixel = tga_data;
 				for (i = 0; i < tga_width * tga_height; ++i)
@@ -331,10 +332,9 @@ namespace StbImageNext.Decoders
 			return result;
 		}
 
-		private static unsafe int stbi__tga_get_comp(int bits_per_pixel, int is_grey, int* is_rgb16)
+		private static int stbi__tga_get_comp(int bits_per_pixel, int is_grey, out bool is_rgb16)
 		{
-			if (is_rgb16 != null)
-				*is_rgb16 = 0;
+			is_rgb16 = false;
 			switch (bits_per_pixel)
 			{
 				case 8:
@@ -343,8 +343,7 @@ namespace StbImageNext.Decoders
 				case 15:
 					if (bits_per_pixel == 16 && is_grey != 0)
 						return STBI_grey_alpha;
-					if (is_rgb16 != null)
-						*is_rgb16 = 1;
+					is_rgb16 = true;
 					return STBI_rgb;
 				case 24:
 				case 32:
