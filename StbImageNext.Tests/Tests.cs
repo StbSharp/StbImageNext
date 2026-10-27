@@ -54,7 +54,7 @@ namespace StbImageNext.Tests
 		public void LoadHdr(string filename, int width, int height, ColorComponents colorComponents)
 		{
 			ImageResultFloat result = null;
-			using(var stream = _assembly.OpenResourceStream(filename))
+			using (var stream = _assembly.OpenResourceStream(filename))
 			{
 				result = ImageResultFloat.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
 			}
@@ -69,26 +69,21 @@ namespace StbImageNext.Tests
 		}
 
 		[Theory]
-		[InlineData("sample_1280×853.hdr", 2000, 1280, 853, ColorComponents.RedGreenBlue)]
-		[InlineData("DockPanes.jpg", 2000, 609, 406, ColorComponents.RedGreenBlue)]
-		public void Info(string filename, int headerSize, int width, int height, ColorComponents colorComponents)
+		[InlineData("Normal.psd", 128, 128, ColorComponents.RedGreenBlueAlpha)]
+		[InlineData("MonoGameLogo_64px.bmp", 64, 64, ColorComponents.RedGreenBlue)]
+		[InlineData("IDockable.png", 715, 426, ColorComponents.RedGreenBlueAlpha)]
+		[InlineData("sample_1280×853.hdr", 1280, 853, ColorComponents.RedGreenBlue)]
+		[InlineData("DockPanes.jpg", 609, 406, ColorComponents.RedGreenBlue)]
+		[InlineData("head.tga", 1024, 1024, ColorComponents.RedGreenBlue)]
+		public void Info(string filename, int width, int height, ColorComponents colorComponents)
 		{
-			ImageInfo? result;
+			ImageInfo info;
 
-			var data = new byte[headerSize];
 			using (var stream = _assembly.OpenResourceStream(filename))
 			{
-				stream.Read(data, 0, data.Length);
+				info = ImageInfo.FromStream(stream);
 			}
 
-			using (var stream = new MemoryStream(data))
-			{
-				result = ImageInfo.FromStream(stream);
-			}
-
-			Assert.NotNull(result);
-
-			var info = result.Value;
 			Assert.Equal(width, info.Width);
 			Assert.Equal(height, info.Height);
 			Assert.Equal(colorComponents, info.ColorComponents);
@@ -101,7 +96,7 @@ namespace StbImageNext.Tests
 			using (var stream = _assembly.OpenResourceStream(fileName))
 			{
 				var frameCount = 0;
-				foreach(var frame in ImageResult.AnimatedGifFramesFromStream(stream))
+				foreach (var frame in ImageResult.AnimatedGifFramesFromStream(stream))
 				{
 					Assert.Equal(width, frame.Width);
 					Assert.Equal(height, frame.Height);

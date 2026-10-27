@@ -11,7 +11,7 @@ namespace StbImageNext
 		public ColorComponents ColorComponents;
 
 
-		public static ImageInfo? FromStream(Stream stream)
+		public static ImageInfo FromStream(Stream stream)
 		{
 			var context = new StbImage.stbi__context(stream);
 
