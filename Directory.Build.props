@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup>
+    <Authors>StbImageSharpTeam</Authors>
+    <Product>StbImageSharp</Product>
+    <PackageLicenseExpression>Unlicense OR MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/StbSharp/StbImageSharp</PackageProjectUrl>
+    <Version>2.30.17</Version>
+  </PropertyGroup>
+</Project>
