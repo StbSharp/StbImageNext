@@ -488,6 +488,8 @@ namespace StbImageNext
 			public uint ma;
 			public uint all_a;
 			public int extra_read;
+			public uint img_x;
+			public uint img_y;
 		}
 	}
 }
