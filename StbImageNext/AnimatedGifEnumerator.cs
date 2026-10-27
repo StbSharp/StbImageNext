@@ -52,8 +52,7 @@ namespace StbImageNext
 		public unsafe bool MoveNext()
 		{
 			// Read next frame
-			byte two_back;
-			var result = stbi__gif_load_next(_stream, _gif, (int)ColorComponents, &two_back);
+			var result = stbi__gif_load_next(_stream, _gif, (int)ColorComponents);
 			if (result == null) return false;
 
 			if (Current == null)

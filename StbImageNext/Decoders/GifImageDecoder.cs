@@ -49,10 +49,10 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		public static unsafe ImageResult Load(Stream s, ColorComponents req_comp)
+		public static ImageResult Load(Stream s, ColorComponents req_comp)
 		{
 			var g = new stbi__gif();
-			var u = stbi__gif_load_next(s, g, (int)req_comp, null);
+			var u = stbi__gif_load_next(s, g, (int)req_comp);
 			if (u == null)
 			{
 				throw new Exception("Unknown GIF loading error");
@@ -258,7 +258,7 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		internal unsafe static DataBuffer<byte> stbi__gif_load_next(Stream s, stbi__gif g, int req_comp, byte* two_back)
+		internal unsafe static DataBuffer<byte> stbi__gif_load_next(Stream s, stbi__gif g, int req_comp)
 		{
 			var dispose = 0;
 			var first_frame = 0;
@@ -283,17 +283,10 @@ namespace StbImageNext.Decoders
 			{
 				dispose = (g.eflags & 0x1C) >> 2;
 				pcount = g.w * g.h;
-				if (dispose == 3 && two_back == null)
-					dispose = 2;
 				if (dispose == 3)
-				{
-					for (pi = 0; pi < pcount; ++pi)
-						if (g.history[pi] != 0)
-						{
-							g._out_.Copy(pi * 4, &two_back[pi * 4], 4);
-						}
-				}
-				else if (dispose == 2)
+					dispose = 2;
+				
+				if (dispose == 2)
 				{
 					for (pi = 0; pi < pcount; ++pi)
 						if (g.history[pi] != 0)
