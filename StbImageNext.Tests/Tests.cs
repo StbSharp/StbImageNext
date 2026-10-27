@@ -15,7 +15,7 @@ namespace StbImageNext.Tests
 		[InlineData("empty")]
 		public void LoadUnknownFormat(string filename)
 		{
-			Assert.Throws<InvalidOperationException>(() =>
+			Assert.Throws<NotSupportedException>(() =>
 			{
 				ImageResult result = null;
 				using (var stream = _assembly.OpenResourceStream(filename))
