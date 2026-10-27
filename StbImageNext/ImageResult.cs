@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
-using StbImageNext.Hebron.Runtime;
+using StbImageNext.Decoders;
 
 namespace StbImageNext
 {
@@ -35,26 +35,13 @@ namespace StbImageNext
 			return image;
 		}
 
-		public static unsafe ImageResult FromStream(Stream stream,
+		public static ImageResult FromStream(Stream stream,
 			ColorComponents requiredComponents = ColorComponents.Default)
 		{
-			byte* result = null;
+			var bmpDecoder = new BmpImageDecoder();
 
-			try
-			{
-				int x, y, comp;
-
-				var context = new StbImage.stbi__context(stream);
-
-				result = StbImage.stbi__load_and_postprocess_8bit(context, &x, &y, &comp, (int)requiredComponents);
-
-				return FromResult(result, x, y, (ColorComponents)comp, requiredComponents);
-			}
-			finally
-			{
-				if (result != null)
-					CRuntime.free(result);
-			}
+			var context = new StbImage.stbi__context(stream);
+			return bmpDecoder.Decode(context, requiredComponents);
 		}
 
 		public static ImageResult FromMemory(byte[] data, ColorComponents requiredComponents = ColorComponents.Default)

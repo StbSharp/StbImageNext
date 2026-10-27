@@ -1,0 +1,25 @@
+name: Build & Publish Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  BuildAndPublish:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '8.0.x'
+    - name: Build StbImageSharp
+      run: dotnet build StbImageNext.sln --configuration Release
+    - name: Test
+      run: dotnet test StbImageNext.sln
+    - name: Install NuGet
+      uses: NuGet/setup-nuget@v1
+    - name: Publish StbImageSharp to NuGet
+      run: nuget.exe push src\bin\Release\StbImageNext.*.nupkg ${{secrets.NUGET_APIKEY}} -Source https://api.nuget.org/v3/index.json

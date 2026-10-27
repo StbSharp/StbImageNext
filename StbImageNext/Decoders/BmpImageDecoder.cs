@@ -66,7 +66,7 @@ namespace StbImageNext.Decoders
 			};
 
 			var hsz = (int)stbi__get32le(s);
-			info.hsz = hsz = (int)stbi__get32le(s);
+			info.hsz = hsz;
 			info.mr = info.mg = info.mb = info.ma = 0;
 			info.extra_read = 14;
 			if (info.offset < 0)

@@ -5,6 +5,8 @@ VisualStudioVersion = 18.8.12021.73
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StbImageNext", "StbImageNext\StbImageNext.csproj", "{B4D9F0DA-21C2-DD29-0DF2-F9A6AE53F189}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StbImageNext.Tests", "StbImageNext.Tests\StbImageNext.Tests.csproj", "{50F5273C-9CD2-7140-94C2-5ED01AD0C428}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{B4D9F0DA-21C2-DD29-0DF2-F9A6AE53F189}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B4D9F0DA-21C2-DD29-0DF2-F9A6AE53F189}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B4D9F0DA-21C2-DD29-0DF2-F9A6AE53F189}.Release|Any CPU.Build.0 = Release|Any CPU
+		{50F5273C-9CD2-7140-94C2-5ED01AD0C428}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{50F5273C-9CD2-7140-94C2-5ED01AD0C428}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{50F5273C-9CD2-7140-94C2-5ED01AD0C428}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{50F5273C-9CD2-7140-94C2-5ED01AD0C428}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
