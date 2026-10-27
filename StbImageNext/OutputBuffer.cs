@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace StbImageNext
 {
@@ -16,6 +17,9 @@ namespace StbImageNext
 			get => _data[index + _offset];
 			set => _data[index + _offset] = value;
 		}
+
+		public int Length => _data.Length;
+
 
 		public OutputBuffer(long size)
 		{
@@ -82,10 +86,13 @@ namespace StbImageNext
 
 		public unsafe void Copy(T* source, long size) => Copy(0, source, size);
 
-		public OutputBuffer<T> Realloc(long newSize)
+		public OutputBuffer<T> Expand(long newSize)
 		{
+			if (newSize <= _data.Length)
+				return this;
 			var newBuffer = new OutputBuffer<T>(newSize);
-			Array.Copy(_data, 0, newBuffer._data, 0, Math.Min(_data.Length, newSize));
+			Array.Copy(_data, 0, newBuffer._data, 0, _data.Length);
+			newBuffer._offset = _offset;
 			return newBuffer;
 		}
 

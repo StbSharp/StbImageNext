@@ -112,7 +112,8 @@ namespace StbImageNext.Decoders
 					if (throwOnError)
 					{
 						throw new Exception("bad png sig");
-					} else
+					}
+					else
 					{
 						return 0;
 					}
@@ -621,20 +622,28 @@ namespace StbImageNext.Decoders
 								return 0;
 							if (ioff + c.length > idata_limit)
 							{
-								var idata_limit_old = idata_limit;
-								byte* p;
 								if (idata_limit == 0)
 									idata_limit = c.length > 4096 ? c.length : 4096;
 								while (ioff + c.length > idata_limit)
 									idata_limit *= 2;
 
-								p = (byte*)CRuntime.realloc(z.idata, (ulong)idata_limit);
-								if (p == null)
-									throw new Exception("outofmem");
-								z.idata = p;
+								if (z.idata == null)
+								{
+									z.idata = new OutputBuffer<byte>(idata_limit);
+								}
+								else
+								{
+									z.idata = z.idata.Expand(idata_limit);
+								}
 							}
 
-							if (stbi__getn(s, z.idata + ioff, (int)c.length) == 0)
+							if (z.idata == null)
+							{
+								z.idata = new OutputBuffer<byte>((int)(ioff + c.length));
+								idata_limit = (uint)z.idata.Length;
+							}
+
+							if (stbi__getn(s, z.idata + (int)ioff, (int)c.length) == 0)
 								throw new Exception("outofdata");
 							ioff += c.length;
 							break;
@@ -652,18 +661,20 @@ namespace StbImageNext.Decoders
 								throw new Exception("no IDAT");
 							bpl = (uint)((s.img_x * z.depth + 7) / 8);
 							raw_len = (uint)(bpl * s.img_y * s.img_n + s.img_y);
-							z.expanded = (byte*)stbi_zlib_decode_malloc_guesssize_headerflag((sbyte*)z.idata, (int)ioff,
-								(int)raw_len, (int*)&raw_len, is_iphone == 0 ? 1 : 0);
+							z.expanded = stbi_zlib_decode_malloc_guesssize_headerflag(z.idata, (int)ioff, (int)raw_len, is_iphone == 0 ? 1 : 0);
 							if (z.expanded == null)
 								return 0;
-							CRuntime.free(z.idata);
 							z.idata = null;
 							if ((req_comp == s.img_n + 1 && req_comp != 3 && pal_img_n == 0) || has_trans != 0)
 								s.img_out_n = s.img_n + 1;
 							else
 								s.img_out_n = s.img_n;
-							if (stbi__create_png_image(z, z.expanded, raw_len, s.img_out_n, z.depth, color, interlace) == 0)
-								return 0;
+
+							fixed (byte* ptr = z.expanded)
+							{
+								if (stbi__create_png_image(z, ptr, (uint)z.expanded.Length, s.img_out_n, z.depth, color, interlace) == 0)
+									return 0;
+							}
 							if (has_trans != 0)
 							{
 								if (z.depth == 16)
@@ -695,7 +706,6 @@ namespace StbImageNext.Decoders
 								++s.img_n;
 							}
 
-							CRuntime.free(z.expanded);
 							z.expanded = null;
 							stbi__get32be(s);
 							return 1;
@@ -740,15 +750,13 @@ namespace StbImageNext.Decoders
 				{
 					result = Utility.stbi__convert_format(result, p.s.img_out_n, req_comp, p.s.img_x, p.s.img_y);
 					p.s.img_out_n = req_comp;
-					
+
 					return result;
 				}
 			}
 
 			p._out_ = null;
-			CRuntime.free(p.expanded);
 			p.expanded = null;
-			CRuntime.free(p.idata);
 			p.idata = null;
 			return result;
 		}
@@ -774,8 +782,8 @@ namespace StbImageNext.Decoders
 		{
 			public OutputBuffer<byte> _out_;
 			public int depth;
-			public byte* expanded;
-			public byte* idata;
+			public byte[] expanded;
+			public OutputBuffer<byte> idata;
 			public stbi__context s;
 		}
 
