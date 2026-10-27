@@ -15,7 +15,7 @@ namespace StbImageNext
 			}
 		}
 
-		private static int stbi__err(string str)
+		internal static int stbi__err(string str)
 		{
 			stbi__g_failure_reason = str;
 			return 0;
