@@ -199,7 +199,7 @@ namespace StbImageNext.Decoders
 			{
 				Width = tga_width,
 				Height = tga_height,
-				Comp = (ColorComponents)tga_comp
+				SourceComp = (ColorComponents)tga_comp
 			};
 
 			result.Comp = req_comp == ColorComponents.Default ? result.SourceComp : req_comp;

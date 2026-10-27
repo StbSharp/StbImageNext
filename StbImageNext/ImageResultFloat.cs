@@ -1,7 +1,7 @@
-﻿using System;
-using System.IO;
-using System.Runtime.InteropServices;
+﻿using StbImageNext.Decoders;
 using StbImageNext.Hebron.Runtime;
+using System;
+using System.IO;
 
 namespace StbImageNext
 {
@@ -68,51 +68,19 @@ namespace StbImageNext
 			return result;
 		}
 
-		internal static unsafe ImageResultFloat FromResult(float* result, int width, int height, ColorComponents comp,
-			ColorComponents req_comp)
+		public static unsafe ImageResultFloat FromStream(Stream stream, ColorComponents requiredComponents = ColorComponents.Default)
 		{
-			if (result == null)
-				throw new InvalidOperationException(StbImage.stbi__g_failure_reason);
+			var context = new StbImage.stbi__context(stream);
 
-			var image = new ImageResultFloat
+			if (HdrImageDecoder.Test(context))
 			{
-				Width = width,
-				Height = height,
-				SourceComp = comp,
-				Comp = req_comp == ColorComponents.Default ? comp : req_comp
-			};
+				return HdrImageDecoder.Load(context, requiredComponents);
+			}
 
-			// Convert to array
-			image.Data = new float[width * height * (int)image.Comp];
-			Marshal.Copy(new IntPtr(result), image.Data, 0, image.Data.Length);
-
-			return image;
+			throw new NotSupportedException("Image format is not supported");
 		}
 
-		public static unsafe ImageResultFloat FromStream(Stream stream,
-			ColorComponents requiredComponents = ColorComponents.Default)
-		{
-			float* result = null;
-
-			try
-			{
-				int x, y, comp;
-
-				var context = new StbImage.stbi__context(stream);
-
-				result = StbImage.stbi__loadf_main(context, &x, &y, &comp, (int)requiredComponents);
-
-				return FromResult(result, x, y, (ColorComponents)comp, requiredComponents);
-			}
-			finally
-			{
-				if (result != null)
-					CRuntime.free(result);
-			}
-		}
-
-		public static ImageResultFloat FromMemory(byte[] data,
-			ColorComponents requiredComponents = ColorComponents.Default)
+		public static ImageResultFloat FromMemory(byte[] data, ColorComponents requiredComponents = ColorComponents.Default)
 		{
 			using (var stream = new MemoryStream(data))
 			{
