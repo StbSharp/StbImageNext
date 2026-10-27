@@ -66,14 +66,12 @@ namespace StbImageNext.Decoders
 			var p = new stbi__png();
 			p.s = s;
 
-			int x, y, comp;
-			var data = stbi__do_png(p, &x, &y, &comp, (int)req_comp);
-
+			var data = stbi__do_png(p, (int)req_comp);
 			var result = new ImageResult
 			{
-				Width = x,
-				Height = y,
-				SourceComp = (ColorComponents)comp
+				Width = (int)s.img_x,
+				Height = (int)s.img_y,
+				SourceComp = (ColorComponents)s.img_n
 			};
 
 			result.Comp = req_comp == ColorComponents.Default ? result.SourceComp : req_comp;
@@ -723,7 +721,7 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		private static OutputBuffer<byte> stbi__do_png(stbi__png p, int* x, int* y, int* n, int req_comp)
+		private static OutputBuffer<byte> stbi__do_png(stbi__png p, int req_comp)
 		{
 			OutputBuffer<byte> result = null;
 			if (req_comp < 0 || req_comp > 4)
@@ -745,11 +743,6 @@ namespace StbImageNext.Decoders
 					
 					return result;
 				}
-
-				*x = (int)p.s.img_x;
-				*y = (int)p.s.img_y;
-				if (n != null)
-					*n = p.s.img_n;
 			}
 
 			p._out_ = null;
