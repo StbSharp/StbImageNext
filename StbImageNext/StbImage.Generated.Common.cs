@@ -210,11 +210,6 @@ namespace StbImageNext
 		{
 			if (stbi__psd_test(s) != 0)
 				return stbi__psd_load(s, x, y, comp, req_comp, bpc);
-			if (stbi__hdr_test(s) != 0)
-			{
-				var hdr = stbi__hdr_load(s, x, y, comp, req_comp);
-				return stbi__hdr_to_ldr(hdr, *x, *y, req_comp != 0 ? req_comp : *comp);
-			}
 
 			return (byte*)(ulong)(stbi__err("unknown image type") != 0 ? 0 : 0);
 		}
@@ -285,16 +280,7 @@ namespace StbImageNext
 
 		public static float* stbi__loadf_main(stbi__context s, int* x, int* y, int* comp, int req_comp)
 		{
-			byte* data;
-			if (stbi__hdr_test(s) != 0)
-			{
-				var hdr_data = stbi__hdr_load(s, x, y, comp, req_comp);
-				if (hdr_data != null)
-					stbi__float_postprocess(hdr_data, x, y, comp, req_comp);
-				return hdr_data;
-			}
-
-			data = stbi__load_and_postprocess_8bit(s, x, y, comp, req_comp);
+			var data = stbi__load_and_postprocess_8bit(s, x, y, comp, req_comp);
 			if (data != null)
 				return stbi__ldr_to_hdr(data, *x, *y, req_comp != 0 ? req_comp : *comp);
 			return (float*)(ulong)(stbi__err("unknown image type") != 0 ? 0 : 0);
@@ -542,8 +528,6 @@ namespace StbImageNext
 		public static int stbi__info_main(stbi__context s, int* x, int* y, int* comp)
 		{
 			if (stbi__psd_info(s, x, y, comp) != 0)
-				return 1;
-			if (stbi__hdr_info(s, x, y, comp) != 0)
 				return 1;
 			return stbi__err("unknown image type");
 		}

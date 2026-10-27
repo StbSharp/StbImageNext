@@ -65,6 +65,12 @@ namespace StbImageNext
 				return TgaImageDecoder.Load(context, requiredComponents);
 			}
 
+			if (HdrImageDecoder.Test(context))
+			{
+				var floatResult = HdrImageDecoder.Load(context, requiredComponents);
+				return floatResult.ToLdr();
+			}
+
 			throw new NotSupportedException("Image format is not supported");
 		}
 

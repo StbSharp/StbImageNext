@@ -40,6 +40,11 @@ namespace StbImageNext
 				return TgaImageDecoder.Info(context);
 			}
 
+			if (HdrImageDecoder.Test(context))
+			{
+				return HdrImageDecoder.Info(context);
+			}
+
 			throw new NotSupportedException("Image format is not supported");
 		}
 	}

@@ -7,11 +7,66 @@ namespace StbImageNext
 {
 	public class ImageResultFloat
 	{
+		private static float stbi__h2l_gamma_i = 1.0f / 2.2f;
+		private static float stbi__h2l_scale_i = 1.0f;
+
 		public int Width { get; set; }
 		public int Height { get; set; }
 		public ColorComponents SourceComp { get; set; }
 		public ColorComponents Comp { get; set; }
 		public float[] Data { get; set; }
+
+		public ImageResult ToLdr()
+		{
+			var result = new ImageResult
+			{
+				Width = Width,
+				Height = Height,
+				SourceComp = SourceComp,
+				Comp = Comp
+			};
+
+			var comp = (int)Comp;
+			var output = new OutputBuffer<byte>(Width * Height * comp);
+
+			int n;
+			if ((comp & 1) != 0)
+			{
+				n = comp;
+			}
+			else
+			{
+				n = comp - 1;
+			}
+
+			for (var i = 0; i < Width * Height; ++i)
+			{
+				var k = 0;
+				for (k = 0; k < n; ++k)
+				{
+					var z = (float)CRuntime.pow(Data[i * comp + k] * stbi__h2l_scale_i, stbi__h2l_gamma_i) * 255 + 0.5f;
+					if (z < 0)
+						z = 0;
+					if (z > 255)
+						z = 255;
+					output[i * comp + k] = (byte)(int)z;
+				}
+
+				if (k < comp)
+				{
+					var z = Data[i * comp + k] * 255 + 0.5f;
+					if (z < 0)
+						z = 0;
+					if (z > 255)
+						z = 255;
+					output[i * comp + k] = (byte)(int)z;
+				}
+			}
+
+			result.Data = output.Data;
+
+			return result;
+		}
 
 		internal static unsafe ImageResultFloat FromResult(float* result, int width, int height, ColorComponents comp,
 			ColorComponents req_comp)
