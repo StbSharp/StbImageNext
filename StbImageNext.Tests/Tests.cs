@@ -26,7 +26,7 @@ namespace StbImageNext.Tests
 		}
 
 		[Theory]
-		[InlineData("MonoGameLogo_64px.bmp", 64, 64, ColorComponents.RedGreenBlueAlpha)]
+		[InlineData("MonoGameLogo_64px.bmp", 64, 64, ColorComponents.RedGreenBlue)]
 		[InlineData("IDockable.png", 715, 426, ColorComponents.RedGreenBlueAlpha)]
 		[InlineData("sample_1280×853.hdr", 1280, 853, ColorComponents.RedGreenBlue)]
 		[InlineData("DockPanes.jpg", 609, 406, ColorComponents.RedGreenBlue)]

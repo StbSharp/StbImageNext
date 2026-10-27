@@ -200,14 +200,11 @@ namespace StbImageNext.Decoders
 
 			var info = stbi__bmp_parse_header(s);
 
-			s.img_x = info.img_x;
-			s.img_y = info.img_y;
-
-			flip_vertically = (int)info.img_y > 0 ? 1 : 0;
-			info.img_y = (uint)CRuntime.abs((int)info.img_y);
-			if (info.img_y > 1 << 24)
+			flip_vertically = (int)s.img_y > 0 ? 1 : 0;
+			s.img_y = (uint)CRuntime.abs((int)s.img_y);
+			if (s.img_y > 1 << 24)
 				throw new Exception("too large");
-			if (info.img_x > 1 << 24)
+			if (s.img_x > 1 << 24)
 				throw new Exception("too large");
 			mr = info.mr;
 			mg = info.mg;
