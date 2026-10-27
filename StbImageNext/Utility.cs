@@ -60,6 +60,16 @@ namespace StbImageNext
 			s.Seek(skip, SeekOrigin.Current);
 		}
 
+		public static int stbi__getn(this Stream s, DataBuffer<byte> buf, int size)
+		{
+			return s.Read(buf.Data, (int)buf.Offset, size);
+		}
+
+		public static bool stbi__at_eof(this Stream s)
+		{
+			return s.Position >= s.Length;
+		}
+
 		private static byte stbi__compute_y(int r, int g, int b)
 		{
 			return (byte)((r * 77 + g * 150 + 29 * b) >> 8);

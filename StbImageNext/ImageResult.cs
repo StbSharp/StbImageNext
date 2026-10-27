@@ -47,9 +47,9 @@ namespace StbImageNext
 				return PsdImageDecoder.Load(context, requiredComponents);
 			}
 
-			if (HdrImageDecoder.Test(context))
+			if (HdrImageDecoder.Test(stream))
 			{
-				var floatResult = HdrImageDecoder.Load(context, requiredComponents);
+				var floatResult = HdrImageDecoder.Load(stream, requiredComponents);
 				return floatResult.ToLdr();
 			}
 

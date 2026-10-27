@@ -1,25 +1,26 @@
 ﻿using StbImageNext.Hebron.Runtime;
 using System;
+using System.IO;
 using static StbImageNext.StbImage;
 
 namespace StbImageNext.Decoders
 {
 	public static class HdrImageDecoder
 	{
-		public static bool Test(stbi__context s)
+		public static bool Test(Stream s)
 		{
 			var r = stbi__hdr_test_core(s, "#?RADIANCE\n");
-			stbi__rewind(s);
+			s.stbi__rewind();
 			if (r == 0)
 			{
 				r = stbi__hdr_test_core(s, "#?RGBE\n");
-				stbi__rewind(s);
+				s.stbi__rewind();
 			}
 
 			return r == 1;
 		}
 
-		public static unsafe ImageInfo Info(stbi__context s)
+		public static unsafe ImageInfo Info(Stream s)
 		{
 			try
 			{
@@ -71,19 +72,19 @@ namespace StbImageNext.Decoders
 			}
 			finally
 			{
-				stbi__rewind(s);
+				s.stbi__rewind();
 			}
 		}
 
-		public static unsafe ImageResultFloat Load(stbi__context s, ColorComponents req_comp2)
+		public static unsafe ImageResultFloat Load(Stream s, ColorComponents req_comp2)
 		{
-			var rgbe = stackalloc byte[4];
+			var rgbe = new DataBuffer<byte>(4);
 			var buffer = stackalloc sbyte[1024];
 			sbyte* token;
 			var valid = 0;
 			var width = 0;
 			var height = 0;
-			byte* scanline;
+			DataBuffer<byte> scanline;
 			var len = 0;
 			byte count = 0;
 			byte value = 0;
@@ -146,8 +147,7 @@ namespace StbImageNext.Decoders
 				{
 					for (; i < width; ++i)
 					{
-						//var rgbe = stackalloc byte[4];
-						stbi__getn(s, rgbe, 4);
+						s.stbi__getn(rgbe, 4);
 						stbi__hdr_convert(hdr_data + j * width * req_comp + i * req_comp, rgbe, req_comp);
 					}
 				}
@@ -157,18 +157,17 @@ namespace StbImageNext.Decoders
 				scanline = null;
 				for (j = 0; j < height; ++j)
 				{
-					c1 = stbi__get8(s);
-					c2 = stbi__get8(s);
-					len = stbi__get8(s);
+					c1 = s.stbi__get8();
+					c2 = s.stbi__get8();
+					len = s.stbi__get8();
 					if (c1 != 2 || c2 != 2 || (len & 0x80) != 0)
 					{
 						//var rgbe = stackalloc byte[4];
 						rgbe[0] = (byte)c1;
 						rgbe[1] = (byte)c2;
 						rgbe[2] = (byte)len;
-						rgbe[3] = stbi__get8(s);
+						rgbe[3] = s.stbi__get8();
 						stbi__hdr_convert(hdr_data, rgbe, req_comp);
-						CRuntime.free(scanline);
 
 						// goto main_decode_loop
 
@@ -177,7 +176,7 @@ namespace StbImageNext.Decoders
 						for (i = 1; i < width; ++i)
 						{
 							//var rgbe = stackalloc byte[4];
-							stbi__getn(s, rgbe, 4);
+							s.stbi__getn(rgbe, 4);
 							stbi__hdr_convert(hdr_data + j * width * req_comp + i * req_comp, rgbe, req_comp);
 						}
 
@@ -187,7 +186,7 @@ namespace StbImageNext.Decoders
 							for (i = 0; i < width; ++i)
 							{
 								//var rgbe = stackalloc byte[4];
-								stbi__getn(s, rgbe, 4);
+								s.stbi__getn(rgbe, 4);
 								stbi__hdr_convert(hdr_data + j * width * req_comp + i * req_comp, rgbe, req_comp);
 							}
 						}
@@ -196,20 +195,15 @@ namespace StbImageNext.Decoders
 					}
 
 					len <<= 8;
-					len |= stbi__get8(s);
+					len |= s.stbi__get8();
 					if (len != width)
 					{
-						CRuntime.free(scanline);
 						throw new Exception("invalid decoded scanline length");
 					}
 
 					if (scanline == null)
 					{
-						scanline = (byte*)stbi__malloc_mad2(width, 4, 0);
-						if (scanline == null)
-						{
-							throw new Exception("outofmem");
-						}
+						scanline = new DataBuffer<byte>(width * 4);
 					}
 
 					for (k = 0; k < 4; ++k)
@@ -218,14 +212,13 @@ namespace StbImageNext.Decoders
 						i = 0;
 						while ((nleft = width - i) > 0)
 						{
-							count = stbi__get8(s);
+							count = s.stbi__get8();
 							if (count > 128)
 							{
-								value = stbi__get8(s);
+								value = s.stbi__get8();
 								count -= 128;
 								if (count == 0 || count > nleft)
 								{
-									CRuntime.free(scanline);
 									throw new Exception("corrupt");
 								}
 
@@ -236,12 +229,11 @@ namespace StbImageNext.Decoders
 							{
 								if (count == 0 || count > nleft)
 								{
-									CRuntime.free(scanline);
 									throw new Exception("corrupt");
 								}
 
 								for (z = 0; z < count; ++z)
-									scanline[i++ * 4 + k] = stbi__get8(s);
+									scanline[i++ * 4 + k] = s.stbi__get8();
 							}
 						}
 					}
@@ -249,52 +241,48 @@ namespace StbImageNext.Decoders
 					for (i = 0; i < width; ++i)
 						stbi__hdr_convert(hdr_data + (j * width + i) * req_comp, scanline + i * 4, req_comp);
 				}
-
-				if (scanline != null)
-					CRuntime.free(scanline);
 			}
 
 		finish:
-
 			result.Data = hdr_data.Data;
 			return result;
 		}
 
-		private static int stbi__hdr_test_core(stbi__context s, string signature)
+		private static int stbi__hdr_test_core(Stream s, string signature)
 		{
 			var i = 0;
 			for (i = 0; i < signature.Length; ++i)
-				if (stbi__get8(s) != signature[i])
+				if (s.stbi__get8() != signature[i])
 					return 0;
-			stbi__rewind(s);
+			s.stbi__rewind();
 			return 1;
 		}
 
-		private static unsafe sbyte* stbi__hdr_gettoken(stbi__context z, sbyte* buffer)
+		private static unsafe sbyte* stbi__hdr_gettoken(Stream z, sbyte* buffer)
 		{
 			var len = 0;
 			sbyte c = 0;
-			c = (sbyte)stbi__get8(z);
-			while (stbi__at_eof(z) == 0 && c != 10)
+			c = (sbyte)z.stbi__get8();
+			while (!z.stbi__at_eof() && c != 10)
 			{
 				buffer[len++] = c;
 				if (len == 1024 - 1)
 				{
-					while (stbi__at_eof(z) == 0 && stbi__get8(z) != 10)
+					while (!z.stbi__at_eof() && z.stbi__get8() != 10)
 					{
 					}
 
 					break;
 				}
 
-				c = (sbyte)stbi__get8(z);
+				c = (sbyte)z.stbi__get8();
 			}
 
 			buffer[len] = 0;
 			return buffer;
 		}
 
-		private static unsafe void stbi__hdr_convert(DataBuffer<float> output, byte* input, int req_comp)
+		private static void stbi__hdr_convert(DataBuffer<float> output, DataBuffer<byte> input, int req_comp)
 		{
 			if (input[3] != 0)
 			{

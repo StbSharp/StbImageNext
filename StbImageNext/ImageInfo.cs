@@ -45,9 +45,9 @@ namespace StbImageNext
 				return PsdImageDecoder.Info(context);
 			}
 
-			if (HdrImageDecoder.Test(context))
+			if (HdrImageDecoder.Test(stream))
 			{
-				return HdrImageDecoder.Info(context);
+				return HdrImageDecoder.Info(stream);
 			}
 
 			throw new NotSupportedException("Image format is not supported");

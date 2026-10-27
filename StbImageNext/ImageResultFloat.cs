@@ -68,13 +68,11 @@ namespace StbImageNext
 			return result;
 		}
 
-		public static unsafe ImageResultFloat FromStream(Stream stream, ColorComponents requiredComponents = ColorComponents.Default)
+		public static ImageResultFloat FromStream(Stream stream, ColorComponents requiredComponents = ColorComponents.Default)
 		{
-			var context = new StbImage.stbi__context(stream);
-
-			if (HdrImageDecoder.Test(context))
+			if (HdrImageDecoder.Test(stream))
 			{
-				return HdrImageDecoder.Load(context, requiredComponents);
+				return HdrImageDecoder.Load(stream, requiredComponents);
 			}
 
 			throw new NotSupportedException("Image format is not supported");
