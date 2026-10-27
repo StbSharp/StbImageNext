@@ -17,9 +17,9 @@ namespace StbImageNext
 		{
 			var context = new StbImage.stbi__context(stream);
 
-			if (PngImageDecoder.Test(context))
+			if (PngImageDecoder.Test(stream))
 			{
-				return PngImageDecoder.Decode(context, requiredComponents);
+				return PngImageDecoder.Decode(stream, requiredComponents);
 			}
 
 			if (BmpImageDecoder.Test(stream))

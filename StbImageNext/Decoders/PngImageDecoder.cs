@@ -1,5 +1,5 @@
-﻿using StbImageNext.Hebron.Runtime;
-using System;
+﻿using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using static StbImageNext.StbImage;
 
@@ -20,22 +20,22 @@ namespace StbImageNext.Decoders
 		private static byte[] stbi__check_png_header_png_sig = { 137, 80, 78, 71, 13, 10, 26, 10 };
 		private static byte[] stbi__depth_scale_table = { 0, 0xff, 0x55, 0, 0x11, 0, 0, 0, 0x01 };
 
-		public static bool Test(stbi__context s)
+		public static bool Test(Stream s)
 		{
 			try
 			{
 				var r = 0;
 				r = stbi__check_png_header(s, false);
-				stbi__rewind(s);
+				s.stbi__rewind();
 				return r == 1 ? true : false;
 			}
 			finally
 			{
-				stbi__rewind(s);
+				s.stbi__rewind();
 			}
 		}
 
-		public static ImageInfo Info(stbi__context s)
+		public static ImageInfo Info(Stream s)
 		{
 			try
 			{
@@ -57,11 +57,11 @@ namespace StbImageNext.Decoders
 			}
 			finally
 			{
-				stbi__rewind(s);
+				s.stbi__rewind();
 			}
 		}
 
-		public static ImageResult Decode(stbi__context s, ColorComponents req_comp)
+		public static ImageResult Decode(Stream s, ColorComponents req_comp)
 		{
 			var p = new stbi__png();
 			p.s = s;
@@ -69,9 +69,9 @@ namespace StbImageNext.Decoders
 			var data = stbi__do_png(p, (int)req_comp);
 			var result = new ImageResult
 			{
-				Width = (int)s.img_x,
-				Height = (int)s.img_y,
-				SourceComp = (ColorComponents)s.img_n
+				Width = (int)p.img_x,
+				Height = (int)p.img_y,
+				SourceComp = (ColorComponents)p.img_n
 			};
 
 			result.Comp = req_comp == ColorComponents.Default ? result.SourceComp : req_comp;
@@ -80,7 +80,7 @@ namespace StbImageNext.Decoders
 			return result;
 		}
 
-		private static int stbi__png_is16(stbi__context s)
+		private static int stbi__png_is16(Stream s)
 		{
 			var p = new stbi__png();
 			p.s = s;
@@ -88,26 +88,26 @@ namespace StbImageNext.Decoders
 				return 0;
 			if (p.depth != 16)
 			{
-				stbi__rewind(p.s);
+				p.s.stbi__rewind();
 				return 0;
 			}
 
 			return 1;
 		}
 
-		private static stbi__pngchunk stbi__get_chunk_header(stbi__context s)
+		private static stbi__pngchunk stbi__get_chunk_header(Stream s)
 		{
 			var c = new stbi__pngchunk();
-			c.length = stbi__get32be(s);
-			c.type = stbi__get32be(s);
+			c.length = s.stbi__get32be();
+			c.type = s.stbi__get32be();
 			return c;
 		}
 
-		private static int stbi__check_png_header(stbi__context s, bool throwOnError)
+		private static int stbi__check_png_header(Stream s, bool throwOnError)
 		{
 			var i = 0;
 			for (i = 0; i < 8; ++i)
-				if (stbi__get8(s) != stbi__check_png_header_png_sig[i])
+				if (s.stbi__get8() != stbi__check_png_header_png_sig[i])
 				{
 					if (throwOnError)
 					{
@@ -162,7 +162,7 @@ namespace StbImageNext.Decoders
 			uint img_len = 0;
 			uint img_width_bytes = 0;
 			var k = 0;
-			var img_n = s.img_n;
+			var img_n = a.img_n;
 			var output_bytes = out_n * bytes;
 			var filter_bytes = img_n * bytes;
 			var width = (int)x;
@@ -296,11 +296,11 @@ namespace StbImageNext.Decoders
 			var p = 0;
 			if (interlaced == 0)
 			{
-				stbi__create_png_image_raw(a, image_data, image_data_len, out_n, a.s.img_x, a.s.img_y, depth, color);
+				stbi__create_png_image_raw(a, image_data, image_data_len, out_n, a.img_x, a.img_y, depth, color);
 				return 1;
 			}
 
-			var final = new DataBuffer<byte>(a.s.img_x * a.s.img_y * out_bytes);
+			var final = new DataBuffer<byte>(a.img_x * a.img_y * out_bytes);
 
 			var xorig = stackalloc int[] { 0, 4, 0, 2, 0, 1, 0 };
 			var yorig = stackalloc int[] { 0, 0, 4, 0, 2, 0, 1 };
@@ -312,11 +312,11 @@ namespace StbImageNext.Decoders
 				var j = 0;
 				var x = 0;
 				var y = 0;
-				x = (int)((a.s.img_x - xorig[p] + xspc[p] - 1) / xspc[p]);
-				y = (int)((a.s.img_y - yorig[p] + yspc[p] - 1) / yspc[p]);
+				x = (int)((a.img_x - xorig[p] + xspc[p] - 1) / xspc[p]);
+				y = (int)((a.img_y - yorig[p] + yspc[p] - 1) / yspc[p]);
 				if (x != 0 && y != 0)
 				{
-					var img_len = (uint)((((a.s.img_n * x * depth + 7) >> 3) + 1) * y);
+					var img_len = (uint)((((a.img_n * x * depth + 7) >> 3) + 1) * y);
 					stbi__create_png_image_raw(a, image_data, image_data_len, out_n, (uint)x, (uint)y, depth, color);
 
 					for (j = 0; j < y; ++j)
@@ -326,7 +326,7 @@ namespace StbImageNext.Decoders
 							var out_y = j * yspc[p] + yorig[p];
 							var out_x = i * xspc[p] + xorig[p];
 
-							final.Copy(out_y * a.s.img_x * out_bytes + out_x * out_bytes, a._out_, (j * x + i) * out_bytes, out_bytes);
+							final.Copy(out_y * a.img_x * out_bytes + out_x * out_bytes, a._out_, (j * x + i) * out_bytes, out_bytes);
 						}
 					}
 
@@ -343,7 +343,7 @@ namespace StbImageNext.Decoders
 		{
 			var s = z.s;
 			uint i = 0;
-			var pixel_count = s.img_x * s.img_y;
+			var pixel_count = z.img_x * z.img_y;
 			var p = z._out_;
 			if (out_n == 2)
 			{
@@ -367,7 +367,7 @@ namespace StbImageNext.Decoders
 		private static int stbi__expand_png_palette(stbi__png a, byte* palette, int len, int pal_img_n)
 		{
 			uint i = 0;
-			var pixel_count = a.s.img_x * a.s.img_y;
+			var pixel_count = a.img_x * a.img_y;
 			var orig = a._out_;
 
 			var p = new DataBuffer<byte>(pixel_count * pal_img_n);
@@ -403,9 +403,9 @@ namespace StbImageNext.Decoders
 		{
 			var s = z.s;
 			uint i = 0;
-			var pixel_count = s.img_x * s.img_y;
+			var pixel_count = z.img_x * z.img_y;
 			var p = z._out_;
-			if (s.img_out_n == 3)
+			if (z.img_out_n == 3)
 			{
 				for (i = 0; i < pixel_count; ++i)
 				{
@@ -481,7 +481,7 @@ namespace StbImageNext.Decoders
 				{
 					case ((uint)67 << 24) + ((uint)103 << 16) + ((uint)66 << 8) + 73:
 						is_iphone = 1;
-						stbi__skip(s, (int)c.length);
+						s.stbi__skip((int)c.length);
 						break;
 					case ((uint)73 << 24) + ((uint)72 << 16) + ((uint)68 << 8) + 82:
 						{
@@ -492,16 +492,16 @@ namespace StbImageNext.Decoders
 							first = 0;
 							if (c.length != 13)
 								throw new Exception("bad IHDR len");
-							s.img_x = stbi__get32be(s);
-							s.img_y = stbi__get32be(s);
-							if (s.img_y > 1 << 24)
+							z.img_x = s.stbi__get32be();
+							z.img_y = s.stbi__get32be();
+							if (z.img_y > 1 << 24)
 								throw new Exception("too large");
-							if (s.img_x > 1 << 24)
+							if (z.img_x > 1 << 24)
 								throw new Exception("too large");
-							z.depth = stbi__get8(s);
+							z.depth = s.stbi__get8();
 							if (z.depth != 1 && z.depth != 2 && z.depth != 4 && z.depth != 8 && z.depth != 16)
 								throw new Exception("1/2/4/8/16-bit only");
-							color = stbi__get8(s);
+							color = s.stbi__get8();
 							if (color > 6)
 								throw new Exception("bad ctype");
 							if (color == 3 && z.depth == 16)
@@ -510,27 +510,27 @@ namespace StbImageNext.Decoders
 								pal_img_n = 3;
 							else if ((color & 1) != 0)
 								throw new Exception("bad ctype");
-							comp = stbi__get8(s);
+							comp = s.stbi__get8();
 							if (comp != 0)
 								throw new Exception("bad comp method");
-							filter = stbi__get8(s);
+							filter = s.stbi__get8();
 							if (filter != 0)
 								throw new Exception("bad filter method");
-							interlace = stbi__get8(s);
+							interlace = s.stbi__get8();
 							if (interlace > 1)
 								throw new Exception("bad interlace method");
-							if (s.img_x == 0 || s.img_y == 0)
+							if (z.img_x == 0 || z.img_y == 0)
 								throw new Exception("0-pixel image");
 							if (pal_img_n == 0)
 							{
-								s.img_n = ((color & 2) != 0 ? 3 : 1) + ((color & 4) != 0 ? 1 : 0);
-								if ((1 << 30) / s.img_x / s.img_n < s.img_y)
+								z.img_n = ((color & 2) != 0 ? 3 : 1) + ((color & 4) != 0 ? 1 : 0);
+								if ((1 << 30) / z.img_x / z.img_n < z.img_y)
 									throw new Exception("too large");
 							}
 							else
 							{
-								s.img_n = 1;
-								if ((1 << 30) / s.img_x / 4 < s.img_y)
+								z.img_n = 1;
+								if ((1 << 30) / z.img_x / 4 < z.img_y)
 									throw new Exception("too large");
 							}
 
@@ -548,9 +548,9 @@ namespace StbImageNext.Decoders
 								throw new Exception("invalid PLTE");
 							for (i = 0; i < pal_len; ++i)
 							{
-								palette[i * 4 + 0] = stbi__get8(s);
-								palette[i * 4 + 1] = stbi__get8(s);
-								palette[i * 4 + 2] = stbi__get8(s);
+								palette[i * 4 + 0] = s.stbi__get8();
+								palette[i * 4 + 1] = s.stbi__get8();
+								palette[i * 4 + 2] = s.stbi__get8();
 								palette[i * 4 + 3] = 255;
 							}
 
@@ -567,7 +567,7 @@ namespace StbImageNext.Decoders
 							{
 								if (scan == STBI__SCAN_header)
 								{
-									s.img_n = 4;
+									z.img_n = 4;
 									return 1;
 								}
 
@@ -577,27 +577,27 @@ namespace StbImageNext.Decoders
 									throw new Exception("bad tRNS len");
 								pal_img_n = 4;
 								for (i = 0; i < c.length; ++i)
-									palette[i * 4 + 3] = stbi__get8(s);
+									palette[i * 4 + 3] = s.stbi__get8();
 							}
 							else
 							{
-								if ((s.img_n & 1) == 0)
+								if ((z.img_n & 1) == 0)
 									throw new Exception("tRNS with alpha");
-								if (c.length != (uint)s.img_n * 2)
+								if (c.length != (uint)z.img_n * 2)
 									throw new Exception("bad tRNS len");
 								has_trans = 1;
 								if (scan == STBI__SCAN_header)
 								{
-									++s.img_n;
+									++z.img_n;
 									return 1;
 								}
 
 								if (z.depth == 16)
-									for (k = 0; k < s.img_n && k < 3; ++k)
-										tc16[k] = (ushort)stbi__get16be(s);
+									for (k = 0; k < z.img_n && k < 3; ++k)
+										tc16[k] = (ushort)s.stbi__get16be();
 								else
-									for (k = 0; k < s.img_n && k < 3; ++k)
-										tc[k] = (byte)((byte)(stbi__get16be(s) & 255) * stbi__depth_scale_table[z.depth]);
+									for (k = 0; k < z.img_n && k < 3; ++k)
+										tc[k] = (byte)((byte)(s.stbi__get16be() & 255) * stbi__depth_scale_table[z.depth]);
 							}
 
 							break;
@@ -612,7 +612,7 @@ namespace StbImageNext.Decoders
 							if (scan == STBI__SCAN_header)
 							{
 								if (pal_img_n != 0)
-									s.img_n = pal_img_n;
+									z.img_n = pal_img_n;
 								return 1;
 							}
 
@@ -643,7 +643,7 @@ namespace StbImageNext.Decoders
 								idata_limit = (uint)z.idata.Length;
 							}
 
-							if (stbi__getn(s, z.idata + (int)ioff, (int)c.length) == 0)
+							if (s.stbi__getn(z.idata + (int)ioff, (int)c.length) == 0)
 								throw new Exception("outofdata");
 							ioff += c.length;
 							break;
@@ -659,20 +659,20 @@ namespace StbImageNext.Decoders
 								return 1;
 							if (z.idata == null)
 								throw new Exception("no IDAT");
-							bpl = (uint)((s.img_x * z.depth + 7) / 8);
-							raw_len = (uint)(bpl * s.img_y * s.img_n + s.img_y);
+							bpl = (uint)((z.img_x * z.depth + 7) / 8);
+							raw_len = (uint)(bpl * z.img_y * z.img_n + z.img_y);
 							z.expanded = stbi_zlib_decode_malloc_guesssize_headerflag(z.idata, (int)ioff, (int)raw_len, is_iphone == 0 ? 1 : 0);
 							if (z.expanded == null)
 								return 0;
 							z.idata = null;
-							if ((req_comp == s.img_n + 1 && req_comp != 3 && pal_img_n == 0) || has_trans != 0)
-								s.img_out_n = s.img_n + 1;
+							if ((req_comp == z.img_n + 1 && req_comp != 3 && pal_img_n == 0) || has_trans != 0)
+								z.img_out_n = z.img_n + 1;
 							else
-								s.img_out_n = s.img_n;
+								z.img_out_n = z.img_n;
 
 							fixed (byte* ptr = z.expanded)
 							{
-								if (stbi__create_png_image(z, ptr, (uint)z.expanded.Length, s.img_out_n, z.depth, color, interlace) == 0)
+								if (stbi__create_png_image(z, ptr, (uint)z.expanded.Length, z.img_out_n, z.depth, color, interlace) == 0)
 									return 0;
 							}
 							if (has_trans != 0)
@@ -683,31 +683,31 @@ namespace StbImageNext.Decoders
 								}
 								else
 								{
-									stbi__compute_transparency(z, tc, s.img_out_n);
+									stbi__compute_transparency(z, tc, z.img_out_n);
 								}
 							}
 
 							if (is_iphone != 0 &&
 								(stbi__de_iphone_flag_set != 0
 									? stbi__de_iphone_flag_local
-									: stbi__de_iphone_flag_global) != 0 && s.img_out_n > 2)
+									: stbi__de_iphone_flag_global) != 0 && z.img_out_n > 2)
 								stbi__de_iphone(z);
 							if (pal_img_n != 0)
 							{
-								s.img_n = pal_img_n;
-								s.img_out_n = pal_img_n;
+								z.img_n = pal_img_n;
+								z.img_out_n = pal_img_n;
 								if (req_comp >= 3)
-									s.img_out_n = req_comp;
-								if (stbi__expand_png_palette(z, palette, (int)pal_len, s.img_out_n) == 0)
+									z.img_out_n = req_comp;
+								if (stbi__expand_png_palette(z, palette, (int)pal_len, z.img_out_n) == 0)
 									return 0;
 							}
 							else if (has_trans != 0)
 							{
-								++s.img_n;
+								++z.img_n;
 							}
 
 							z.expanded = null;
-							stbi__get32be(s);
+							s.stbi__get32be();
 							return 1;
 						}
 
@@ -723,11 +723,11 @@ namespace StbImageNext.Decoders
 							throw new Exception(new string(stbi__parse_png_file_invalid_chunk));
 						}
 
-						stbi__skip(s, (int)c.length);
+						s.stbi__skip((int)c.length);
 						break;
 				}
 
-				stbi__get32be(s);
+				s.stbi__get32be();
 			}
 		}
 
@@ -746,10 +746,10 @@ namespace StbImageNext.Decoders
 
 				result = p._out_;
 				p._out_ = null;
-				if (req_comp != 0 && req_comp != p.s.img_out_n)
+				if (req_comp != 0 && req_comp != p.img_out_n)
 				{
-					result = Utility.stbi__convert_format(result, p.s.img_out_n, req_comp, p.s.img_x, p.s.img_y);
-					p.s.img_out_n = req_comp;
+					result = Utility.stbi__convert_format(result, p.img_out_n, req_comp, p.img_x, p.img_y);
+					p.img_out_n = req_comp;
 
 					return result;
 				}
@@ -765,16 +765,16 @@ namespace StbImageNext.Decoders
 		{
 			if (stbi__parse_png_file(p, STBI__SCAN_header, 0) == 0)
 			{
-				stbi__rewind(p.s);
+				p.s.stbi__rewind();
 				return 0;
 			}
 
 			if (x != null)
-				*x = (int)p.s.img_x;
+				*x = (int)p.img_x;
 			if (y != null)
-				*y = (int)p.s.img_y;
+				*y = (int)p.img_y;
 			if (comp != null)
-				*comp = p.s.img_n;
+				*comp = p.img_n;
 			return 1;
 		}
 
@@ -784,7 +784,11 @@ namespace StbImageNext.Decoders
 			public int depth;
 			public byte[] expanded;
 			public DataBuffer<byte> idata;
-			public stbi__context s;
+			public Stream s;
+			public uint img_x;
+			public uint img_y;
+			public int img_n;
+			public int img_out_n;
 		}
 
 		[StructLayout(LayoutKind.Sequential)]

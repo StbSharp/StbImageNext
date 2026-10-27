@@ -1730,7 +1730,6 @@ namespace StbImageNext.Decoders
 			public int succ_low;
 			public int todo;
 			public delegate1 YCbCr_to_RGB_kernel;
-
 			public uint img_x;
 			public uint img_y;
 			public int img_n;
