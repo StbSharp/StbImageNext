@@ -1,5 +1,4 @@
-﻿using StbImageNext.Hebron.Runtime;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -48,8 +47,6 @@ namespace StbImageNext
 
 		public void Dispose()
 		{
-			Dispose(true);
-			GC.SuppressFinalize(this);
 		}
 
 		public unsafe bool MoveNext()
@@ -81,31 +78,6 @@ namespace StbImageNext
 		public void Reset()
 		{
 			throw new NotImplementedException();
-		}
-
-		~AnimatedGifEnumerator()
-		{
-			Dispose(false);
-		}
-
-		protected unsafe virtual void Dispose(bool disposing)
-		{
-			if (_gif != null)
-			{
-				if (_gif.history != null)
-				{
-					CRuntime.free(_gif.history);
-					_gif.history = null;
-				}
-
-				if (_gif.background != null)
-				{
-					CRuntime.free(_gif.background);
-					_gif.background = null;
-				}
-
-				_gif = null;
-			}
 		}
 	}
 

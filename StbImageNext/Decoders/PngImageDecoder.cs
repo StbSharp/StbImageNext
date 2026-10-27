@@ -779,19 +779,6 @@ namespace StbImageNext.Decoders
 			return 1;
 		}
 
-		private static uint Adler32(byte[] data, int offset, int length)
-		{
-			const uint mod = 65521;
-			uint a = 1;
-			uint b = 0;
-			for (int i = 0; i < length; i++)
-			{
-				a = (a + data[offset + i]) % mod;
-				b = (b + a) % mod;
-			}
-			return (b << 16) | a;
-		}
-
 		private static byte[] stbi_zlib_decode_malloc_guesssize_headerflag(DataBuffer<byte> buffer, int len, int initial_size, int parse_header)
 		{
 			if (buffer == null || len <= 0)

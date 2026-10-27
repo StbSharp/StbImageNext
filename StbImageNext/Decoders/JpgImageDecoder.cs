@@ -1772,6 +1772,5 @@ namespace StbImageNext.Decoders
 			public int ypos;
 			public int ystep;
 		}
-
 	}
 }

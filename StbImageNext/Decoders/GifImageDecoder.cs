@@ -1,5 +1,4 @@
-﻿using StbImageNext.Hebron.Runtime;
-using System;
+﻿using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using static StbImageNext.StbImage;
@@ -53,36 +52,27 @@ namespace StbImageNext.Decoders
 		public static unsafe ImageResult Load(Stream s, ColorComponents req_comp)
 		{
 			var g = new stbi__gif();
-			try
+			var u = stbi__gif_load_next(s, g, (int)req_comp, null);
+			if (u == null)
 			{
-				var u = stbi__gif_load_next(s, g, (int)req_comp, null);
-				if (u == null)
-				{
-					throw new Exception("Unknown GIF loading error");
-				}
-
-				if (req_comp != ColorComponents.Default && req_comp != ColorComponents.RedGreenBlueAlpha)
-				{
-					u = Utility.stbi__convert_format(u, 4, (int)req_comp, (uint)g.w, (uint)g.h);
-				}
-
-				var result = new ImageResult
-				{
-					Width = g.w,
-					Height = g.h,
-					SourceComp = g.colorComponents
-				};
-
-				result.Comp = req_comp == ColorComponents.Default ? result.SourceComp : req_comp;
-				result.Data = u.Data;
-				return result;
-			}
-			finally
-			{
-				CRuntime.free(g.history);
-				CRuntime.free(g.background);
+				throw new Exception("Unknown GIF loading error");
 			}
 
+			if (req_comp != ColorComponents.Default && req_comp != ColorComponents.RedGreenBlueAlpha)
+			{
+				u = Utility.stbi__convert_format(u, 4, (int)req_comp, (uint)g.w, (uint)g.h);
+			}
+
+			var result = new ImageResult
+			{
+				Width = g.w,
+				Height = g.h,
+				SourceComp = g.colorComponents
+			};
+
+			result.Comp = req_comp == ColorComponents.Default ? result.SourceComp : req_comp;
+			result.Data = u.Data;
+			return result;
 		}
 
 		private static void stbi__gif_parse_colortable(Stream s, byte[][] pal, int num_entries, int transp)
@@ -282,13 +272,11 @@ namespace StbImageNext.Decoders
 					throw new Exception("too large");
 				pcount = g.w * g.h;
 				g._out_ = new DataBuffer<byte>(4 * pcount);
-				g.background = (byte*)stbi__malloc((ulong)(4 * pcount));
-				g.history = (byte*)stbi__malloc((ulong)pcount);
-				if (g._out_ == null || g.background == null || g.history == null)
-					throw new Exception("outofmem");
+				g.background = new DataBuffer<byte>(4 * pcount);
+				g.history = new DataBuffer<byte>(pcount);
 				g._out_.Set(0);
-				CRuntime.memset(g.background, 0x00, (ulong)(4 * pcount));
-				CRuntime.memset(g.history, 0x00, (ulong)pcount);
+				g.background.Set(0);
+				g.history.Set(0);
 				first_frame = 1;
 			}
 			else
@@ -310,17 +298,14 @@ namespace StbImageNext.Decoders
 					for (pi = 0; pi < pcount; ++pi)
 						if (g.history[pi] != 0)
 						{
-							g._out_.Copy(pi * 4, &g.background[pi * 4], 4);
+							g._out_.Copy(pi * 4, g.background, pi * 4, 4);
 						}
 				}
 
-				fixed (byte* ptr = g._out_.Data)
-				{
-					CRuntime.memcpy(g.background, ptr, (ulong)(4 * g.w * g.h));
-				}
+				g.background.Copy(g._out_, 4 * g.w * g.h);
 			}
 
-			CRuntime.memset(g.history, 0x00, (ulong)(g.w * g.h));
+			g.history.Set(0);
 			for (; ; )
 			{
 				int tag = s.stbi__get8();
@@ -440,10 +425,10 @@ namespace StbImageNext.Decoders
 		}
 
 
-		internal unsafe class stbi__gif
+		internal class stbi__gif
 		{
 			public DataBuffer<byte> _out_;
-			public byte* background;
+			public DataBuffer<byte> background;
 			public int bgindex;
 			public stbi__gif_lzw[] codes = new stbi__gif_lzw[8192];
 			public byte[][] color_table;
@@ -453,7 +438,7 @@ namespace StbImageNext.Decoders
 			public int eflags;
 			public int flags;
 			public int h;
-			public byte* history;
+			public DataBuffer<byte> history;
 			public int lflags;
 			public int line_size;
 			public byte[][] lpal = Utility.CreateArray<byte>(256, 4);
