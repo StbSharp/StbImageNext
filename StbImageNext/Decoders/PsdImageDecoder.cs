@@ -1,34 +1,35 @@
 ﻿using System;
+using System.IO;
 using static StbImageNext.StbImage;
 
 namespace StbImageNext.Decoders
 {
 	public static class PsdImageDecoder
 	{
-		public static bool Test(stbi__context s)
+		public static bool Test(Stream s)
 		{
-			var r = stbi__get32be(s) == 0x38425053;
-			stbi__rewind(s);
+			var r = s.stbi__get32be() == 0x38425053;
+			s.stbi__rewind();
 			return r;
 		}
 
-		public static ImageInfo Info(stbi__context s)
+		public static ImageInfo Info(Stream s)
 		{
 			var channelCount = 0;
 			var depth = 0;
 
-			if (stbi__get32be(s) != 0x38425053)
+			if (s.stbi__get32be() != 0x38425053)
 			{
 				throw new Exception("Image isn't PSD");
 			}
 
-			if (stbi__get16be(s) != 1)
+			if (s.stbi__get16be() != 1)
 			{
-				throw new Exception("stbi__get16be(s) != 1");
+				throw new Exception("s.stbi__get16be() != 1");
 			}
 
-			stbi__skip(s, 6);
-			channelCount = stbi__get16be(s);
+			s.stbi__skip(6);
+			channelCount = s.stbi__get16be();
 			if (channelCount < 0 || channelCount > 16)
 			{
 				throw new Exception($"Wrong channel count: {channelCount}");
@@ -36,19 +37,19 @@ namespace StbImageNext.Decoders
 
 			var result = new ImageInfo
 			{
-				Height = (int)stbi__get32be(s),
-				Width = (int)stbi__get32be(s)
+				Height = (int)s.stbi__get32be(),
+				Width = (int)s.stbi__get32be()
 			};
 
-			depth = stbi__get16be(s);
+			depth = s.stbi__get16be();
 			if (depth != 8)
 			{
 				throw new Exception($"Depth {depth} isn't supported");
 			}
 
-			if (stbi__get16be(s) != 3)
+			if (s.stbi__get16be() != 3)
 			{
-				throw new Exception($"stbi__get16be(s) != 3");
+				throw new Exception($"s.stbi__get16be() != 3");
 			}
 
 			result.ColorComponents = ColorComponents.RedGreenBlueAlpha;
@@ -56,7 +57,7 @@ namespace StbImageNext.Decoders
 			return result;
 		}
 
-		public static ImageResult Load(stbi__context s, ColorComponents req_comp)
+		public static ImageResult Load(Stream s, ColorComponents req_comp)
 		{
 			var pixelCount = 0;
 			var channelCount = 0;
@@ -67,29 +68,29 @@ namespace StbImageNext.Decoders
 			var w = 0;
 			var h = 0;
 
-			if (stbi__get32be(s) != 0x38425053)
+			if (s.stbi__get32be() != 0x38425053)
 				throw new Exception("not PSD");
-			if (stbi__get16be(s) != 1)
+			if (s.stbi__get16be() != 1)
 				throw new Exception("wrong version");
-			stbi__skip(s, 6);
-			channelCount = stbi__get16be(s);
+			s.stbi__skip(6);
+			channelCount = s.stbi__get16be();
 			if (channelCount < 0 || channelCount > 16)
 				throw new Exception("wrong channel count");
-			h = (int)stbi__get32be(s);
-			w = (int)stbi__get32be(s);
+			h = (int)s.stbi__get32be();
+			w = (int)s.stbi__get32be();
 			if (h > 1 << 24)
 				throw new Exception("too large");
 			if (w > 1 << 24)
 				throw new Exception("too large");
-			bitdepth = stbi__get16be(s);
+			bitdepth = s.stbi__get16be();
 			if (bitdepth != 8 && bitdepth != 16)
 				throw new Exception("unsupported bit depth");
-			if (stbi__get16be(s) != 3)
+			if (s.stbi__get16be() != 3)
 				throw new Exception("wrong color format");
-			stbi__skip(s, (int)stbi__get32be(s));
-			stbi__skip(s, (int)stbi__get32be(s));
-			stbi__skip(s, (int)stbi__get32be(s));
-			compression = stbi__get16be(s);
+			s.stbi__skip((int)s.stbi__get32be());
+			s.stbi__skip((int)s.stbi__get32be());
+			s.stbi__skip((int)s.stbi__get32be());
+			compression = s.stbi__get16be();
 			if (compression > 1)
 				throw new Exception("bad compression");
 			if (stbi__mad3sizes_valid(4, w, h, 0) == 0)
@@ -100,7 +101,7 @@ namespace StbImageNext.Decoders
 			pixelCount = w * h;
 			if (compression != 0)
 			{
-				stbi__skip(s, h * channelCount * 2);
+				s.stbi__skip(h * channelCount * 2);
 				for (channel = 0; channel < 4; channel++)
 				{
 					var p = _out_ + channel;
@@ -138,14 +139,14 @@ namespace StbImageNext.Decoders
 						{
 							for (i = 0; i < pixelCount; i++, p += 4)
 							{
-								p[0] = (byte)(stbi__get16be(s) >> 8);
+								p[0] = (byte)(s.stbi__get16be() >> 8);
 							}
 						}
 						else
 						{
 							for (i = 0; i < pixelCount; i++, p += 4)
 							{
-								p[0] = stbi__get8(s);
+								p[0] = s.stbi__get8();
 							}
 						}
 					}
@@ -187,7 +188,7 @@ namespace StbImageNext.Decoders
 			return result;
 		}
 
-		private static int stbi__psd_decode_rle(stbi__context s, DataBuffer<byte> p, int pixelCount)
+		private static int stbi__psd_decode_rle(Stream s, DataBuffer<byte> p, int pixelCount)
 		{
 			var count = 0;
 			var nleft = 0;
@@ -195,7 +196,7 @@ namespace StbImageNext.Decoders
 			count = 0;
 			while ((nleft = pixelCount - count) > 0)
 			{
-				len = stbi__get8(s);
+				len = s.stbi__get8();
 				if (len == 128)
 				{
 				}
@@ -207,7 +208,7 @@ namespace StbImageNext.Decoders
 					count += len;
 					while (len != 0)
 					{
-						p[0] = stbi__get8(s);
+						p[0] = s.stbi__get8();
 						p += 4;
 						len--;
 					}
@@ -218,7 +219,7 @@ namespace StbImageNext.Decoders
 					len = 257 - len;
 					if (len > nleft)
 						return 0;
-					val = stbi__get8(s);
+					val = s.stbi__get8();
 					count += len;
 					while (len != 0)
 					{

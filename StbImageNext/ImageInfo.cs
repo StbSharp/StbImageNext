@@ -40,9 +40,9 @@ namespace StbImageNext
 				return TgaImageDecoder.Info(context);
 			}
 
-			if (PsdImageDecoder.Test(context))
+			if (PsdImageDecoder.Test(stream))
 			{
-				return PsdImageDecoder.Info(context);
+				return PsdImageDecoder.Info(stream);
 			}
 
 			if (HdrImageDecoder.Test(stream))
