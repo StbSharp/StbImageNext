@@ -1,5 +1,6 @@
 ﻿using StbImageNext.Hebron.Runtime;
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using static StbImageNext.StbImage;
 
@@ -7,27 +8,27 @@ namespace StbImageNext.Decoders
 {
 	public static class GifImageDecoder
 	{
-		public static bool Test(stbi__context s)
+		public static bool Test(Stream s)
 		{
 			try
 			{
 				var sz = 0;
-				if (stbi__get8(s) != 71 || stbi__get8(s) != 73 || stbi__get8(s) != 70 || stbi__get8(s) != 56)
+				if (s.stbi__get8() != 71 || s.stbi__get8() != 73 || s.stbi__get8() != 70 || s.stbi__get8() != 56)
 					return false;
-				sz = stbi__get8(s);
+				sz = s.stbi__get8();
 				if (sz != 57 && sz != 55)
 					return false;
-				if (stbi__get8(s) != 97)
+				if (s.stbi__get8() != 97)
 					return false;
 				return true;
 			}
 			finally
 			{
-				stbi__rewind(s);
+				s.stbi__rewind();
 			}
 		}
 
-		public static ImageInfo Info(stbi__context s)
+		public static ImageInfo Info(Stream s)
 		{
 			try
 			{
@@ -45,11 +46,11 @@ namespace StbImageNext.Decoders
 			}
 			finally
 			{
-				stbi__rewind(s);
+				s.stbi__rewind();
 			}
 		}
 
-		public static unsafe ImageResult Load(stbi__context s, ColorComponents req_comp)
+		public static unsafe ImageResult Load(Stream s, ColorComponents req_comp)
 		{
 			var g = new stbi__gif();
 			try
@@ -84,34 +85,34 @@ namespace StbImageNext.Decoders
 
 		}
 
-		private static void stbi__gif_parse_colortable(stbi__context s, byte[][] pal, int num_entries, int transp)
+		private static void stbi__gif_parse_colortable(Stream s, byte[][] pal, int num_entries, int transp)
 		{
 			var i = 0;
 			for (i = 0; i < num_entries; ++i)
 			{
-				pal[i][2] = stbi__get8(s);
-				pal[i][1] = stbi__get8(s);
-				pal[i][0] = stbi__get8(s);
+				pal[i][2] = s.stbi__get8();
+				pal[i][1] = s.stbi__get8();
+				pal[i][0] = s.stbi__get8();
 				pal[i][3] = (byte)(transp == i ? 0 : 255);
 			}
 		}
 
-		private static void ParseHeader(stbi__context s, stbi__gif g, bool onlyInfo)
+		private static void ParseHeader(Stream s, stbi__gif g, bool onlyInfo)
 		{
 			byte version = 0;
-			if (stbi__get8(s) != 71 || stbi__get8(s) != 73 || stbi__get8(s) != 70 || stbi__get8(s) != 56)
+			if (s.stbi__get8() != 71 || s.stbi__get8() != 73 || s.stbi__get8() != 70 || s.stbi__get8() != 56)
 				throw new Exception("not GIF");
-			version = stbi__get8(s);
+			version = s.stbi__get8();
 			if (version != 55 && version != 57)
 				throw new Exception("not GIF");
-			if (stbi__get8(s) != 97)
+			if (s.stbi__get8() != 97)
 				throw new Exception("not GIF");
 
-			g.w = stbi__get16le(s);
-			g.h = stbi__get16le(s);
-			g.flags = stbi__get8(s);
-			g.bgindex = stbi__get8(s);
-			g.ratio = stbi__get8(s);
+			g.w = s.stbi__get16le();
+			g.h = s.stbi__get16le();
+			g.flags = s.stbi__get8();
+			g.bgindex = s.stbi__get8();
+			g.ratio = s.stbi__get8();
 			g.transparent = -1;
 
 			if (g.w > 1 << 24)
@@ -161,7 +162,7 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		private static unsafe bool stbi__process_gif_raster(stbi__context s, stbi__gif g)
+		private static unsafe bool stbi__process_gif_raster(Stream s, stbi__gif g)
 		{
 			byte lzw_cs = 0;
 			var len = 0;
@@ -175,7 +176,7 @@ namespace StbImageNext.Decoders
 			var valid_bits = 0;
 			var clear = 0;
 			stbi__gif_lzw* p;
-			lzw_cs = stbi__get8(s);
+			lzw_cs = s.stbi__get8();
 			if (lzw_cs > 12)
 				return false;
 			clear = 1 << lzw_cs;
@@ -200,13 +201,13 @@ namespace StbImageNext.Decoders
 				{
 					if (len == 0)
 					{
-						len = stbi__get8(s);
+						len = s.stbi__get8();
 						if (len == 0)
 							return true;
 					}
 
 					--len;
-					bits |= stbi__get8(s) << valid_bits;
+					bits |= s.stbi__get8() << valid_bits;
 					valid_bits += 8;
 				}
 				else
@@ -224,9 +225,9 @@ namespace StbImageNext.Decoders
 					}
 					else if (code == clear + 1)
 					{
-						stbi__skip(s, len);
-						while ((len = stbi__get8(s)) > 0)
-							stbi__skip(s, len);
+						s.stbi__skip(len);
+						while ((len = s.stbi__get8()) > 0)
+							s.stbi__skip(len);
 						return true;
 					}
 					else if (code <= avail)
@@ -267,7 +268,7 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		internal unsafe static DataBuffer<byte> stbi__gif_load_next(stbi__context s, stbi__gif g, int req_comp, byte* two_back)
+		internal unsafe static DataBuffer<byte> stbi__gif_load_next(Stream s, stbi__gif g, int req_comp, byte* two_back)
 		{
 			var dispose = 0;
 			var first_frame = 0;
@@ -322,7 +323,7 @@ namespace StbImageNext.Decoders
 			CRuntime.memset(g.history, 0x00, (ulong)(g.w * g.h));
 			for (; ; )
 			{
-				int tag = stbi__get8(s);
+				int tag = s.stbi__get8();
 				switch (tag)
 				{
 					case 0x2C:
@@ -331,10 +332,10 @@ namespace StbImageNext.Decoders
 							var y = 0;
 							var w = 0;
 							var h = 0;
-							x = stbi__get16le(s);
-							y = stbi__get16le(s);
-							w = stbi__get16le(s);
-							h = stbi__get16le(s);
+							x = s.stbi__get16le();
+							y = s.stbi__get16le();
+							w = s.stbi__get16le();
+							h = s.stbi__get16le();
 							if (x + w > g.w || y + h > g.h)
 								throw new Exception("bad Image Descriptor");
 							g.line_size = g.w * 4;
@@ -346,7 +347,7 @@ namespace StbImageNext.Decoders
 							g.cur_y = g.start_y;
 							if (w == 0)
 								g.cur_y = g.max_y;
-							g.lflags = stbi__get8(s);
+							g.lflags = s.stbi__get8();
 							if ((g.lflags & 0x40) != 0)
 							{
 								g.step = 8 * g.line_size;
@@ -396,37 +397,37 @@ namespace StbImageNext.Decoders
 					case 0x21:
 						{
 							var len = 0;
-							int ext = stbi__get8(s);
+							int ext = s.stbi__get8();
 							if (ext == 0xF9)
 							{
-								len = stbi__get8(s);
+								len = s.stbi__get8();
 								if (len == 4)
 								{
-									g.eflags = stbi__get8(s);
-									g.delay = 10 * stbi__get16le(s);
+									g.eflags = s.stbi__get8();
+									g.delay = 10 * s.stbi__get16le();
 									if (g.transparent >= 0)
 										g.pal[g.transparent][3] = 255;
 									if ((g.eflags & 0x01) != 0)
 									{
-										g.transparent = stbi__get8(s);
+										g.transparent = s.stbi__get8();
 										if (g.transparent >= 0)
 											g.pal[g.transparent][3] = 0;
 									}
 									else
 									{
-										stbi__skip(s, 1);
+										s.stbi__skip(1);
 										g.transparent = -1;
 									}
 								}
 								else
 								{
-									stbi__skip(s, len);
+									s.stbi__skip(len);
 									break;
 								}
 							}
 
-							while ((len = stbi__get8(s)) != 0)
-								stbi__skip(s, len);
+							while ((len = s.stbi__get8()) != 0)
+								s.stbi__skip(len);
 							break;
 						}
 

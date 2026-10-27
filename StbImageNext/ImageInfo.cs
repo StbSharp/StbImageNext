@@ -25,9 +25,9 @@ namespace StbImageNext
 				return BmpImageDecoder.Info(stream);
 			}
 
-			if (GifImageDecoder.Test(context))
+			if (GifImageDecoder.Test(stream))
 			{
-				return GifImageDecoder.Info(context);
+				return GifImageDecoder.Info(stream);
 			}
 
 			if (JpgImageDecoder.Test(context))

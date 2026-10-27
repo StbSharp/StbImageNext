@@ -1,5 +1,4 @@
-﻿using StbImageNext.Decoders;
-using StbImageNext.Hebron.Runtime;
+﻿using StbImageNext.Hebron.Runtime;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -10,7 +9,7 @@ namespace StbImageNext
 {
 	internal class AnimatedGifEnumerator : IEnumerator<AnimatedFrameResult>
 	{
-		private readonly StbImage.stbi__context _context;
+		private readonly Stream _stream;
 		private stbi__gif _gif;
 		private readonly ColorComponents _colorComponents;
 
@@ -18,9 +17,9 @@ namespace StbImageNext
 		{
 			if (input == null) throw new ArgumentNullException("input");
 
-			_context = new StbImage.stbi__context(input);
+			_stream = input;
 
-			if (!Test(_context))
+			if (!Test(_stream))
 			{
 				throw new Exception("Input stream is not GIF file.");
 			}
@@ -57,7 +56,7 @@ namespace StbImageNext
 		{
 			// Read next frame
 			byte two_back;
-			var result = stbi__gif_load_next(_context, _gif, (int)ColorComponents, &two_back);
+			var result = stbi__gif_load_next(_stream, _gif, (int)ColorComponents, &two_back);
 			if (result == null) return false;
 
 			if (Current == null)
