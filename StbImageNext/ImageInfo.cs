@@ -13,8 +13,6 @@ namespace StbImageNext
 
 		public static ImageInfo FromStream(Stream stream)
 		{
-			var context = new StbImage.stbi__context(stream);
-
 			if (PngImageDecoder.Test(stream))
 			{
 				return PngImageDecoder.Info(stream);
@@ -35,9 +33,9 @@ namespace StbImageNext
 				return JpgImageDecoder.Info(stream);
 			}
 
-			if (TgaImageDecoder.Test(context))
+			if (TgaImageDecoder.Test(stream))
 			{
-				return TgaImageDecoder.Info(context);
+				return TgaImageDecoder.Info(stream);
 			}
 
 			if (PsdImageDecoder.Test(stream))

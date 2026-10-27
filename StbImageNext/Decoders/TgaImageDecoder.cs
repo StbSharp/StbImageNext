@@ -1,45 +1,46 @@
 ﻿using StbImageNext.Hebron.Runtime;
 using System;
+using System.IO;
 using static StbImageNext.StbImage;
 
 namespace StbImageNext.Decoders
 {
 	public static class TgaImageDecoder
 	{
-		public static bool Test(stbi__context s)
+		public static bool Test(Stream s)
 		{
 			try
 			{
 				var res = false;
 				var sz = 0;
 				var tga_color_type = 0;
-				stbi__get8(s);
-				tga_color_type = stbi__get8(s);
+				s.stbi__get8();
+				tga_color_type = s.stbi__get8();
 				if (tga_color_type > 1)
 					goto errorEnd;
-				sz = stbi__get8(s);
+				sz = s.stbi__get8();
 				if (tga_color_type == 1)
 				{
 					if (sz != 1 && sz != 9)
 						goto errorEnd;
-					stbi__skip(s, 4);
-					sz = stbi__get8(s);
+					s.stbi__skip(4);
+					sz = s.stbi__get8();
 					if (sz != 8 && sz != 15 && sz != 16 && sz != 24 && sz != 32)
 						goto errorEnd;
-					stbi__skip(s, 4);
+					s.stbi__skip(4);
 				}
 				else
 				{
 					if (sz != 2 && sz != 3 && sz != 10 && sz != 11)
 						goto errorEnd;
-					stbi__skip(s, 9);
+					s.stbi__skip(9);
 				}
 
-				if (stbi__get16le(s) < 1)
+				if (s.stbi__get16le() < 1)
 					goto errorEnd;
-				if (stbi__get16le(s) < 1)
+				if (s.stbi__get16le() < 1)
 					goto errorEnd;
-				sz = stbi__get8(s);
+				sz = s.stbi__get8();
 				if (tga_color_type == 1 && sz != 8 && sz != 16)
 					goto errorEnd;
 				if (sz != 8 && sz != 15 && sz != 16 && sz != 24 && sz != 32)
@@ -50,11 +51,11 @@ namespace StbImageNext.Decoders
 			}
 			finally
 			{
-				stbi__rewind(s);
+				s.stbi__rewind();
 			}
 		}
 
-		public static unsafe ImageInfo Info(stbi__context s)
+		public static unsafe ImageInfo Info(Stream s)
 		{
 			try
 			{
@@ -66,14 +67,14 @@ namespace StbImageNext.Decoders
 				var tga_colormap_bpp = 0;
 				var sz = 0;
 				var tga_colormap_type = 0;
-				stbi__get8(s);
-				tga_colormap_type = stbi__get8(s);
+				s.stbi__get8();
+				tga_colormap_type = s.stbi__get8();
 				if (tga_colormap_type > 1)
 				{
 					throw new Exception("tga_colormap_type > 1");
 				}
 
-				tga_image_type = stbi__get8(s);
+				tga_image_type = s.stbi__get8();
 				if (tga_colormap_type == 1)
 				{
 					if (tga_image_type != 1 && tga_image_type != 9)
@@ -81,14 +82,14 @@ namespace StbImageNext.Decoders
 						throw new Exception("tga_image_type != 1 && tga_image_type != 9");
 					}
 
-					stbi__skip(s, 4);
-					sz = stbi__get8(s);
+					s.stbi__skip(4);
+					sz = s.stbi__get8();
 					if (sz != 8 && sz != 15 && sz != 16 && sz != 24 && sz != 32)
 					{
 						throw new Exception("sz != 8 && sz != 15 && sz != 16 && sz != 24 && sz != 32");
 					}
 
-					stbi__skip(s, 4);
+					s.stbi__skip(4);
 					tga_colormap_bpp = sz;
 				}
 				else
@@ -98,24 +99,24 @@ namespace StbImageNext.Decoders
 						throw new Exception("tga_image_type != 2 && tga_image_type != 3 && tga_image_type != 10 && tga_image_type != 11");
 					}
 
-					stbi__skip(s, 9);
+					s.stbi__skip(9);
 					tga_colormap_bpp = 0;
 				}
 
-				tga_w = stbi__get16le(s);
+				tga_w = s.stbi__get16le();
 				if (tga_w < 1)
 				{
 					throw new Exception("tga_w < 1");
 				}
 
-				tga_h = stbi__get16le(s);
+				tga_h = s.stbi__get16le();
 				if (tga_h < 1)
 				{
 					throw new Exception("tga_h < 1");
 				}
 
-				tga_bits_per_pixel = stbi__get8(s);
-				stbi__get8(s);
+				tga_bits_per_pixel = s.stbi__get8();
+				s.stbi__get8();
 				if (tga_colormap_bpp != 0)
 				{
 					if (tga_bits_per_pixel != 8)
@@ -145,35 +146,32 @@ namespace StbImageNext.Decoders
 			}
 			finally
 			{
-				stbi__rewind(s);
+				s.stbi__rewind();
 			}
 		}
 
-		public static unsafe ImageResult Load(stbi__context s, ColorComponents req_comp)
+		public static unsafe ImageResult Load(Stream s, ColorComponents req_comp)
 		{
-			int tga_offset = stbi__get8(s);
-			int tga_indexed = stbi__get8(s);
-			int tga_image_type = stbi__get8(s);
+			int tga_offset = s.stbi__get8();
+			int tga_indexed = s.stbi__get8();
+			int tga_image_type = s.stbi__get8();
 			var tga_is_RLE = 0;
-			var tga_palette_start = stbi__get16le(s);
-			var tga_palette_len = stbi__get16le(s);
-			int tga_palette_bits = stbi__get8(s);
-			var tga_x_origin = stbi__get16le(s);
-			var tga_y_origin = stbi__get16le(s);
-			var tga_width = stbi__get16le(s);
-			var tga_height = stbi__get16le(s);
-			int tga_bits_per_pixel = stbi__get8(s);
+			var tga_palette_start = s.stbi__get16le();
+			var tga_palette_len = s.stbi__get16le();
+			int tga_palette_bits = s.stbi__get8();
+			var tga_x_origin = s.stbi__get16le();
+			var tga_y_origin = s.stbi__get16le();
+			var tga_width = s.stbi__get16le();
+			var tga_height = s.stbi__get16le();
+			int tga_bits_per_pixel = s.stbi__get8();
 			var tga_comp = 0;
 			var tga_rgb16 = 0;
-			int tga_inverted = stbi__get8(s);
-			byte* tga_palette = null;
+			int tga_inverted = s.stbi__get8();
 			var i = 0;
 			var j = 0;
-			var raw_data = stackalloc byte[4];
-			raw_data[0] = 0;
-			raw_data[1] = 0;
-			raw_data[2] = 0;
-			raw_data[3] = 0;
+			var raw_data = new DataBuffer<byte>(4);
+			raw_data.Set(0);
+
 			var RLE_count = 0;
 			var RLE_repeating = 0;
 			var read_next_pixel = 1;
@@ -208,18 +206,19 @@ namespace StbImageNext.Decoders
 				throw new Exception("too large");
 			var tga_data = new DataBuffer<byte>(tga_width * tga_height * tga_comp);
 
-			stbi__skip(s, tga_offset);
+			s.stbi__skip(tga_offset);
 			if (tga_indexed == 0 && tga_is_RLE == 0 && tga_rgb16 == 0)
 			{
 				for (i = 0; i < tga_height; ++i)
 				{
 					var row = tga_inverted != 0 ? tga_height - i - 1 : i;
 					var tga_row = tga_data + row * tga_width * tga_comp;
-					stbi__getn(s, tga_row, tga_width * tga_comp);
+					s.stbi__getn(tga_row, tga_width * tga_comp);
 				}
 			}
 			else
 			{
+				DataBuffer<byte> tga_palette = null;
 				if (tga_indexed != 0)
 				{
 					if (tga_palette_len == 0)
@@ -227,13 +226,8 @@ namespace StbImageNext.Decoders
 						throw new Exception("bad palette");
 					}
 
-					stbi__skip(s, tga_palette_start);
-					tga_palette = (byte*)stbi__malloc_mad2(tga_palette_len, tga_comp, 0);
-					if (tga_palette == null)
-					{
-						throw new Exception("outofmem");
-					}
-
+					s.stbi__skip(tga_palette_start);
+					tga_palette = new DataBuffer<byte>(tga_palette_len * tga_comp);
 					if (tga_rgb16 != 0)
 					{
 						var pal_entry = tga_palette;
@@ -243,9 +237,8 @@ namespace StbImageNext.Decoders
 							pal_entry += tga_comp;
 						}
 					}
-					else if (stbi__getn(s, tga_palette, tga_palette_len * tga_comp) == 0)
+					else if (s.stbi__getn(tga_palette, tga_palette_len * tga_comp) == 0)
 					{
-						CRuntime.free(tga_palette);
 						throw new Exception("bad palette");
 					}
 				}
@@ -256,7 +249,7 @@ namespace StbImageNext.Decoders
 					{
 						if (RLE_count == 0)
 						{
-							int RLE_cmd = stbi__get8(s);
+							int RLE_cmd = s.stbi__get8();
 							RLE_count = 1 + (RLE_cmd & 127);
 							RLE_repeating = RLE_cmd >> 7;
 							read_next_pixel = 1;
@@ -275,7 +268,7 @@ namespace StbImageNext.Decoders
 					{
 						if (tga_indexed != 0)
 						{
-							var pal_idx = tga_bits_per_pixel == 8 ? stbi__get8(s) : stbi__get16le(s);
+							var pal_idx = tga_bits_per_pixel == 8 ? s.stbi__get8() : s.stbi__get16le();
 							if (pal_idx >= tga_palette_len)
 								pal_idx = 0;
 							pal_idx *= tga_comp;
@@ -289,7 +282,7 @@ namespace StbImageNext.Decoders
 						else
 						{
 							for (j = 0; j < tga_comp; ++j)
-								raw_data[j] = stbi__get8(s);
+								raw_data[j] = s.stbi__get8();
 						}
 
 						read_next_pixel = 0;
@@ -301,6 +294,7 @@ namespace StbImageNext.Decoders
 				}
 
 				if (tga_inverted != 0)
+				{
 					for (j = 0; j * 2 < tga_height; ++j)
 					{
 						var index1 = j * tga_width * tga_comp;
@@ -314,9 +308,7 @@ namespace StbImageNext.Decoders
 							++index2;
 						}
 					}
-
-				if (tga_palette != null)
-					CRuntime.free(tga_palette);
+				}
 			}
 
 			if (tga_comp >= 3 && tga_rgb16 == 0)
@@ -363,9 +355,9 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		private static unsafe void stbi__tga_read_rgb16(stbi__context s, byte* _out_)
+		private static void stbi__tga_read_rgb16(Stream s, DataBuffer<byte> _out_)
 		{
-			var px = (ushort)stbi__get16le(s);
+			var px = (ushort)s.stbi__get16le();
 			ushort fiveBitMask = 31;
 			var r = (px >> 10) & fiveBitMask;
 			var g = (px >> 5) & fiveBitMask;

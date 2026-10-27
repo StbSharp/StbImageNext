@@ -253,31 +253,6 @@ namespace StbImageNext
 			}
 		}
 
-		public static int stbi__get16be(stbi__context s)
-		{
-			int z = stbi__get8(s);
-			return (z << 8) + stbi__get8(s);
-		}
-
-		public static uint stbi__get32be(stbi__context s)
-		{
-			var z = (uint)stbi__get16be(s);
-			return (uint)((z << 16) + stbi__get16be(s));
-		}
-
-		public static int stbi__get16le(stbi__context s)
-		{
-			int z = stbi__get8(s);
-			return z + (stbi__get8(s) << 8);
-		}
-
-		public static uint stbi__get32le(stbi__context s)
-		{
-			var z = (uint)stbi__get16le(s);
-			z += (uint)stbi__get16le(s) << 16;
-			return z;
-		}
-
 		public static byte stbi__compute_y(int r, int g, int b)
 		{
 			return (byte)((r * 77 + g * 150 + 29 * b) >> 8);

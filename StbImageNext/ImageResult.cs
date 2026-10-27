@@ -15,8 +15,6 @@ namespace StbImageNext
 
 		public static ImageResult FromStream(Stream stream, ColorComponents requiredComponents = ColorComponents.Default)
 		{
-			var context = new StbImage.stbi__context(stream);
-
 			if (PngImageDecoder.Test(stream))
 			{
 				return PngImageDecoder.Decode(stream, requiredComponents);
@@ -37,9 +35,9 @@ namespace StbImageNext
 				return JpgImageDecoder.Load(stream, requiredComponents);
 			}
 
-			if (TgaImageDecoder.Test(context))
+			if (TgaImageDecoder.Test(stream))
 			{
-				return TgaImageDecoder.Load(context, requiredComponents);
+				return TgaImageDecoder.Load(stream, requiredComponents);
 			}
 
 			if (PsdImageDecoder.Test(stream))
