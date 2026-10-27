@@ -206,14 +206,6 @@ namespace StbImageNext
 			return output;
 		}
 
-		public static void* stbi__load_main(stbi__context s, int* x, int* y, int* comp, int req_comp, int bpc)
-		{
-			if (stbi__psd_test(s) != 0)
-				return stbi__psd_load(s, x, y, comp, req_comp, bpc);
-
-			return (byte*)(ulong)(stbi__err("unknown image type") != 0 ? 0 : 0);
-		}
-
 		public static void stbi__vertical_flip(void* image, int w, int h, int bytes_per_pixel)
 		{
 			var row = 0;
@@ -250,23 +242,6 @@ namespace StbImageNext
 			}
 		}
 
-		public static byte* stbi__load_and_postprocess_8bit(stbi__context s, int* x, int* y, int* comp, int req_comp)
-		{
-			var result = stbi__load_main(s, x, y, comp, req_comp, 8);
-			if (result == null)
-				return null;
-
-			if ((stbi__vertically_flip_on_load_set != 0
-				? stbi__vertically_flip_on_load_local
-				: stbi__vertically_flip_on_load_global) != 0)
-			{
-				var channels = req_comp != 0 ? req_comp : *comp;
-				stbi__vertical_flip(result, *x, *y, channels * sizeof(byte));
-			}
-
-			return (byte*)result;
-		}
-
 		public static void stbi__float_postprocess(float* result, int* x, int* y, int* comp, int req_comp)
 		{
 			if ((stbi__vertically_flip_on_load_set != 0
@@ -276,14 +251,6 @@ namespace StbImageNext
 				var channels = req_comp != 0 ? req_comp : *comp;
 				stbi__vertical_flip(result, *x, *y, channels * sizeof(float));
 			}
-		}
-
-		public static float* stbi__loadf_main(stbi__context s, int* x, int* y, int* comp, int req_comp)
-		{
-			var data = stbi__load_and_postprocess_8bit(s, x, y, comp, req_comp);
-			if (data != null)
-				return stbi__ldr_to_hdr(data, *x, *y, req_comp != 0 ? req_comp : *comp);
-			return (float*)(ulong)(stbi__err("unknown image type") != 0 ? 0 : 0);
 		}
 
 		public static int stbi__get16be(stbi__context s)
@@ -523,13 +490,6 @@ namespace StbImageNext
 				v >>= shift;
 			v >>= 8 - bits;
 			return (int)(v * stbi__shiftsigned_mul_table[bits]) >> stbi__shiftsigned_shift_table[bits];
-		}
-
-		public static int stbi__info_main(stbi__context s, int* x, int* y, int* comp)
-		{
-			if (stbi__psd_info(s, x, y, comp) != 0)
-				return 1;
-			return stbi__err("unknown image type");
 		}
 	}
 }

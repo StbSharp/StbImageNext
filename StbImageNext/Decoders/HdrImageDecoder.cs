@@ -260,7 +260,6 @@ namespace StbImageNext.Decoders
 			return result;
 		}
 
-
 		private static int stbi__hdr_test_core(stbi__context s, string signature)
 		{
 			var i = 0;

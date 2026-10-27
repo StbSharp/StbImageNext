@@ -42,6 +42,11 @@ namespace StbImageNext
 				return TgaImageDecoder.Load(context, requiredComponents);
 			}
 
+			if (PsdImageDecoder.Test(context))
+			{
+				return PsdImageDecoder.Load(context, requiredComponents);
+			}
+
 			if (HdrImageDecoder.Test(context))
 			{
 				var floatResult = HdrImageDecoder.Load(context, requiredComponents);
