@@ -2,6 +2,7 @@
 using StbImageNext.Hebron.Runtime;
 using System.Runtime.InteropServices;
 using static StbImageNext.StbImage;
+using System.IO;
 
 namespace StbImageNext.Decoders
 {
@@ -26,7 +27,7 @@ namespace StbImageNext.Decoders
 			53, 60, 61, 54, 47, 55, 62, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63
 		};
 
-		public static bool Test(stbi__context s)
+		public static bool Test(Stream s)
 		{
 			try
 			{
@@ -37,11 +38,11 @@ namespace StbImageNext.Decoders
 			}
 			finally
 			{
-				stbi__rewind(s);
+				s.stbi__rewind();
 			}
 		}
 
-		public static ImageInfo Info(stbi__context s)
+		public static ImageInfo Info(Stream s)
 		{
 			try
 			{
@@ -55,19 +56,19 @@ namespace StbImageNext.Decoders
 
 				return new ImageInfo
 				{
-					Width = (int)j.s.img_x,
-					Height = (int)j.s.img_y,
-					ColorComponents = (ColorComponents)(j.s.img_n >= 3 ? 3 : 1)
+					Width = (int)j.img_x,
+					Height = (int)j.img_y,
+					ColorComponents = (ColorComponents)(j.img_n >= 3 ? 3 : 1)
 				};
 			}
 			finally
 			{
-				stbi__rewind(s);
+				s.stbi__rewind();
 			}
 		}
 
 
-		public static ImageResult Load(stbi__context s, ColorComponents req_comp)
+		public static ImageResult Load(Stream s, ColorComponents req_comp)
 		{
 			var j = new stbi__jpeg();
 			j.s = s;
@@ -171,12 +172,12 @@ namespace StbImageNext.Decoders
 		{
 			do
 			{
-				var b = (uint)(j.nomore != 0 ? 0 : stbi__get8(j.s));
+				var b = (uint)(j.nomore != 0 ? 0 : j.s.stbi__get8());
 				if (b == 0xff)
 				{
-					int c = stbi__get8(j.s);
+					int c = j.s.stbi__get8();
 					while (c == 0xff)
-						c = stbi__get8(j.s);
+						c = j.s.stbi__get8();
 
 					if (c != 0)
 					{
@@ -674,11 +675,11 @@ namespace StbImageNext.Decoders
 				return x;
 			}
 
-			x = stbi__get8(j.s);
+			x = j.s.stbi__get8();
 			if (x != 0xff)
 				return 0xff;
 			while (x == 0xff)
-				x = stbi__get8(j.s);
+				x = j.s.stbi__get8();
 
 			return x;
 		}
@@ -877,7 +878,7 @@ namespace StbImageNext.Decoders
 				var i = 0;
 				var j = 0;
 				var n = 0;
-				for (n = 0; n < z.s.img_n; ++n)
+				for (n = 0; n < z.img_n; ++n)
 				{
 					var w = (z.img_comp[n].x + 7) >> 3;
 					var h = (z.img_comp[n].y + 7) >> 3;
@@ -901,15 +902,15 @@ namespace StbImageNext.Decoders
 				case 0xff:
 					throw new Exception("expected marker");
 				case 0xDD:
-					if (stbi__get16be(z.s) != 4)
+					if (z.s.stbi__get16be() != 4)
 						throw new Exception("bad DRI len");
-					z.restart_interval = stbi__get16be(z.s);
+					z.restart_interval = z.s.stbi__get16be();
 					return 1;
 				case 0xDB:
-					L = stbi__get16be(z.s) - 2;
+					L = z.s.stbi__get16be() - 2;
 					while (L > 0)
 					{
-						int q = stbi__get8(z.s);
+						int q = z.s.stbi__get8();
 						var p = q >> 4;
 						var sixteen = p != 0 ? 1 : 0;
 						var t = q & 15;
@@ -920,26 +921,26 @@ namespace StbImageNext.Decoders
 							throw new Exception("bad DQT table");
 						for (i = 0; i < 64; ++i)
 							z.dequant[t][stbi__jpeg_dezigzag[i]] =
-								(ushort)(sixteen != 0 ? stbi__get16be(z.s) : stbi__get8(z.s));
+								(ushort)(sixteen != 0 ? z.s.stbi__get16be() : z.s.stbi__get8());
 						L -= sixteen != 0 ? 129 : 65;
 					}
 
 					return L == 0 ? 1 : 0;
 				case 0xC4:
-					L = stbi__get16be(z.s) - 2;
+					L = z.s.stbi__get16be() - 2;
 					var sizes = stackalloc int[16];
 					while (L > 0)
 					{
 						var i = 0;
 						var n = 0;
-						int q = stbi__get8(z.s);
+						int q = z.s.stbi__get8();
 						var tc = q >> 4;
 						var th = q & 15;
 						if (tc > 1 || th > 3)
 							throw new Exception("bad DHT header");
 						for (i = 0; i < 16; ++i)
 						{
-							sizes[i] = stbi__get8(z.s);
+							sizes[i] = z.s.stbi__get8();
 							n += sizes[i];
 						}
 						if (n > 256)
@@ -955,7 +956,7 @@ namespace StbImageNext.Decoders
 
 								var v = hptr->values;
 								for (i = 0; i < n; ++i)
-									v[i] = stbi__get8(z.s);
+									v[i] = z.s.stbi__get8();
 							}
 						}
 						else
@@ -967,7 +968,7 @@ namespace StbImageNext.Decoders
 
 								var v = aptr->values;
 								for (i = 0; i < n; ++i)
-									v[i] = stbi__get8(z.s);
+									v[i] = z.s.stbi__get8();
 							}
 						}
 
@@ -984,7 +985,7 @@ namespace StbImageNext.Decoders
 
 			if (m >= 0xE0 && m <= 0xEF || m == 0xFE)
 			{
-				L = stbi__get16be(z.s);
+				L = z.s.stbi__get16be();
 				if (L < 2)
 				{
 					if (m == 0xFE)
@@ -998,7 +999,7 @@ namespace StbImageNext.Decoders
 					var ok = 1;
 					var i = 0;
 					for (i = 0; i < 5; ++i)
-						if (stbi__get8(z.s) != stbi__process_marker_tag[i])
+						if (z.s.stbi__get8() != stbi__process_marker_tag[i])
 							ok = 0;
 					L -= 5;
 					if (ok != 0)
@@ -1009,20 +1010,20 @@ namespace StbImageNext.Decoders
 					var ok = 1;
 					var i = 0;
 					for (i = 0; i < 6; ++i)
-						if (stbi__get8(z.s) != stbi__process_marker_tag[i])
+						if (z.s.stbi__get8() != stbi__process_marker_tag[i])
 							ok = 0;
 					L -= 6;
 					if (ok != 0)
 					{
-						stbi__get8(z.s);
-						stbi__get16be(z.s);
-						stbi__get16be(z.s);
-						z.app14_color_transform = stbi__get8(z.s);
+						z.s.stbi__get8();
+						z.s.stbi__get16be();
+						z.s.stbi__get16be();
+						z.app14_color_transform = z.s.stbi__get8();
 						L -= 6;
 					}
 				}
 
-				stbi__skip(z.s, L);
+				z.s.stbi__skip(L);
 				return 1;
 			}
 
@@ -1032,22 +1033,22 @@ namespace StbImageNext.Decoders
 		private static int stbi__process_scan_header(stbi__jpeg z)
 		{
 			var i = 0;
-			var Ls = stbi__get16be(z.s);
-			z.scan_n = stbi__get8(z.s);
-			if (z.scan_n < 1 || z.scan_n > 4 || z.scan_n > z.s.img_n)
+			var Ls = z.s.stbi__get16be();
+			z.scan_n = z.s.stbi__get8();
+			if (z.scan_n < 1 || z.scan_n > 4 || z.scan_n > z.img_n)
 				throw new Exception("bad SOS component count");
 			if (Ls != 6 + 2 * z.scan_n)
 				throw new Exception("bad SOS len");
 			for (i = 0; i < z.scan_n; ++i)
 			{
-				int id = stbi__get8(z.s);
+				int id = z.s.stbi__get8();
 				var which = 0;
-				int q = stbi__get8(z.s);
-				for (which = 0; which < z.s.img_n; ++which)
+				int q = z.s.stbi__get8();
+				for (which = 0; which < z.img_n; ++which)
 					if (z.img_comp[which].id == id)
 						break;
 
-				if (which == z.s.img_n)
+				if (which == z.img_n)
 					return 0;
 				z.img_comp[which].hd = q >> 4;
 				if (z.img_comp[which].hd > 3)
@@ -1060,9 +1061,9 @@ namespace StbImageNext.Decoders
 
 			{
 				var aa = 0;
-				z.spec_start = stbi__get8(z.s);
-				z.spec_end = stbi__get8(z.s);
-				aa = stbi__get8(z.s);
+				z.spec_start = z.s.stbi__get8();
+				z.spec_end = z.s.stbi__get8();
+				aa = z.s.stbi__get8();
 				z.succ_high = aa >> 4;
 				z.succ_low = aa & 15;
 				if (z.progressive != 0)
@@ -1121,57 +1122,57 @@ namespace StbImageNext.Decoders
 			var h_max = 1;
 			var v_max = 1;
 			var c = 0;
-			Lf = stbi__get16be(s);
+			Lf = s.stbi__get16be();
 			if (Lf < 11)
 				throw new Exception("bad SOF len");
-			p = stbi__get8(s);
+			p = s.stbi__get8();
 			if (p != 8)
 				throw new Exception("only 8-bit");
-			s.img_y = (uint)stbi__get16be(s);
-			if (s.img_y == 0)
+			z.img_y = (uint)s.stbi__get16be();
+			if (z.img_y == 0)
 				throw new Exception("no header height");
-			s.img_x = (uint)stbi__get16be(s);
-			if (s.img_x == 0)
+			z.img_x = (uint)s.stbi__get16be();
+			if (z.img_x == 0)
 				throw new Exception("0 width");
-			if (s.img_y > 1 << 24)
+			if (z.img_y > 1 << 24)
 				throw new Exception("too large");
-			if (s.img_x > 1 << 24)
+			if (z.img_x > 1 << 24)
 				throw new Exception("too large");
-			c = stbi__get8(s);
+			c = s.stbi__get8();
 			if (c != 3 && c != 1 && c != 4)
 				throw new Exception("bad component count");
-			s.img_n = c;
+			z.img_n = c;
 			for (i = 0; i < c; ++i)
 			{
 				z.img_comp[i].data = null;
 				z.img_comp[i].linebuf = null;
 			}
 
-			if (Lf != 8 + 3 * s.img_n)
+			if (Lf != 8 + 3 * z.img_n)
 				throw new Exception("bad SOF len");
 			z.rgb = 0;
-			for (i = 0; i < s.img_n; ++i)
+			for (i = 0; i < z.img_n; ++i)
 			{
-				z.img_comp[i].id = stbi__get8(s);
-				if (s.img_n == 3 && z.img_comp[i].id == stbi__process_frame_header_rgb[i])
+				z.img_comp[i].id = s.stbi__get8();
+				if (z.img_n == 3 && z.img_comp[i].id == stbi__process_frame_header_rgb[i])
 					++z.rgb;
-				q = stbi__get8(s);
+				q = s.stbi__get8();
 				z.img_comp[i].h = q >> 4;
 				if (z.img_comp[i].h == 0 || z.img_comp[i].h > 4)
 					throw new Exception("bad H");
 				z.img_comp[i].v = q & 15;
 				if (z.img_comp[i].v == 0 || z.img_comp[i].v > 4)
 					throw new Exception("bad V");
-				z.img_comp[i].tq = stbi__get8(s);
+				z.img_comp[i].tq = s.stbi__get8();
 				if (z.img_comp[i].tq > 3)
 					throw new Exception("bad TQ");
 			}
 
 			if (scan != STBI__SCAN_load)
 				return 1;
-			if (stbi__mad3sizes_valid((int)s.img_x, (int)s.img_y, s.img_n, 0) == 0)
+			if (stbi__mad3sizes_valid((int)z.img_x, (int)z.img_y, z.img_n, 0) == 0)
 				throw new Exception("too large");
-			for (i = 0; i < s.img_n; ++i)
+			for (i = 0; i < z.img_n; ++i)
 			{
 				if (z.img_comp[i].h > h_max)
 					h_max = z.img_comp[i].h;
@@ -1179,7 +1180,7 @@ namespace StbImageNext.Decoders
 					v_max = z.img_comp[i].v;
 			}
 
-			for (i = 0; i < s.img_n; ++i)
+			for (i = 0; i < z.img_n; ++i)
 			{
 				if (h_max % z.img_comp[i].h != 0)
 					throw new Exception("bad H");
@@ -1191,12 +1192,12 @@ namespace StbImageNext.Decoders
 			z.img_v_max = v_max;
 			z.img_mcu_w = h_max * 8;
 			z.img_mcu_h = v_max * 8;
-			z.img_mcu_x = (int)((s.img_x + z.img_mcu_w - 1) / z.img_mcu_w);
-			z.img_mcu_y = (int)((s.img_y + z.img_mcu_h - 1) / z.img_mcu_h);
-			for (i = 0; i < s.img_n; ++i)
+			z.img_mcu_x = (int)((z.img_x + z.img_mcu_w - 1) / z.img_mcu_w);
+			z.img_mcu_y = (int)((z.img_y + z.img_mcu_h - 1) / z.img_mcu_h);
+			for (i = 0; i < z.img_n; ++i)
 			{
-				z.img_comp[i].x = (int)((s.img_x * z.img_comp[i].h + h_max - 1) / h_max);
-				z.img_comp[i].y = (int)((s.img_y * z.img_comp[i].v + v_max - 1) / v_max);
+				z.img_comp[i].x = (int)((z.img_x * z.img_comp[i].h + h_max - 1) / h_max);
+				z.img_comp[i].y = (int)((z.img_y * z.img_comp[i].v + v_max - 1) / v_max);
 				z.img_comp[i].w2 = z.img_mcu_x * z.img_comp[i].h * 8;
 				z.img_comp[i].h2 = z.img_mcu_y * z.img_comp[i].v * 8;
 				z.img_comp[i].coeff = null;
@@ -1257,7 +1258,7 @@ namespace StbImageNext.Decoders
 				m = stbi__get_marker(z);
 				while (m == 0xff)
 				{
-					if (stbi__at_eof(z.s) != 0)
+					if (z.s.stbi__at_eof())
 					{
 						if (throwOnError)
 						{
@@ -1280,14 +1281,14 @@ namespace StbImageNext.Decoders
 
 		private static byte stbi__skip_jpeg_junk_at_end(stbi__jpeg j)
 		{
-			while (stbi__at_eof(j.s) == 0)
+			while (!j.s.stbi__at_eof())
 			{
-				var x = stbi__get8(j.s);
+				var x = j.s.stbi__get8();
 				while (x == 0xff)
 				{
-					if (stbi__at_eof(j.s) != 0)
+					if (j.s.stbi__at_eof())
 						return 0xff;
-					x = stbi__get8(j.s);
+					x = j.s.stbi__get8();
 					if (x != 0x00 && x != 0xff)
 						return x;
 				}
@@ -1325,11 +1326,11 @@ namespace StbImageNext.Decoders
 				}
 				else if (m == 0xdc)
 				{
-					var Ld = stbi__get16be(j.s);
-					var NL = (uint)stbi__get16be(j.s);
+					var Ld = j.s.stbi__get16be();
+					var NL = (uint)j.s.stbi__get16be();
 					if (Ld != 4)
 						throw new Exception("bad DNL len");
-					if (NL != j.s.img_y)
+					if (NL != j.img_y)
 						throw new Exception("bad DNL height");
 					m = stbi__get_marker(j);
 				}
@@ -1478,7 +1479,7 @@ namespace StbImageNext.Decoders
 
 		private static void stbi__cleanup_jpeg(stbi__jpeg j)
 		{
-			stbi__free_jpeg_components(j, j.s.img_n);
+			stbi__free_jpeg_components(j, j.img_n);
 		}
 
 		private static DataBuffer<byte> load_jpeg_image(stbi__jpeg z, int* out_x, int* out_y, int* comp, int req_comp)
@@ -1486,7 +1487,7 @@ namespace StbImageNext.Decoders
 			var n = 0;
 			var decode_n = 0;
 			var is_rgb = 0;
-			z.s.img_n = 0;
+			z.img_n = 0;
 			if (req_comp < 0 || req_comp > 4)
 				throw new Exception("bad req_comp");
 			if (stbi__decode_jpeg_image(z) == 0)
@@ -1495,12 +1496,12 @@ namespace StbImageNext.Decoders
 				return null;
 			}
 
-			n = req_comp != 0 ? req_comp : z.s.img_n >= 3 ? 3 : 1;
-			is_rgb = z.s.img_n == 3 && (z.rgb == 3 || (z.app14_color_transform == 0 && z.jfif == 0)) ? 1 : 0;
-			if (z.s.img_n == 3 && n < 3 && is_rgb == 0)
+			n = req_comp != 0 ? req_comp : z.img_n >= 3 ? 3 : 1;
+			is_rgb = z.img_n == 3 && (z.rgb == 3 || (z.app14_color_transform == 0 && z.jfif == 0)) ? 1 : 0;
+			if (z.img_n == 3 && n < 3 && is_rgb == 0)
 				decode_n = 1;
 			else
-				decode_n = z.s.img_n;
+				decode_n = z.img_n;
 			if (decode_n <= 0)
 			{
 				stbi__cleanup_jpeg(z);
@@ -1521,7 +1522,7 @@ namespace StbImageNext.Decoders
 				for (k = 0; k < decode_n; ++k)
 				{
 					var r = res_comp[k];
-					z.img_comp[k].linebuf = (byte*)stbi__malloc(z.s.img_x + 3);
+					z.img_comp[k].linebuf = (byte*)stbi__malloc(z.img_x + 3);
 					if (z.img_comp[k].linebuf == null)
 					{
 						stbi__cleanup_jpeg(z);
@@ -1531,7 +1532,7 @@ namespace StbImageNext.Decoders
 					r.hs = z.img_h_max / z.img_comp[k].h;
 					r.vs = z.img_v_max / z.img_comp[k].v;
 					r.ystep = r.vs >> 1;
-					r.w_lores = (int)((z.s.img_x + r.hs - 1) / r.hs);
+					r.w_lores = (int)((z.img_x + r.hs - 1) / r.hs);
 					r.ypos = 0;
 					r.line0 = r.line1 = z.img_comp[k].data;
 					if (r.hs == 1 && r.vs == 1)
@@ -1546,10 +1547,10 @@ namespace StbImageNext.Decoders
 						r.resample = stbi__resample_row_generic;
 				}
 
-				output = new DataBuffer<byte>(n * z.s.img_x * z.s.img_y);
-				for (j = 0; j < z.s.img_y; ++j)
+				output = new DataBuffer<byte>(n * z.img_x * z.img_y);
+				for (j = 0; j < z.img_y; ++j)
 				{
-					var _out_ = output + n * z.s.img_x * j;
+					var _out_ = output + n * z.img_x * j;
 					for (k = 0; k < decode_n; ++k)
 					{
 						var r = res_comp[k];
@@ -1568,10 +1569,10 @@ namespace StbImageNext.Decoders
 					if (n >= 3)
 					{
 						var y = coutput[0];
-						if (z.s.img_n == 3)
+						if (z.img_n == 3)
 						{
 							if (is_rgb != 0)
-								for (i = 0; i < z.s.img_x; ++i)
+								for (i = 0; i < z.img_x; ++i)
 								{
 									_out_[0] = y[i];
 									_out_[1] = coutput[1][i];
@@ -1580,13 +1581,13 @@ namespace StbImageNext.Decoders
 									_out_ += n;
 								}
 							else
-								z.YCbCr_to_RGB_kernel(_out_, y, coutput[1], coutput[2], (int)z.s.img_x, n);
+								z.YCbCr_to_RGB_kernel(_out_, y, coutput[1], coutput[2], (int)z.img_x, n);
 						}
-						else if (z.s.img_n == 4)
+						else if (z.img_n == 4)
 						{
 							if (z.app14_color_transform == 0)
 							{
-								for (i = 0; i < z.s.img_x; ++i)
+								for (i = 0; i < z.img_x; ++i)
 								{
 									var m = coutput[3][i];
 									_out_[0] = stbi__blinn_8x8(coutput[0][i], m);
@@ -1598,8 +1599,8 @@ namespace StbImageNext.Decoders
 							}
 							else if (z.app14_color_transform == 2)
 							{
-								z.YCbCr_to_RGB_kernel(_out_, y, coutput[1], coutput[2], (int)z.s.img_x, n);
-								for (i = 0; i < z.s.img_x; ++i)
+								z.YCbCr_to_RGB_kernel(_out_, y, coutput[1], coutput[2], (int)z.img_x, n);
+								for (i = 0; i < z.img_x; ++i)
 								{
 									var m = coutput[3][i];
 									_out_[0] = stbi__blinn_8x8((byte)(255 - _out_[0]), m);
@@ -1610,12 +1611,12 @@ namespace StbImageNext.Decoders
 							}
 							else
 							{
-								z.YCbCr_to_RGB_kernel(_out_, y, coutput[1], coutput[2], (int)z.s.img_x, n);
+								z.YCbCr_to_RGB_kernel(_out_, y, coutput[1], coutput[2], (int)z.img_x, n);
 							}
 						}
 						else
 						{
-							for (i = 0; i < z.s.img_x; ++i)
+							for (i = 0; i < z.img_x; ++i)
 							{
 								_out_[0] = _out_[1] = _out_[2] = y[i];
 								_out_[3] = 255;
@@ -1628,18 +1629,18 @@ namespace StbImageNext.Decoders
 						if (is_rgb != 0)
 						{
 							if (n == 1)
-								for (i = 0; i < z.s.img_x; ++i)
+								for (i = 0; i < z.img_x; ++i)
 									_out_.Write(stbi__compute_y(coutput[0][i], coutput[1][i], coutput[2][i]));
 							else
-								for (i = 0; i < z.s.img_x; ++i, _out_ += 2)
+								for (i = 0; i < z.img_x; ++i, _out_ += 2)
 								{
 									_out_[0] = stbi__compute_y(coutput[0][i], coutput[1][i], coutput[2][i]);
 									_out_[1] = 255;
 								}
 						}
-						else if (z.s.img_n == 4 && z.app14_color_transform == 0)
+						else if (z.img_n == 4 && z.app14_color_transform == 0)
 						{
-							for (i = 0; i < z.s.img_x; ++i)
+							for (i = 0; i < z.img_x; ++i)
 							{
 								var m = coutput[3][i];
 								var r = stbi__blinn_8x8(coutput[0][i], m);
@@ -1650,9 +1651,9 @@ namespace StbImageNext.Decoders
 								_out_ += n;
 							}
 						}
-						else if (z.s.img_n == 4 && z.app14_color_transform == 2)
+						else if (z.img_n == 4 && z.app14_color_transform == 2)
 						{
-							for (i = 0; i < z.s.img_x; ++i)
+							for (i = 0; i < z.img_x; ++i)
 							{
 								_out_[0] = stbi__blinn_8x8((byte)(255 - coutput[0][i]), coutput[3][i]);
 								_out_[1] = 255;
@@ -1663,10 +1664,10 @@ namespace StbImageNext.Decoders
 						{
 							var y = coutput[0];
 							if (n == 1)
-								for (i = 0; i < z.s.img_x; ++i)
+								for (i = 0; i < z.img_x; ++i)
 									_out_[i] = y[i];
 							else
-								for (i = 0; i < z.s.img_x; ++i)
+								for (i = 0; i < z.img_x; ++i)
 								{
 									_out_.Write(y[i]);
 									_out_.Write(255);
@@ -1676,10 +1677,10 @@ namespace StbImageNext.Decoders
 				}
 
 				stbi__cleanup_jpeg(z);
-				*out_x = (int)z.s.img_x;
-				*out_y = (int)z.s.img_y;
+				*out_x = (int)z.img_x;
+				*out_y = (int)z.img_y;
 				if (comp != null)
-					*comp = z.s.img_n >= 3 ? 3 : 1;
+					*comp = z.img_n >= 3 ? 3 : 1;
 				return output;
 			}
 		}
@@ -1721,7 +1722,7 @@ namespace StbImageNext.Decoders
 			public delegate2 resample_row_hv_2_kernel;
 			public int restart_interval;
 			public int rgb;
-			public stbi__context s;
+			public Stream s;
 			public int scan_n;
 			public int spec_end;
 			public int spec_start;
@@ -1729,6 +1730,10 @@ namespace StbImageNext.Decoders
 			public int succ_low;
 			public int todo;
 			public delegate1 YCbCr_to_RGB_kernel;
+
+			public uint img_x;
+			public uint img_y;
+			public int img_n;
 
 			[StructLayout(LayoutKind.Sequential)]
 			public struct unnamed1

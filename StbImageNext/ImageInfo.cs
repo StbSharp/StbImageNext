@@ -30,9 +30,9 @@ namespace StbImageNext
 				return GifImageDecoder.Info(stream);
 			}
 
-			if (JpgImageDecoder.Test(context))
+			if (JpgImageDecoder.Test(stream))
 			{
-				return JpgImageDecoder.Info(context);
+				return JpgImageDecoder.Info(stream);
 			}
 
 			if (TgaImageDecoder.Test(context))
