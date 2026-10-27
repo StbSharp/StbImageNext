@@ -216,8 +216,6 @@ namespace StbImageNext
 				return stbi__hdr_to_ldr(hdr, *x, *y, req_comp != 0 ? req_comp : *comp);
 			}
 
-			if (stbi__tga_test(s) != 0)
-				return stbi__tga_load(s, x, y, comp, req_comp);
 			return (byte*)(ulong)(stbi__err("unknown image type") != 0 ? 0 : 0);
 		}
 
@@ -546,8 +544,6 @@ namespace StbImageNext
 			if (stbi__psd_info(s, x, y, comp) != 0)
 				return 1;
 			if (stbi__hdr_info(s, x, y, comp) != 0)
-				return 1;
-			if (stbi__tga_info(s, x, y, comp) != 0)
 				return 1;
 			return stbi__err("unknown image type");
 		}

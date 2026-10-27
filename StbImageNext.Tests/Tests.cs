@@ -30,6 +30,7 @@ namespace StbImageNext.Tests
 		[InlineData("IDockable.png", 715, 426, ColorComponents.RedGreenBlueAlpha)]
 		[InlineData("sample_1280×853.hdr", 1280, 853, ColorComponents.RedGreenBlue)]
 		[InlineData("DockPanes.jpg", 609, 406, ColorComponents.RedGreenBlue)]
+		[InlineData("head.tga", 1024, 1024, ColorComponents.RedGreenBlue)]
 		public void Load(string filename, int width, int height, ColorComponents colorComponents)
 		{
 			ImageResult result = null;

@@ -60,6 +60,11 @@ namespace StbImageNext
 				return JpgImageDecoder.Load(context, requiredComponents);
 			}
 
+			if (TgaImageDecoder.Test(context))
+			{
+				return TgaImageDecoder.Load(context, requiredComponents);
+			}
+
 			throw new NotSupportedException("Image format is not supported");
 		}
 

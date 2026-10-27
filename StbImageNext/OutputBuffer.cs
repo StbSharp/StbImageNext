@@ -9,6 +9,8 @@ namespace StbImageNext
 
 		public T[] Data => _data;
 
+		public long Offset => _offset;
+
 		public T this[long index]
 		{
 			get => _data[index + _offset];

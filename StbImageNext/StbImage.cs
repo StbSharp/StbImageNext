@@ -85,5 +85,10 @@ namespace StbImageNext
 
 			return result;
 		}
+
+		internal static int stbi__getn(stbi__context s, OutputBuffer<byte> buf, int size)
+		{
+			return s.Stream.Read(buf.Data, (int)buf.Offset, size);
+		}
 	}
 }
