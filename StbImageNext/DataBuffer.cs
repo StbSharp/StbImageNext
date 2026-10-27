@@ -70,9 +70,9 @@ namespace StbImageNext
 
 		public void Copy(DataBuffer<T> source, long size) => Copy(0, source, 0, size);
 
-		public void Copy(T[] source, long size)
+		public void Copy(long offset, T[] source, long sourceOffset, long size)
 		{
-			Array.Copy(source, 0, _data, _offset, size);
+			Array.Copy(source, sourceOffset, _data, _offset + offset, size);
 		}
 
 		public unsafe void Copy(long offset, T* source, long size)

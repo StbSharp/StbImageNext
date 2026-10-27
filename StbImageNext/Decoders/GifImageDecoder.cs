@@ -119,7 +119,7 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		private static unsafe void stbi__out_gif_code(stbi__gif g, ushort code)
+		private static void stbi__out_gif_code(stbi__gif g, ushort code)
 		{
 			var idx = 0;
 			if (g.codes[code].prefix >= 0)
@@ -152,7 +152,7 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		private static unsafe bool stbi__process_gif_raster(Stream s, stbi__gif g)
+		private static bool stbi__process_gif_raster(Stream s, stbi__gif g)
 		{
 			byte lzw_cs = 0;
 			var len = 0;
@@ -165,7 +165,6 @@ namespace StbImageNext.Decoders
 			var bits = 0;
 			var valid_bits = 0;
 			var clear = 0;
-			stbi__gif_lzw* p;
 			lzw_cs = s.stbi__get8();
 			if (lzw_cs > 12)
 				return false;
@@ -226,15 +225,15 @@ namespace StbImageNext.Decoders
 							throw new Exception("no clear code");
 						if (oldcode >= 0)
 						{
-							fixed (stbi__gif_lzw* p2 = &g.codes[avail++])
-							{
-								p = p2;
-								if (avail > 8192)
-									throw new Exception("too many codes");
-								p->prefix = (short)oldcode;
-								p->first = g.codes[oldcode].first;
-								p->suffix = code == avail ? p->first : g.codes[code].first;
-							}
+							var newAvail = avail + 1;
+							if (newAvail > 8192)
+								throw new Exception("too many codes");
+
+							g.codes[avail].prefix = (short)oldcode;
+							g.codes[avail].first = g.codes[oldcode].first;
+							g.codes[avail].suffix = code == avail ? g.codes[avail].first : g.codes[code].first;
+
+							avail = newAvail;
 						}
 						else if (code == avail)
 						{
@@ -258,7 +257,7 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		internal unsafe static DataBuffer<byte> stbi__gif_load_next(Stream s, stbi__gif g, int req_comp)
+		internal static DataBuffer<byte> stbi__gif_load_next(Stream s, stbi__gif g, int req_comp)
 		{
 			var dispose = 0;
 			var first_frame = 0;
@@ -285,7 +284,7 @@ namespace StbImageNext.Decoders
 				pcount = g.w * g.h;
 				if (dispose == 3)
 					dispose = 2;
-				
+
 				if (dispose == 2)
 				{
 					for (pi = 0; pi < pcount; ++pi)
@@ -363,10 +362,7 @@ namespace StbImageNext.Decoders
 									if (g.history[pi] == 0)
 									{
 										g.pal[g.bgindex][3] = 255;
-										fixed (byte* ptr = &g.pal[g.bgindex][0])
-										{
-											g._out_.Copy(pi * 4, ptr, 4);
-										}
+										g._out_.Copy(pi * 4, g.pal[g.bgindex], 0, 4);
 									}
 
 							return g._out_;

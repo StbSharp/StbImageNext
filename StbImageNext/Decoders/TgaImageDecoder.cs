@@ -1,5 +1,4 @@
-﻿using StbImageNext.Hebron.Runtime;
-using System;
+﻿using System;
 using System.IO;
 using static StbImageNext.StbImage;
 
