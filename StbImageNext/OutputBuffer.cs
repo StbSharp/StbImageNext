@@ -2,7 +2,7 @@
 
 namespace StbImageNext
 {
-	internal struct OutputBuffer<T>
+	internal class OutputBuffer<T> where T : unmanaged
 	{
 		private T[] _data;
 		private long _offset;
@@ -46,6 +46,8 @@ namespace StbImageNext
 			}
 		}
 
+		public void Set(T value) => Set(value, _data.Length - _offset);
+
 		public void Copy(OutputBuffer<T> source, long size)
 		{
 			Array.Copy(source._data, source._offset, _data, _offset, size);
@@ -54,6 +56,14 @@ namespace StbImageNext
 		public void Copy(T[] source, long size)
 		{
 			Array.Copy(source, 0, _data, _offset, size);
+		}
+
+		public unsafe void Copy(long offset, T* source, long size)
+		{
+			fixed (T* ptr = &_data[_offset + offset])
+			{
+				Buffer.MemoryCopy(source, ptr, size, size);
+			}
 		}
 
 		public OutputBuffer<T> Realloc(long newSize)

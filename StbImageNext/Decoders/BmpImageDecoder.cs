@@ -8,16 +8,24 @@ namespace StbImageNext.Decoders
 	{
 		public bool Test(stbi__context s)
 		{
-			if (stbi__get8(s) != 66)
-				return false;
-			if (stbi__get8(s) != 77)
-				return false;
-			stbi__get32le(s);
-			stbi__get16le(s);
-			stbi__get16le(s);
-			stbi__get32le(s);
-			var sz = (int)stbi__get32le(s);
-			return sz == 12 || sz == 40 || sz == 56 || sz == 108 || sz == 124;
+			try
+			{
+				if (stbi__get8(s) != 66)
+					return false;
+				if (stbi__get8(s) != 77)
+					return false;
+				stbi__get32le(s);
+				stbi__get16le(s);
+				stbi__get16le(s);
+				stbi__get32le(s);
+				var sz = (int)stbi__get32le(s);
+
+				return sz == 12 || sz == 40 || sz == 56 || sz == 108 || sz == 124;
+			}
+			finally
+			{
+				stbi__rewind(s);
+			}
 		}
 
 		private static int stbi__bmp_set_mask_defaults(ref stbi__bmp_data info, int compress)
@@ -163,7 +171,6 @@ namespace StbImageNext.Decoders
 		public ImageInfo Info(stbi__context s)
 		{
 			var bmpInfo = stbi__bmp_parse_header(s);
-			stbi__rewind(s);
 
 			var info = new ImageInfo
 			{

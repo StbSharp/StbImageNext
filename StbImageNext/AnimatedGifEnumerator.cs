@@ -1,27 +1,33 @@
-﻿using StbImageNext.Hebron.Runtime;
+﻿using StbImageNext.Decoders;
+using StbImageNext.Hebron.Runtime;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
+using static StbImageNext.Decoders.GifImageDecoder;
 
 namespace StbImageNext
 {
 	internal class AnimatedGifEnumerator : IEnumerator<AnimatedFrameResult>
 	{
 		private readonly StbImage.stbi__context _context;
-		private StbImage.stbi__gif _gif;
-		private readonly ColorComponents _colorComponents;		
+		private stbi__gif2 _gif;
+		private readonly ColorComponents _colorComponents;
+		private readonly GifImageDecoder _decoder;
 
 		public AnimatedGifEnumerator(Stream input, ColorComponents colorComponents)
 		{
 			if (input == null) throw new ArgumentNullException("input");
 
 			_context = new StbImage.stbi__context(input);
+			_decoder = new GifImageDecoder();
 
-			if (StbImage.stbi__gif_test(_context) == 0) throw new Exception("Input stream is not GIF file.");
+			if (!_decoder.Test(_context))
+			{
+				throw new Exception("Input stream is not GIF file.");
+			}
 
-			_gif = new StbImage.stbi__gif();
+			_gif = new stbi__gif2();
 			_colorComponents = colorComponents;
 		}
 
@@ -52,9 +58,8 @@ namespace StbImageNext
 		public unsafe bool MoveNext()
 		{
 			// Read next frame
-			int ccomp;
 			byte two_back;
-			var result = StbImage.stbi__gif_load_next(_context, _gif, &ccomp, (int)ColorComponents, &two_back);
+			var result = stbi__gif_load_next(_context, _gif, (int)ColorComponents, &two_back);
 			if (result == null) return false;
 
 			if (Current == null)
@@ -63,16 +68,15 @@ namespace StbImageNext
 				{
 					Width = _gif.w,
 					Height = _gif.h,
-					SourceComp = (ColorComponents)ccomp,
-					Comp = ColorComponents == ColorComponents.Default ? (ColorComponents)ccomp : ColorComponents
+					SourceComp = _gif.colorComponents,
+					Comp = ColorComponents == ColorComponents.Default ? _gif.colorComponents : ColorComponents
 				};
 
-				Current.Data = new byte[Current.Width * Current.Height * (int)Current.Comp];
 			}
 
 			Current.DelayInMs = _gif.delay;
 
-			Marshal.Copy(new IntPtr(result), Current.Data, 0, Current.Data.Length);
+			Current.Data = result.Data;
 
 			return true;
 		}
@@ -91,12 +95,6 @@ namespace StbImageNext
 		{
 			if (_gif != null)
 			{
-				if (_gif._out_ != null)
-				{
-					CRuntime.free(_gif._out_);
-					_gif._out_ = null;
-				}
-
 				if (_gif.history != null)
 				{
 					CRuntime.free(_gif.history);
@@ -117,7 +115,7 @@ namespace StbImageNext
 	internal class AnimatedGifEnumerable : IEnumerable<AnimatedFrameResult>
 	{
 		private readonly Stream _input;
-		private readonly ColorComponents _colorComponents;		
+		private readonly ColorComponents _colorComponents;
 
 		public AnimatedGifEnumerable(Stream input, ColorComponents colorComponents)
 		{
