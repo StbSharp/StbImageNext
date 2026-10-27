@@ -13,16 +13,14 @@ namespace StbImageNext
 		private readonly StbImage.stbi__context _context;
 		private stbi__gif2 _gif;
 		private readonly ColorComponents _colorComponents;
-		private readonly GifImageDecoder _decoder;
 
 		public AnimatedGifEnumerator(Stream input, ColorComponents colorComponents)
 		{
 			if (input == null) throw new ArgumentNullException("input");
 
 			_context = new StbImage.stbi__context(input);
-			_decoder = new GifImageDecoder();
 
-			if (!_decoder.Test(_context))
+			if (!Test(_context))
 			{
 				throw new Exception("Input stream is not GIF file.");
 			}

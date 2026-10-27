@@ -38,10 +38,8 @@ namespace StbImageNext
 		public static ImageResult FromStream(Stream stream,
 			ColorComponents requiredComponents = ColorComponents.Default)
 		{
-			var bmpDecoder = new BmpImageDecoder();
-
 			var context = new StbImage.stbi__context(stream);
-			return bmpDecoder.Decode(context, requiredComponents);
+			return BmpImageDecoder.Decode(context, requiredComponents);
 		}
 
 		public static ImageResult FromMemory(byte[] data, ColorComponents requiredComponents = ColorComponents.Default)

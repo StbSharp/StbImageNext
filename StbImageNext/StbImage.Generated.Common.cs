@@ -216,10 +216,6 @@ namespace StbImageNext
 			ri->num_channels = 0;
 			if (stbi__png_test(s) != 0)
 				return stbi__png_load(s, x, y, comp, req_comp, ri);
-			if (stbi__bmp_test(s) != 0)
-				return stbi__bmp_load(s, x, y, comp, req_comp, ri);
-			if (stbi__gif_test(s) != 0)
-				return stbi__gif_load(s, x, y, comp, req_comp, ri);
 			if (stbi__psd_test(s) != 0)
 				return stbi__psd_load(s, x, y, comp, req_comp, ri, bpc);
 			if (stbi__jpeg_test(s) != 0)
@@ -736,10 +732,6 @@ namespace StbImageNext
 			if (stbi__jpeg_info(s, x, y, comp) != 0)
 				return 1;
 			if (stbi__png_info(s, x, y, comp) != 0)
-				return 1;
-			if (stbi__gif_info(s, x, y, comp) != 0)
-				return 1;
-			if (stbi__bmp_info(s, x, y, comp) != 0)
 				return 1;
 			if (stbi__psd_info(s, x, y, comp) != 0)
 				return 1;

@@ -1,12 +1,13 @@
 ﻿using StbImageNext.Hebron.Runtime;
 using System;
+using System.Runtime.InteropServices;
 using static StbImageNext.StbImage;
 
 namespace StbImageNext.Decoders
 {
-	public class GifImageDecoder : IImageDecoder
+	public static class GifImageDecoder
 	{
-		public bool Test(stbi__context s)
+		public static bool Test(stbi__context s)
 		{
 			try
 			{
@@ -70,19 +71,26 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		public ImageInfo Info(stbi__context s)
+		public static ImageInfo Info(stbi__context s)
 		{
-			var g = new stbi__gif2();
-			ParseHeader(s, g, true);
-
-			var info = new ImageInfo
+			try
 			{
-				Width = g.w,
-				Height = g.h,
-				ColorComponents = g.colorComponents
-			};
+				var g = new stbi__gif2();
+				ParseHeader(s, g, true);
 
-			return info;
+				var info = new ImageInfo
+				{
+					Width = g.w,
+					Height = g.h,
+					ColorComponents = g.colorComponents
+				};
+
+				return info;
+			}
+			finally
+			{
+				stbi__rewind(s);
+			}
 		}
 
 		private static unsafe void stbi__out_gif_code(stbi__gif2 g, ushort code)
@@ -395,7 +403,7 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		public unsafe ImageResult Decode(stbi__context s, ColorComponents req_comp)
+		public static unsafe ImageResult Decode(stbi__context s, ColorComponents req_comp)
 		{
 			var g = new stbi__gif2();
 			try
@@ -458,6 +466,14 @@ namespace StbImageNext.Decoders
 			public int transparent;
 			public int w;
 			public ColorComponents colorComponents;
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		internal struct stbi__gif_lzw
+		{
+			public short prefix;
+			public byte first;
+			public byte suffix;
 		}
 	}
 }

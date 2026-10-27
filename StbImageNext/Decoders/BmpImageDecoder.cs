@@ -1,12 +1,13 @@
 ﻿using StbImageNext.Hebron.Runtime;
 using System;
+using System.Runtime.InteropServices;
 using static StbImageNext.StbImage;
 
 namespace StbImageNext.Decoders
 {
-	public class BmpImageDecoder : IImageDecoder
+	public static class BmpImageDecoder
 	{
-		public bool Test(stbi__context s)
+		public static bool Test(stbi__context s)
 		{
 			try
 			{
@@ -168,29 +169,36 @@ namespace StbImageNext.Decoders
 			return info;
 		}
 
-		public ImageInfo Info(stbi__context s)
+		public static ImageInfo Info(stbi__context s)
 		{
-			var bmpInfo = stbi__bmp_parse_header(s);
-
-			var info = new ImageInfo
+			try
 			{
-				Width = (int)s.img_x,
-				Height = (int)s.img_y
-			};
+				var bmpInfo = stbi__bmp_parse_header(s);
 
-			if (bmpInfo.bpp == 24 && bmpInfo.ma == 0xff000000)
-			{
-				info.ColorComponents = ColorComponents.RedGreenBlue;
+				var info = new ImageInfo
+				{
+					Width = (int)s.img_x,
+					Height = (int)s.img_y
+				};
+
+				if (bmpInfo.bpp == 24 && bmpInfo.ma == 0xff000000)
+				{
+					info.ColorComponents = ColorComponents.RedGreenBlue;
+				}
+				else
+				{
+					info.ColorComponents = bmpInfo.ma != 0 ? ColorComponents.RedGreenBlueAlpha : ColorComponents.RedGreenBlue;
+				}
+
+				return info;
 			}
-			else
+			finally
 			{
-				info.ColorComponents = bmpInfo.ma != 0 ? ColorComponents.RedGreenBlueAlpha : ColorComponents.RedGreenBlue;
+				stbi__rewind(s);
 			}
-
-			return info;
 		}
 
-		public ImageResult Decode(stbi__context s, ColorComponents req_comp)
+		public static ImageResult Decode(stbi__context s, ColorComponents req_comp)
 		{
 			uint mr = 0;
 			uint mg = 0;
@@ -470,5 +478,19 @@ namespace StbImageNext.Decoders
 
 			return result;
 		}
+	}
+
+	[StructLayout(LayoutKind.Sequential)]
+	public struct stbi__bmp_data
+	{
+		public int bpp;
+		public int offset;
+		public int hsz;
+		public uint mr;
+		public uint mg;
+		public uint mb;
+		public uint ma;
+		public uint all_a;
+		public int extra_read;
 	}
 }
