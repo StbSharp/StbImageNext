@@ -8,6 +8,9 @@ namespace StbImageNext.Decoders
 {
 	public unsafe static class JpgImageDecoder
 	{
+		private static readonly byte[] stbi__process_marker_tag = { 65, 100, 111, 98, 101, 0 };
+		private static readonly byte[] stbi__process_frame_header_rgb = { 82, 71, 66 };
+
 		private delegate void delegate0(byte* arg0, int arg1, short* arg2);
 
 		private delegate void delegate1(DataBuffer<byte> arg0, byte* arg1, byte* arg2, byte* arg3, int arg4, int arg5);
