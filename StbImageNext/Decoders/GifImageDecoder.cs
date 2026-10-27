@@ -27,6 +27,63 @@ namespace StbImageNext.Decoders
 			}
 		}
 
+		public static ImageInfo Info(stbi__context s)
+		{
+			try
+			{
+				var g = new stbi__gif();
+				ParseHeader(s, g, true);
+
+				var info = new ImageInfo
+				{
+					Width = g.w,
+					Height = g.h,
+					ColorComponents = g.colorComponents
+				};
+
+				return info;
+			}
+			finally
+			{
+				stbi__rewind(s);
+			}
+		}
+
+		public static unsafe ImageResult Load(stbi__context s, ColorComponents req_comp)
+		{
+			var g = new stbi__gif();
+			try
+			{
+				var u = stbi__gif_load_next(s, g, (int)req_comp, null);
+				if (u == null)
+				{
+					throw new Exception("Unknown GIF loading error");
+				}
+
+				if (req_comp != ColorComponents.Default && req_comp != ColorComponents.RedGreenBlueAlpha)
+				{
+					u = Utility.stbi__convert_format(u, 4, (int)req_comp, (uint)g.w, (uint)g.h);
+				}
+
+				var result = new ImageResult
+				{
+					Width = g.w,
+					Height = g.h,
+					SourceComp = g.colorComponents
+				};
+
+				result.Comp = req_comp == ColorComponents.Default ? result.SourceComp : req_comp;
+				result.Data = u.Data;
+				return result;
+			}
+			finally
+			{
+				CRuntime.free(g.history);
+				CRuntime.free(g.background);
+			}
+
+		}
+
 		private static void stbi__gif_parse_colortable(stbi__context s, byte[][] pal, int num_entries, int transp)
 		{
 			var i = 0;
@@ -68,28 +125,6 @@ namespace StbImageNext.Decoders
 			{
 				if ((g.flags & 0x80) != 0)
 					stbi__gif_parse_colortable(s, g.pal, 2 << (g.flags & 7), -1);
-			}
-		}
-
-		public static ImageInfo Info(stbi__context s)
-		{
-			try
-			{
-				var g = new stbi__gif();
-				ParseHeader(s, g, true);
-
-				var info = new ImageInfo
-				{
-					Width = g.w,
-					Height = g.h,
-					ColorComponents = g.colorComponents
-				};
-
-				return info;
-			}
-			finally
-			{
-				stbi__rewind(s);
 			}
 		}
 
@@ -403,40 +438,6 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		public static unsafe ImageResult Decode(stbi__context s, ColorComponents req_comp)
-		{
-			var g = new stbi__gif();
-			try
-			{
-				var u = stbi__gif_load_next(s, g, (int)req_comp, null);
-				if (u == null)
-				{
-					throw new Exception("Unknown GIF loading error");
-				}
-
-				if (req_comp != ColorComponents.Default && req_comp != ColorComponents.RedGreenBlueAlpha)
-				{
-					u = Utility.stbi__convert_format(u, 4, (int)req_comp, (uint)g.w, (uint)g.h);
-				}
-
-				var result = new ImageResult
-				{
-					Width = g.w,
-					Height = g.h,
-					SourceComp = g.colorComponents
-				};
-
-				result.Comp = req_comp == ColorComponents.Default ? result.SourceComp : req_comp;
-				result.Data = u.Data;
-				return result;
-			}
-			finally
-			{
-				CRuntime.free(g.history);
-				CRuntime.free(g.background);
-			}
-
-		}
 
 		internal unsafe class stbi__gif
 		{

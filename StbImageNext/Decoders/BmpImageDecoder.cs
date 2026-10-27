@@ -29,146 +29,6 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		private static int stbi__bmp_set_mask_defaults(ref stbi__bmp_data info, int compress)
-		{
-			if (compress == 3)
-				return 1;
-			if (compress == 0)
-			{
-				if (info.bpp == 16)
-				{
-					info.mr = 31u << 10;
-					info.mg = 31u << 5;
-					info.mb = 31u << 0;
-				}
-				else if (info.bpp == 32)
-				{
-					info.mr = 0xffu << 16;
-					info.mg = 0xffu << 8;
-					info.mb = 0xffu << 0;
-					info.ma = 0xffu << 24;
-					info.all_a = 0;
-				}
-				else
-				{
-					info.mr = info.mg = info.mb = info.ma = 0;
-				}
-
-				return 1;
-			}
-
-			return 0;
-		}
-
-		private static stbi__bmp_data stbi__bmp_parse_header(stbi__context s)
-		{
-			if (stbi__get8(s) != 66 || stbi__get8(s) != 77)
-				throw new Exception("not BMP");
-			stbi__get32le(s);
-			stbi__get16le(s);
-			stbi__get16le(s);
-
-			var info = new stbi__bmp_data
-			{
-				all_a = 255,
-				offset = (int)stbi__get32le(s)
-			};
-
-			var hsz = (int)stbi__get32le(s);
-			info.hsz = hsz;
-			info.mr = info.mg = info.mb = info.ma = 0;
-			info.extra_read = 14;
-			if (info.offset < 0)
-				throw new Exception("bad BMP");
-			if (hsz != 12 && hsz != 40 && hsz != 56 && hsz != 108 && hsz != 124)
-				throw new Exception("unknown BMP");
-			if (hsz == 12)
-			{
-				s.img_x = (uint)stbi__get16le(s);
-				s.img_y = (uint)stbi__get16le(s);
-			}
-			else
-			{
-				s.img_x = stbi__get32le(s);
-				s.img_y = stbi__get32le(s);
-			}
-
-			if (stbi__get16le(s) != 1)
-				throw new Exception("bad BMP");
-			info.bpp = stbi__get16le(s);
-			if (hsz != 12)
-			{
-				var compress = (int)stbi__get32le(s);
-				if (compress == 1 || compress == 2)
-					throw new Exception("BMP RLE");
-				if (compress >= 4)
-					throw new Exception("BMP JPEG/PNG");
-				if (compress == 3 && info.bpp != 16 && info.bpp != 32)
-					throw new Exception("bad BMP");
-				stbi__get32le(s);
-				stbi__get32le(s);
-				stbi__get32le(s);
-				stbi__get32le(s);
-				stbi__get32le(s);
-				if (hsz == 40 || hsz == 56)
-				{
-					if (hsz == 56)
-					{
-						stbi__get32le(s);
-						stbi__get32le(s);
-						stbi__get32le(s);
-						stbi__get32le(s);
-					}
-
-					if (info.bpp == 16 || info.bpp == 32)
-					{
-						if (compress == 0)
-						{
-							stbi__bmp_set_mask_defaults(ref info, compress);
-						}
-						else if (compress == 3)
-						{
-							info.mr = stbi__get32le(s);
-							info.mg = stbi__get32le(s);
-							info.mb = stbi__get32le(s);
-							info.extra_read += 12;
-							if (info.mr == info.mg && info.mg == info.mb)
-								throw new Exception("bad BMP");
-						}
-						else
-						{
-							throw new Exception("bad BMP");
-						}
-					}
-				}
-				else
-				{
-					var i = 0;
-					if (hsz != 108 && hsz != 124)
-						throw new Exception("bad BMP");
-					info.mr = stbi__get32le(s);
-					info.mg = stbi__get32le(s);
-					info.mb = stbi__get32le(s);
-					info.ma = stbi__get32le(s);
-					if (compress != 3)
-						stbi__bmp_set_mask_defaults(ref info, compress);
-					stbi__get32le(s);
-					for (i = 0; i < 12; ++i)
-						stbi__get32le(s);
-
-					if (hsz == 124)
-					{
-						stbi__get32le(s);
-						stbi__get32le(s);
-						stbi__get32le(s);
-						stbi__get32le(s);
-					}
-				}
-			}
-
-			return info;
-		}
-
 		public static ImageInfo Info(stbi__context s)
 		{
 			try
@@ -198,7 +58,7 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		public static ImageResult Decode(stbi__context s, ColorComponents req_comp)
+		public static ImageResult Load(stbi__context s, ColorComponents req_comp)
 		{
 			uint mr = 0;
 			uint mg = 0;
@@ -477,6 +337,147 @@ namespace StbImageNext.Decoders
 			result.Data = _out_.Data;
 
 			return result;
+		}
+
+
+		private static int stbi__bmp_set_mask_defaults(ref stbi__bmp_data info, int compress)
+		{
+			if (compress == 3)
+				return 1;
+			if (compress == 0)
+			{
+				if (info.bpp == 16)
+				{
+					info.mr = 31u << 10;
+					info.mg = 31u << 5;
+					info.mb = 31u << 0;
+				}
+				else if (info.bpp == 32)
+				{
+					info.mr = 0xffu << 16;
+					info.mg = 0xffu << 8;
+					info.mb = 0xffu << 0;
+					info.ma = 0xffu << 24;
+					info.all_a = 0;
+				}
+				else
+				{
+					info.mr = info.mg = info.mb = info.ma = 0;
+				}
+
+				return 1;
+			}
+
+			return 0;
+		}
+
+		private static stbi__bmp_data stbi__bmp_parse_header(stbi__context s)
+		{
+			if (stbi__get8(s) != 66 || stbi__get8(s) != 77)
+				throw new Exception("not BMP");
+			stbi__get32le(s);
+			stbi__get16le(s);
+			stbi__get16le(s);
+
+			var info = new stbi__bmp_data
+			{
+				all_a = 255,
+				offset = (int)stbi__get32le(s)
+			};
+
+			var hsz = (int)stbi__get32le(s);
+			info.hsz = hsz;
+			info.mr = info.mg = info.mb = info.ma = 0;
+			info.extra_read = 14;
+			if (info.offset < 0)
+				throw new Exception("bad BMP");
+			if (hsz != 12 && hsz != 40 && hsz != 56 && hsz != 108 && hsz != 124)
+				throw new Exception("unknown BMP");
+			if (hsz == 12)
+			{
+				s.img_x = (uint)stbi__get16le(s);
+				s.img_y = (uint)stbi__get16le(s);
+			}
+			else
+			{
+				s.img_x = stbi__get32le(s);
+				s.img_y = stbi__get32le(s);
+			}
+
+			if (stbi__get16le(s) != 1)
+				throw new Exception("bad BMP");
+			info.bpp = stbi__get16le(s);
+			if (hsz != 12)
+			{
+				var compress = (int)stbi__get32le(s);
+				if (compress == 1 || compress == 2)
+					throw new Exception("BMP RLE");
+				if (compress >= 4)
+					throw new Exception("BMP JPEG/PNG");
+				if (compress == 3 && info.bpp != 16 && info.bpp != 32)
+					throw new Exception("bad BMP");
+				stbi__get32le(s);
+				stbi__get32le(s);
+				stbi__get32le(s);
+				stbi__get32le(s);
+				stbi__get32le(s);
+				if (hsz == 40 || hsz == 56)
+				{
+					if (hsz == 56)
+					{
+						stbi__get32le(s);
+						stbi__get32le(s);
+						stbi__get32le(s);
+						stbi__get32le(s);
+					}
+
+					if (info.bpp == 16 || info.bpp == 32)
+					{
+						if (compress == 0)
+						{
+							stbi__bmp_set_mask_defaults(ref info, compress);
+						}
+						else if (compress == 3)
+						{
+							info.mr = stbi__get32le(s);
+							info.mg = stbi__get32le(s);
+							info.mb = stbi__get32le(s);
+							info.extra_read += 12;
+							if (info.mr == info.mg && info.mg == info.mb)
+								throw new Exception("bad BMP");
+						}
+						else
+						{
+							throw new Exception("bad BMP");
+						}
+					}
+				}
+				else
+				{
+					var i = 0;
+					if (hsz != 108 && hsz != 124)
+						throw new Exception("bad BMP");
+					info.mr = stbi__get32le(s);
+					info.mg = stbi__get32le(s);
+					info.mb = stbi__get32le(s);
+					info.ma = stbi__get32le(s);
+					if (compress != 3)
+						stbi__bmp_set_mask_defaults(ref info, compress);
+					stbi__get32le(s);
+					for (i = 0; i < 12; ++i)
+						stbi__get32le(s);
+
+					if (hsz == 124)
+					{
+						stbi__get32le(s);
+						stbi__get32le(s);
+						stbi__get32le(s);
+						stbi__get32le(s);
+					}
+				}
+			}
+
+			return info;
 		}
 	}
 

@@ -67,9 +67,9 @@ namespace StbImageNext.Tests
 		}
 
 		[Theory]
-		[InlineData("sample_1280×853.hdr", 2000, 1280, 853, ColorComponents.RedGreenBlue, false)]
-		[InlineData("DockPanes.jpg", 2000, 609, 406, ColorComponents.RedGreenBlue, false)]
-		public void Info(string filename, int headerSize, int width, int height, ColorComponents colorComponents, bool is16bit)
+		[InlineData("sample_1280×853.hdr", 2000, 1280, 853, ColorComponents.RedGreenBlue)]
+		[InlineData("DockPanes.jpg", 2000, 609, 406, ColorComponents.RedGreenBlue)]
+		public void Info(string filename, int headerSize, int width, int height, ColorComponents colorComponents)
 		{
 			ImageInfo? result;
 
@@ -90,7 +90,6 @@ namespace StbImageNext.Tests
 			Assert.Equal(width, info.Width);
 			Assert.Equal(height, info.Height);
 			Assert.Equal(colorComponents, info.ColorComponents);
-			Assert.Equal(is16bit ? 16 : 8, info.BitsPerChannel);
 		}
 
 		[Theory]

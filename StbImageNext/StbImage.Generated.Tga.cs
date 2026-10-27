@@ -48,8 +48,7 @@ namespace StbImageNext
 			return res;
 		}
 
-		public static void* stbi__tga_load(stbi__context s, int* x, int* y, int* comp, int req_comp,
-			stbi__result_info* ri)
+		public static void* stbi__tga_load(stbi__context s, int* x, int* y, int* comp, int req_comp)
 		{
 			int tga_offset = stbi__get8(s);
 			int tga_indexed = stbi__get8(s);

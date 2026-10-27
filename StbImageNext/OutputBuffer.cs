@@ -35,7 +35,15 @@ namespace StbImageNext
 		public void Write(T value)
 		{
 			_data[_offset] = value;
-			_offset++;
+			++_offset;
+		}
+
+		public T Read()
+		{
+			var result = _data[_offset];
+			++_offset;
+
+			return result;
 		}
 
 		public void Set(T value, long size)
@@ -48,10 +56,14 @@ namespace StbImageNext
 
 		public void Set(T value) => Set(value, _data.Length - _offset);
 
-		public void Copy(OutputBuffer<T> source, long size)
+		public void Copy(long offset, OutputBuffer<T> source, long sourceOffset, long size)
 		{
-			Array.Copy(source._data, source._offset, _data, _offset, size);
+			Array.Copy(source._data, source._offset + sourceOffset, _data, _offset + offset, size);
 		}
+
+		public void Copy(OutputBuffer<T> source, long sourceOffset, long size) => Copy(0, source, sourceOffset, size);
+
+		public void Copy(OutputBuffer<T> source, long size) => Copy(0, source, 0, size);
 
 		public void Copy(T[] source, long size)
 		{
@@ -65,6 +77,8 @@ namespace StbImageNext
 				Buffer.MemoryCopy(source, ptr, size, size);
 			}
 		}
+
+		public unsafe void Copy(T* source, long size) => Copy(0, source, size);
 
 		public OutputBuffer<T> Realloc(long newSize)
 		{

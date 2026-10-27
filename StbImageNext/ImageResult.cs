@@ -40,19 +40,24 @@ namespace StbImageNext
 		{
 			var context = new StbImage.stbi__context(stream);
 
+			if (PngImageDecoder.Test(context))
+			{
+				return PngImageDecoder.Decode(context, requiredComponents);
+			}
+
 			if (BmpImageDecoder.Test(context))
 			{
-				return BmpImageDecoder.Decode(context, requiredComponents);
+				return BmpImageDecoder.Load(context, requiredComponents);
 			}
 
 			if (GifImageDecoder.Test(context))
 			{
-				return GifImageDecoder.Decode(context, requiredComponents);
+				return GifImageDecoder.Load(context, requiredComponents);
 			}
 
 			if (JpgImageDecoder.Test(context))
 			{
-				return JpgImageDecoder.Decode(context, requiredComponents);
+				return JpgImageDecoder.Load(context, requiredComponents);
 			}
 
 			throw new NotSupportedException("Image format is not supported");

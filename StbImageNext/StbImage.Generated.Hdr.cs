@@ -19,8 +19,7 @@ namespace StbImageNext
 			return r;
 		}
 
-		public static float* stbi__hdr_load(stbi__context s, int* x, int* y, int* comp, int req_comp,
-			stbi__result_info* ri)
+		public static float* stbi__hdr_load(stbi__context s, int* x, int* y, int* comp, int req_comp)
 		{
 			var rgbe = stackalloc byte[4];
 			var buffer = stackalloc sbyte[1024];
@@ -199,7 +198,7 @@ namespace StbImageNext
 					CRuntime.free(scanline);
 			}
 
-			finish:
+		finish:
 			return hdr_data;
 		}
 

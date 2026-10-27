@@ -67,7 +67,7 @@ namespace StbImageNext.Decoders
 		}
 
 
-		public static ImageResult Decode(stbi__context s, ColorComponents req_comp)
+		public static ImageResult Load(stbi__context s, ColorComponents req_comp)
 		{
 			var j = new stbi__jpeg();
 			j.s = s;

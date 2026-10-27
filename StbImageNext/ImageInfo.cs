@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using StbImageNext.Decoders;
+using System;
+using System.IO;
 
 namespace StbImageNext
 {
@@ -7,29 +9,33 @@ namespace StbImageNext
 		public int Width;
 		public int Height;
 		public ColorComponents ColorComponents;
-		public int BitsPerChannel;
 
 
-		public static unsafe ImageInfo? FromStream(Stream stream)
+		public static ImageInfo? FromStream(Stream stream)
 		{
-			int width, height, comp;
 			var context = new StbImage.stbi__context(stream);
 
-			var is16Bit = StbImage.stbi__is_16_main(context) == 1;
-			StbImage.stbi__rewind(context);
-
-			var infoResult = StbImage.stbi__info_main(context, &width, &height, &comp);
-			StbImage.stbi__rewind(context);
-
-			if (infoResult == 0) return null;
-
-			return new ImageInfo
+			if (PngImageDecoder.Test(context))
 			{
-				Width = width,
-				Height = height,
-				ColorComponents = (ColorComponents)comp,
-				BitsPerChannel = is16Bit ? 16 : 8
-			};
+				return PngImageDecoder.Info(context);
+			}
+
+			if (BmpImageDecoder.Test(context))
+			{
+				return BmpImageDecoder.Info(context);
+			}
+
+			if (GifImageDecoder.Test(context))
+			{
+				return GifImageDecoder.Info(context);
+			}
+
+			if (JpgImageDecoder.Test(context))
+			{
+				return JpgImageDecoder.Info(context);
+			}
+
+			throw new NotSupportedException("Image format is not supported");
 		}
 	}
 }
