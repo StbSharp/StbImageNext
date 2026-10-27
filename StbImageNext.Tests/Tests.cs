@@ -71,6 +71,8 @@ namespace StbImageNext.Tests
 		}
 
 		[Theory]
+		[InlineData("panel.bmp", 164, 314, ColorComponents.RedGreenBlueAlpha)]
+		[InlineData("AgedPavement_specular.png", 512, 512, ColorComponents.GreyAlpha)]
 		[InlineData("Normal.psd", 128, 128, ColorComponents.RedGreenBlueAlpha)]
 		[InlineData("MonoGameLogo_64px.bmp", 64, 64, ColorComponents.RedGreenBlue)]
 		[InlineData("IDockable.png", 715, 426, ColorComponents.RedGreenBlueAlpha)]
