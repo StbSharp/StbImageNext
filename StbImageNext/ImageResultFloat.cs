@@ -7,31 +7,10 @@ namespace StbImageNext
 	/// <summary>
 	/// Represents a decoded HDR image together with its source and converted pixel formats.
 	/// </summary>
-	public class ImageResultFloat
+	public class ImageResultFloat: BaseImageResult<float>
 	{
 		private static float stbi__h2l_gamma_i = 1.0f / 2.2f;
 		private static float stbi__h2l_scale_i = 1.0f;
-
-		/// <summary>
-		/// Gets or sets the width of the image.
-		/// </summary>
-		public int Width { get; set; }
-		/// <summary>
-		/// Gets or sets the height of the image.
-		/// </summary>
-		public int Height { get; set; }
-		/// <summary>
-		/// Gets or sets the source pixel format of the image.
-		/// </summary>
-		public ColorComponents SourceComp { get; set; }
-		/// <summary>
-		/// Gets or sets the pixel format of the image data.
-		/// </summary>
-		public ColorComponents Comp { get; set; }
-		/// <summary>
-		/// Gets or sets the HDR image data.
-		/// </summary>
-		public float[] Data { get; set; }
 
 		/// <summary>
 		/// Converts the HDR image data to a low dynamic range image.

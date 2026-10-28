@@ -8,29 +8,8 @@ namespace StbImageNext
 	/// <summary>
 	/// Represents a decoded image with its source and converted pixel formats.
 	/// </summary>
-	public class ImageResult
+	public class ImageResult: BaseImageResult<byte>
 	{
-		/// <summary>
-		/// Gets or sets the width of the image.
-		/// </summary>
-		public int Width { get; set; }
-		/// <summary>
-		/// Gets or sets the height of the image.
-		/// </summary>
-		public int Height { get; set; }
-		/// <summary>
-		/// Gets or sets the source pixel format of the image.
-		/// </summary>
-		public ColorComponents SourceComp { get; set; }
-		/// <summary>
-		/// Gets or sets the pixel format of the image data.
-		/// </summary>
-		public ColorComponents Comp { get; set; }
-		/// <summary>
-		/// Gets or sets the image data.
-		/// </summary>
-		public byte[] Data { get; set; }
-
 		/// <summary>
 		/// Decodes an image from the specified stream.
 		/// </summary>
