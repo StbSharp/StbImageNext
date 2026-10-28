@@ -11,11 +11,11 @@ namespace StbImageNext.Decoders
 		private static readonly byte[] stbi__process_marker_tag = { 65, 100, 111, 98, 101, 0 };
 		private static readonly byte[] stbi__process_frame_header_rgb = { 82, 71, 66 };
 
-		private delegate void delegate0(byte* arg0, int arg1, short* arg2);
+		private delegate void delegate0(DataBuffer<byte> arg0, int arg1, short* arg2);
 
-		private delegate void delegate1(DataBuffer<byte> arg0, byte* arg1, byte* arg2, byte* arg3, int arg4, int arg5);
+		private delegate void delegate1(DataBuffer<byte> arg0, DataBuffer<byte> arg1, DataBuffer<byte> arg2, DataBuffer<byte> arg3, int arg4, int arg5);
 
-		private delegate byte* delegate2(byte* arg0, byte* arg1, byte* arg2, int arg3, int arg4);
+		private delegate DataBuffer<byte> delegate2(DataBuffer<byte> arg0, DataBuffer<byte> arg1, DataBuffer<byte> arg2, int arg3, int arg4);
 
 		private static uint[] stbi__bmask =
 			{ 0, 1, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047, 4095, 8191, 16383, 32767, 65535 };
@@ -528,12 +528,12 @@ namespace StbImageNext.Decoders
 			return 1;
 		}
 
-		private static void stbi__idct_block(byte* _out_, int out_stride, short* data)
+		private static void stbi__idct_block(DataBuffer<byte> _out_, int out_stride, short* data)
 		{
 			var i = 0;
 			var val = stackalloc int[64];
 			var v = val;
-			byte* o;
+			DataBuffer<byte> o;
 			var d = data;
 			for (i = 0; i < 8; ++i, ++d, ++v)
 				if (d[8] == 0 && d[16] == 0 && d[24] == 0 && d[32] == 0 && d[40] == 0 && d[48] == 0 && d[56] == 0)
@@ -1072,11 +1072,10 @@ namespace StbImageNext.Decoders
 			var i = 0;
 			for (i = 0; i < ncomp; ++i)
 			{
-				if (z.img_comp[i].raw_data != null)
+				if (!z.img_comp[i].raw_data.IsNull)
 				{
-					CRuntime.free(z.img_comp[i].raw_data);
-					z.img_comp[i].raw_data = null;
-					z.img_comp[i].data = null;
+					z.img_comp[i].raw_data = DataBuffer<byte>.Null;
+					z.img_comp[i].data = DataBuffer<byte>.Null;
 				}
 
 				if (z.img_comp[i].raw_coeff != null)
@@ -1086,10 +1085,9 @@ namespace StbImageNext.Decoders
 					z.img_comp[i].coeff = null;
 				}
 
-				if (z.img_comp[i].linebuf != null)
+				if (!z.img_comp[i].linebuf.IsNull)
 				{
-					CRuntime.free(z.img_comp[i].linebuf);
-					z.img_comp[i].linebuf = null;
+					z.img_comp[i].linebuf = DataBuffer<byte>.Null;
 				}
 			}
 		}
@@ -1126,8 +1124,8 @@ namespace StbImageNext.Decoders
 			z.img_n = c;
 			for (i = 0; i < c; ++i)
 			{
-				z.img_comp[i].data = null;
-				z.img_comp[i].linebuf = null;
+				z.img_comp[i].data = DataBuffer<byte>.Null;
+				z.img_comp[i].linebuf = DataBuffer<byte>.Null;
 			}
 
 			if (Lf != 8 + 3 * z.img_n)
@@ -1184,14 +1182,9 @@ namespace StbImageNext.Decoders
 				z.img_comp[i].h2 = z.img_mcu_y * z.img_comp[i].v * 8;
 				z.img_comp[i].coeff = null;
 				z.img_comp[i].raw_coeff = null;
-				z.img_comp[i].linebuf = null;
-				z.img_comp[i].raw_data = stbi__malloc_mad2(z.img_comp[i].w2, z.img_comp[i].h2, 15);
-				if (z.img_comp[i].raw_data == null)
-				{
-					stbi__free_jpeg_components(z, i + 1);
-					throw new Exception("outofmem");
-				}
-				z.img_comp[i].data = (byte*)(((long)z.img_comp[i].raw_data + 15) & ~15);
+				z.img_comp[i].linebuf = DataBuffer<byte>.Null;
+				z.img_comp[i].raw_data = new DataBuffer<byte>(z.img_comp[i].w2 * z.img_comp[i].h2 + 15);
+				z.img_comp[i].data = z.img_comp[i].raw_data;
 				if (z.progressive != 0)
 				{
 					z.img_comp[i].coeff_w = z.img_comp[i].w2 / 8;
@@ -1284,7 +1277,7 @@ namespace StbImageNext.Decoders
 			var m = 0;
 			for (m = 0; m < 4; m++)
 			{
-				j.img_comp[m].raw_data = null;
+				j.img_comp[m].raw_data = DataBuffer<byte>.Null;
 				j.img_comp[m].raw_coeff = null;
 			}
 
@@ -1328,12 +1321,12 @@ namespace StbImageNext.Decoders
 			return 1;
 		}
 
-		private static byte* resample_row_1(byte* _out_, byte* in_near, byte* in_far, int w, int hs)
+		private static DataBuffer<byte> resample_row_1(DataBuffer<byte> _out_, DataBuffer<byte> in_near, DataBuffer<byte> in_far, int w, int hs)
 		{
 			return in_near;
 		}
 
-		private static byte* stbi__resample_row_v_2(byte* _out_, byte* in_near, byte* in_far, int w, int hs)
+		private static DataBuffer<byte> stbi__resample_row_v_2(DataBuffer<byte> _out_, DataBuffer<byte> in_near, DataBuffer<byte> in_far, int w, int hs)
 		{
 			var i = 0;
 			for (i = 0; i < w; ++i)
@@ -1342,7 +1335,7 @@ namespace StbImageNext.Decoders
 			return _out_;
 		}
 
-		private static byte* stbi__resample_row_h_2(byte* _out_, byte* in_near, byte* in_far, int w, int hs)
+		private static DataBuffer<byte> stbi__resample_row_h_2(DataBuffer<byte> _out_, DataBuffer<byte> in_near, DataBuffer<byte> in_far, int w, int hs)
 		{
 			var i = 0;
 			var input = in_near;
@@ -1366,7 +1359,7 @@ namespace StbImageNext.Decoders
 			return _out_;
 		}
 
-		private static byte* stbi__resample_row_hv_2(byte* _out_, byte* in_near, byte* in_far, int w, int hs)
+		private static DataBuffer<byte> stbi__resample_row_hv_2(DataBuffer<byte> _out_, DataBuffer<byte> in_near, DataBuffer<byte> in_far, int w, int hs)
 		{
 			var i = 0;
 			var t0 = 0;
@@ -1391,7 +1384,7 @@ namespace StbImageNext.Decoders
 			return _out_;
 		}
 
-		private static byte* stbi__resample_row_generic(byte* _out_, byte* in_near, byte* in_far, int w, int hs)
+		private static DataBuffer<byte> stbi__resample_row_generic(DataBuffer<byte> _out_, DataBuffer<byte> in_near, DataBuffer<byte> in_far, int w, int hs)
 		{
 			var i = 0;
 			var j = 0;
@@ -1402,7 +1395,7 @@ namespace StbImageNext.Decoders
 			return _out_;
 		}
 
-		private static void stbi__YCbCr_to_RGB_row(DataBuffer<byte> _out_, byte* y, byte* pcb, byte* pcr, int count, int step)
+		private static void stbi__YCbCr_to_RGB_row(DataBuffer<byte> _out_, DataBuffer<byte> y, DataBuffer<byte> pcb, DataBuffer<byte> pcr, int count, int step)
 		{
 			var i = 0;
 			for (i = 0; i < count; ++i)
@@ -1495,7 +1488,13 @@ namespace StbImageNext.Decoders
 				uint i = 0;
 				uint j = 0;
 				DataBuffer<byte> output;
-				var coutput = stackalloc byte*[] { null, null, null, null };
+				var coutput = new DataBuffer<byte>[4]
+				{
+					DataBuffer<byte>.Null,
+					DataBuffer<byte>.Null,
+					DataBuffer<byte>.Null,
+					DataBuffer<byte>.Null
+				};
 				var res_comp = new stbi__resample[4];
 				res_comp[0] = new stbi__resample();
 				res_comp[1] = new stbi__resample();
@@ -1504,12 +1503,7 @@ namespace StbImageNext.Decoders
 				for (k = 0; k < decode_n; ++k)
 				{
 					var r = res_comp[k];
-					z.img_comp[k].linebuf = (byte*)stbi__malloc(z.img_x + 3);
-					if (z.img_comp[k].linebuf == null)
-					{
-						stbi__cleanup_jpeg(z);
-						throw new Exception("outofmem");
-					}
+					z.img_comp[k].linebuf = new DataBuffer<byte>(z.img_x + 3);
 
 					r.hs = z.img_h_max / z.img_comp[k].h;
 					r.vs = z.img_v_max / z.img_comp[k].v;
@@ -1729,10 +1723,10 @@ namespace StbImageNext.Decoders
 				public int y;
 				public int w2;
 				public int h2;
-				public byte* data;
-				public void* raw_data;
+				public DataBuffer<byte> data;
+				public DataBuffer<byte> raw_data;
 				public void* raw_coeff;
-				public byte* linebuf;
+				public DataBuffer<byte> linebuf;
 				public short* coeff;
 				public int coeff_w;
 				public int coeff_h;
@@ -1740,12 +1734,12 @@ namespace StbImageNext.Decoders
 
 			public stbi__jpeg()
 			{
-				for(var i = 0; i < huff_ac.Length; ++i)
+				for (var i = 0; i < huff_ac.Length; ++i)
 				{
 					huff_ac[i] = new stbi__huffman();
 				}
 
-				for(var i = 0; i < huff_dc.Length; ++i)
+				for (var i = 0; i < huff_dc.Length; ++i)
 				{
 					huff_dc[i] = new stbi__huffman();
 				}
@@ -1755,8 +1749,8 @@ namespace StbImageNext.Decoders
 		private class stbi__resample
 		{
 			public int hs;
-			public byte* line0;
-			public byte* line1;
+			public DataBuffer<byte> line0;
+			public DataBuffer<byte> line1;
 			public delegate2 resample;
 			public int vs;
 			public int w_lores;
