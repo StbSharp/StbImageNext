@@ -9,23 +9,38 @@ namespace StbImageNext
 	/// </summary>
 	public class ImageResultFloat: BaseImageResult<float>
 	{
-		private static float stbi__h2l_gamma_i = 1.0f / 2.2f;
-		private static float stbi__h2l_scale_i = 1.0f;
+		/// <summary>
+		/// Decodes an HDR image from the specified stream.
+		/// </summary>
+		/// <param name="stream">Stream containing the HDR image data.</param>
+		/// <param name="requiredComponents">Required pixel components of the image.</param>
+		/// <returns>The decoded HDR image result.</returns>
+		public static ImageResultFloat FromStream(Stream stream, ColorComponents? requiredComponents = null)
+		{
+			if (HdrImageDecoder.Test(stream))
+			{
+				return HdrImageDecoder.Load(stream, requiredComponents);
+			}
+
+			throw new NotSupportedException("Image format is not supported");
+		}
 
 		/// <summary>
-		/// Converts the HDR image data to a low dynamic range image.
+		/// Decodes an HDR image from the specified byte array.
 		/// </summary>
-		/// <returns>The converted image result.</returns>
-		public ImageResult ToLdr()
+		/// <param name="data">Byte array containing the HDR image data.</param>
+		/// <param name="requiredComponents">Required pixel components of the image.</param>
+		/// <returns>The decoded HDR image result.</returns>
+		public static ImageResultFloat FromMemory(byte[] data, ColorComponents? requiredComponents = null)
 		{
-			var result = new ImageResult
+			using (var stream = new MemoryStream(data))
 			{
-				Width = Width,
-				Height = Height,
-				SourceComp = SourceComp,
-				Comp = Comp
-			};
+				return FromStream(stream, requiredComponents);
+			}
+		}
 
+		public ImageResult ToLdr(float stbi__h2l_gamma_i = 1.0f / 2.2f, float stbi__h2l_scale_i = 1.0f)
+		{
 			var comp = (int)Comp;
 			var output = new DataBuffer<byte>(Width * Height * comp);
 
@@ -63,39 +78,14 @@ namespace StbImageNext
 				}
 			}
 
-			result.Data = output.Data;
-
-			return result;
-		}
-
-		/// <summary>
-		/// Decodes an HDR image from the specified stream.
-		/// </summary>
-		/// <param name="stream">Stream containing the HDR image data.</param>
-		/// <param name="requiredComponents">Required pixel components of the image.</param>
-		/// <returns>The decoded HDR image result.</returns>
-		public static ImageResultFloat FromStream(Stream stream, ColorComponents? requiredComponents = null)
-		{
-			if (HdrImageDecoder.Test(stream))
+			return new ImageResult
 			{
-				return HdrImageDecoder.Load(stream, requiredComponents);
-			}
-
-			throw new NotSupportedException("Image format is not supported");
-		}
-
-		/// <summary>
-		/// Decodes an HDR image from the specified byte array.
-		/// </summary>
-		/// <param name="data">Byte array containing the HDR image data.</param>
-		/// <param name="requiredComponents">Required pixel components of the image.</param>
-		/// <returns>The decoded HDR image result.</returns>
-		public static ImageResultFloat FromMemory(byte[] data, ColorComponents? requiredComponents = null)
-		{
-			using (var stream = new MemoryStream(data))
-			{
-				return FromStream(stream, requiredComponents);
-			}
+				Width = Width,
+				Height = Height,
+				SourceComp = SourceComp,
+				Comp = Comp,
+				Data = output.Data
+			};
 		}
 	}
 }

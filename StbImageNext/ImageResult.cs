@@ -1,14 +1,15 @@
-﻿using System;
+﻿using StbImageNext.Decoders;
+using StbImageNext.Hebron.Runtime;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using StbImageNext.Decoders;
 
 namespace StbImageNext
 {
 	/// <summary>
 	/// Represents a decoded image with its source and converted pixel formats.
 	/// </summary>
-	public class ImageResult: BaseImageResult<byte>
+	public class ImageResult : BaseImageResult<byte>
 	{
 		/// <summary>
 		/// Decodes an image from the specified stream.
@@ -81,6 +82,47 @@ namespace StbImageNext
 			ColorComponents? requiredComponents = null)
 		{
 			return new AnimatedGifEnumerable(stream, requiredComponents);
+		}
+
+		public ImageResultFloat ToHdr(float stbi__l2h_gamma = 2.2f, float stbi__l2h_scale = 1.0f)
+		{
+			var comp = (int)Comp;
+			var output = new DataBuffer<float>(Width * Height * comp);
+
+			var n = 0;
+			if ((comp & 1) != 0)
+			{
+				n = comp;
+			}
+			else
+			{
+				n = comp - 1;
+			}
+
+			for (var i = 0; i < Width * Height; ++i)
+			{
+				for (var k = 0; k < n; ++k)
+				{
+					output[i * comp + k] = (float)(Math.Pow(Data[i * comp + k] / 255.0f, stbi__l2h_gamma) * stbi__l2h_scale);
+				}
+			}
+
+			if (n < comp)
+			{
+				for (var i = 0; i < Width * Height; ++i)
+				{
+					output[i * comp + n] = Data[i * comp + n] / 255.0f;
+				}
+			}
+
+			return new ImageResultFloat
+			{
+				Width = Width,
+				Height = Height,
+				SourceComp = SourceComp,
+				Comp = Comp,
+				Data = output.Data
+			};
 		}
 	}
 }

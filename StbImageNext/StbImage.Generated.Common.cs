@@ -20,10 +20,6 @@ namespace StbImageNext
 		public static int stbi__vertically_flip_on_load_global;
 		public static int stbi__vertically_flip_on_load_local;
 		public static int stbi__vertically_flip_on_load_set;
-		public static float stbi__l2h_gamma = 2.2f;
-		public static float stbi__l2h_scale = 1.0f;
-		public static float stbi__h2l_gamma_i = 1.0f / 2.2f;
-		public static float stbi__h2l_scale_i = 1.0f;
 		public static int stbi__unpremultiply_on_load_global;
 		public static int stbi__de_iphone_flag_global;
 		public static int stbi__unpremultiply_on_load_local;
@@ -34,26 +30,6 @@ namespace StbImageNext
 			{ 16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15 };
 		public static int[] stbi__shiftsigned_mul_table = { 0, 0xff, 0x55, 0x49, 0x11, 0x21, 0x41, 0x81, 0x01 };
 		public static int[] stbi__shiftsigned_shift_table = { 0, 0, 0, 1, 0, 2, 4, 6, 0 };
-
-		public static void stbi_hdr_to_ldr_gamma(float gamma)
-		{
-			stbi__h2l_gamma_i = 1 / gamma;
-		}
-
-		public static void stbi_hdr_to_ldr_scale(float scale)
-		{
-			stbi__h2l_scale_i = 1 / scale;
-		}
-
-		public static void stbi_ldr_to_hdr_gamma(float gamma)
-		{
-			stbi__l2h_gamma = gamma;
-		}
-
-		public static void stbi_ldr_to_hdr_scale(float scale)
-		{
-			stbi__l2h_scale = scale;
-		}
 
 		public static void stbi_set_unpremultiply_on_load(int flag_true_if_should_unpremultiply)
 		{
@@ -169,38 +145,6 @@ namespace StbImageNext
 			if (b < 0)
 				return a <= -32768 / b ? 1 : 0;
 			return a >= -32768 / b ? 1 : 0;
-		}
-
-		public static float* stbi__ldr_to_hdr(byte* data, int x, int y, int comp)
-		{
-			var i = 0;
-			var k = 0;
-			var n = 0;
-			float* output;
-			if (data == null)
-				return null;
-			output = (float*)stbi__malloc_mad4(x, y, comp, sizeof(float), 0);
-			if (output == null)
-			{
-				CRuntime.free(data);
-				return (float*)(ulong)(stbi__err("outofmem") != 0 ? 0 : 0);
-			}
-
-			if ((comp & 1) != 0)
-				n = comp;
-			else
-				n = comp - 1;
-			for (i = 0; i < x * y; ++i)
-				for (k = 0; k < n; ++k)
-					output[i * comp + k] =
-						(float)(Math.Pow(data[i * comp + k] / 255.0f, stbi__l2h_gamma) * stbi__l2h_scale);
-
-			if (n < comp)
-				for (i = 0; i < x * y; ++i)
-					output[i * comp + n] = data[i * comp + n] / 255.0f;
-
-			CRuntime.free(data);
-			return output;
 		}
 
 		public static void stbi__vertical_flip(void* image, int w, int h, int bytes_per_pixel)
