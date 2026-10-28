@@ -2,7 +2,7 @@
 
 namespace StbImageNext
 {
-	public static partial class StbImage
+	internal static partial class StbImage
 	{
 		public static string stbi__g_failure_reason;
 		public static readonly char[] stbi__parse_png_file_invalid_chunk = new char[25];
