@@ -6,7 +6,7 @@ using System.IO;
 
 namespace StbImageNext.Decoders
 {
-	public unsafe static class JpgImageDecoder
+	public static class JpgImageDecoder
 	{
 		private static readonly byte[] stbi__process_marker_tag = { 65, 100, 111, 98, 101, 0 };
 		private static readonly byte[] stbi__process_frame_header_rgb = { 82, 71, 66 };
@@ -78,7 +78,7 @@ namespace StbImageNext.Decoders
 			stbi__setup_jpeg(j);
 
 			int x, y, comp;
-			var data = load_jpeg_image(j, &x, &y, &comp, (int)req_comp);
+			var data = load_jpeg_image(j, out x, out y, out comp, (int)req_comp);
 
 			var result = new ImageResult
 			{
@@ -93,7 +93,7 @@ namespace StbImageNext.Decoders
 			return result;
 		}
 
-		private static int stbi__build_huffman(stbi__huffman h, int* count)
+		private static int stbi__build_huffman(stbi__huffman h, int[] count)
 		{
 			var i = 0;
 			var j = 0;
@@ -537,11 +537,11 @@ namespace StbImageNext.Decoders
 		private static void stbi__idct_block(DataBuffer<byte> _out_, int out_stride, DataBuffer<short> data)
 		{
 			var i = 0;
-			var val = stackalloc int[64];
-			var v = val;
+			var val = new int[64];
+			var v = new DataBuffer<int>(val);
 			DataBuffer<byte> o;
 			var d = data;
-			for (i = 0; i < 8; ++i, ++d.Offset, ++v)
+			for (i = 0; i < 8; ++i, ++d.Offset, ++v.Offset)
 				if (d[8] == 0 && d[16] == 0 && d[24] == 0 && d[32] == 0 && d[40] == 0 && d[48] == 0 && d[56] == 0)
 				{
 					var dcterm = d[0] * 4;
@@ -610,7 +610,7 @@ namespace StbImageNext.Decoders
 					v[32] = (x3 - t0) >> 10;
 				}
 
-			for (i = 0, v = val, o = _out_; i < 8; ++i, v += 8, o += out_stride)
+			for (i = 0, v = new DataBuffer<int>(val), o = _out_; i < 8; ++i, v += 8, o += out_stride)
 			{
 				var t0 = 0;
 				var t1 = 0;
@@ -920,7 +920,7 @@ namespace StbImageNext.Decoders
 					return L == 0 ? 1 : 0;
 				case 0xC4:
 					L = z.s.stbi__get16be() - 2;
-					var sizes = stackalloc int[16];
+					var sizes = new int[16];
 					while (L > 0)
 					{
 						var i = 0;
@@ -1423,8 +1423,9 @@ namespace StbImageNext.Decoders
 			j.resample_row_hv_2_kernel = stbi__resample_row_hv_2;
 		}
 
-		private static DataBuffer<byte> load_jpeg_image(stbi__jpeg z, int* out_x, int* out_y, int* comp, int req_comp)
+		private static DataBuffer<byte> load_jpeg_image(stbi__jpeg z, out int out_x, out int out_y, out int comp, int req_comp)
 		{
+			out_x = out_y = comp = 0;
 			var n = 0;
 			var decode_n = 0;
 			var is_rgb = 0;
@@ -1616,10 +1617,9 @@ namespace StbImageNext.Decoders
 					}
 				}
 
-				*out_x = (int)z.img_x;
-				*out_y = (int)z.img_y;
-				if (comp != null)
-					*comp = z.img_n >= 3 ? 3 : 1;
+				out_x = (int)z.img_x;
+				out_y = (int)z.img_y;
+				comp = z.img_n >= 3 ? 3 : 1;
 				return output;
 			}
 		}
