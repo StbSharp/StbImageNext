@@ -1,6 +1,7 @@
 ﻿using StbImageNext.Hebron.Runtime;
 using System;
 using System.IO;
+using System.Text;
 using static StbImageNext.StbImage;
 
 namespace StbImageNext.Decoders
@@ -20,24 +21,24 @@ namespace StbImageNext.Decoders
 			return r == 1;
 		}
 
-		public static unsafe ImageInfo Info(Stream s)
+		public static ImageInfo Info(Stream s)
 		{
 			try
 			{
-				var buffer = stackalloc sbyte[1024];
-				sbyte* token;
+				string token;
 				var valid = 0;
 				if (!Test(s))
 				{
 					throw new Exception("Image isn't HDR");
 				}
 
+				var sb = new StringBuilder(1024);
 				for (; ; )
 				{
-					token = stbi__hdr_gettoken(s, buffer);
-					if (token[0] == 0)
+					token = stbi__hdr_gettoken_string(s, sb);
+					if (string.IsNullOrEmpty(token))
 						break;
-					if (CRuntime.strcmp(token, "FORMAT=32-bit_rle_rgbe") == 0)
+					if (token == "FORMAT=32-bit_rle_rgbe")
 						valid = 1;
 				}
 
@@ -46,26 +47,32 @@ namespace StbImageNext.Decoders
 					throw new Exception("HDR image isn't valid");
 				}
 
-				token = stbi__hdr_gettoken(s, buffer);
-				if (CRuntime.strncmp(token, "-Y ", 3) != 0)
+				token = stbi__hdr_gettoken_string(s, sb);
+				if (token == null || !token.StartsWith("-Y ", StringComparison.Ordinal))
 				{
 					throw new Exception("'-Y' token wasn't found");
 				}
 
 				var result = new ImageInfo();
-				token += 3;
+				string rest = token.Substring(3).Trim();
+				// Parse height
+				int spaceIndex = rest.IndexOf(' ');
+				string heightStr = spaceIndex >= 0 ? rest.Substring(0, spaceIndex) : rest;
+				result.Height = int.Parse(heightStr);
 
-				result.Height = (int)CRuntime.strtol(token, &token, 10);
-				while (*token == 32)
-					++token;
-				if (CRuntime.strncmp(token, "+X ", 3) != 0)
+				// Find +X part
+				string xPart = spaceIndex >= 0 ? rest.Substring(spaceIndex).Trim() : "";
+				if (xPart.StartsWith("+X ", StringComparison.Ordinal))
 				{
-					throw new Exception("'+X' token wasn't found");
+					result.Width = int.Parse(xPart.Substring(3).Trim());
 				}
-
-				token += 3;
-
-				result.Width = (int)CRuntime.strtol(token, null, 10);
+				else
+				{
+					token = stbi__hdr_gettoken_string(s, sb);
+					if (token == null || !token.StartsWith("+X ", StringComparison.Ordinal))
+						throw new Exception("'+X' token wasn't found");
+					result.Width = int.Parse(token.Substring(3).Trim());
+				}
 				result.ColorComponents = ColorComponents.RedGreenBlue;
 
 				return result;
@@ -76,11 +83,10 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		public static unsafe ImageResultFloat Load(Stream s, ColorComponents req_comp2)
+		public static ImageResultFloat Load(Stream s, ColorComponents req_comp2)
 		{
 			var rgbe = new DataBuffer<byte>(4);
-			var buffer = stackalloc sbyte[1024];
-			sbyte* token;
+			string token;
 			var valid = 0;
 			var width = 0;
 			var height = 0;
@@ -94,32 +100,48 @@ namespace StbImageNext.Decoders
 			var c1 = 0;
 			var c2 = 0;
 			var z = 0;
-			sbyte* headerToken;
-			headerToken = stbi__hdr_gettoken(s, buffer);
-			if (CRuntime.strcmp(headerToken, "#?RADIANCE") != 0 && CRuntime.strcmp(headerToken, "#?RGBE") != 0)
+
+			var sb = new StringBuilder(1024);
+			string headerToken;
+			headerToken = stbi__hdr_gettoken_string(s, sb);
+			if (headerToken != "#?RADIANCE" && headerToken != "#?RGBE")
 				throw new Exception("not HDR");
+
 			for (; ; )
 			{
-				token = stbi__hdr_gettoken(s, buffer);
-				if (token[0] == 0)
+				token = stbi__hdr_gettoken_string(s, sb);
+				if (string.IsNullOrEmpty(token))
 					break;
-				if (CRuntime.strcmp(token, "FORMAT=32-bit_rle_rgbe") == 0)
+				if (token == "FORMAT=32-bit_rle_rgbe")
 					valid = 1;
 			}
 
 			if (valid == 0)
 				throw new Exception("unsupported format");
-			token = stbi__hdr_gettoken(s, buffer);
-			if (CRuntime.strncmp(token, "-Y ", 3) != 0)
+			token = stbi__hdr_gettoken_string(s, sb);
+			if (token == null || !token.StartsWith("-Y ", StringComparison.Ordinal))
 				throw new Exception("unsupported data layout");
-			token += 3;
-			height = (int)CRuntime.strtol(token, &token, 10);
-			while (*token == 32)
-				++token;
-			if (CRuntime.strncmp(token, "+X ", 3) != 0)
-				throw new Exception("unsupported data layout");
-			token += 3;
-			width = (int)CRuntime.strtol(token, null, 10);
+
+			string rest = token.Substring(3).Trim();
+			// Parse height
+			int spaceIndex = rest.IndexOf(' ');
+			string heightStr = spaceIndex >= 0 ? rest.Substring(0, spaceIndex) : rest;
+			height = int.Parse(heightStr);
+
+			// Find +X part
+			string xPart = spaceIndex >= 0 ? rest.Substring(spaceIndex).Trim() : "";
+			if (xPart.StartsWith("+X ", StringComparison.Ordinal))
+			{
+				width = int.Parse(xPart.Substring(3).Trim());
+			}
+			else
+			{
+				token = stbi__hdr_gettoken_string(s, sb);
+				if (token == null || !token.StartsWith("+X ", StringComparison.Ordinal))
+					throw new Exception("unsupported data layout");
+				width = int.Parse(token.Substring(3).Trim());
+			}
+
 			if (height > 1 << 24)
 				throw new Exception("too large");
 			if (width > 1 << 24)
@@ -258,28 +280,25 @@ namespace StbImageNext.Decoders
 			return 1;
 		}
 
-		private static unsafe sbyte* stbi__hdr_gettoken(Stream z, sbyte* buffer)
+		private static string stbi__hdr_gettoken_string(Stream z, StringBuilder sb)
 		{
-			var len = 0;
-			sbyte c = 0;
-			c = (sbyte)z.stbi__get8();
+			sb.Clear();
+			var c = z.stbi__get8();
 			while (!z.stbi__at_eof() && c != 10)
 			{
-				buffer[len++] = c;
-				if (len == 1024 - 1)
+				sb.Append((char)c);
+				if (sb.Length >= 1024 - 1)
 				{
 					while (!z.stbi__at_eof() && z.stbi__get8() != 10)
 					{
 					}
-
 					break;
 				}
-
-				c = (sbyte)z.stbi__get8();
+				c = z.stbi__get8();
 			}
 
-			buffer[len] = 0;
-			return buffer;
+			string result = sb.ToString();
+			return string.IsNullOrEmpty(result) ? null : result;
 		}
 
 		private static void stbi__hdr_convert(DataBuffer<float> output, DataBuffer<byte> input, int req_comp)
