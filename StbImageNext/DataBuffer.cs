@@ -13,12 +13,22 @@ namespace StbImageNext
 
 		public T[] Data => _data;
 
-		public long Offset => _offset;
+		public long Offset
+		{
+			get => _offset;
+			set => _offset = value;
+		}
 
 		public T this[long index]
 		{
 			get => _data[index + _offset];
 			set => _data[index + _offset] = value;
+		}
+
+		public T FirstValue
+		{
+			get => _data[_offset];
+			set => _data[_offset] = value;
 		}
 
 		public int Length => _data.Length;
