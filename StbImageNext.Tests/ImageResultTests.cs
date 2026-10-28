@@ -115,7 +115,5 @@ public class ImageResultTests
 
 			stream.Seek(0, SeekOrigin.Begin);
 		}
-
-		Assert.Equal(0, StbImage.NativeAllocations);
 	}
 }

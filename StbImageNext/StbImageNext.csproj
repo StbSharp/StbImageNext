@@ -2,7 +2,6 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net471;net8.0</TargetFrameworks>
     <Description>C# Image Library based on StbImageNext, StbImageWriteSharp, StbImageResizeSharp and StbDxtSharp</Description>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RootNamespace>StbImageNext</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>

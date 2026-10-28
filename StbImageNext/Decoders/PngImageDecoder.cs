@@ -169,11 +169,7 @@ namespace StbImageNext.Decoders
 			var output_bytes = out_n * bytes;
 			var filter_bytes = img_n * bytes;
 			var width = (int)x;
-			if (stbi__mad3sizes_valid(img_n, (int)x, depth, 7) == 0)
-				throw new Exception("too large");
 			img_width_bytes = (uint)((img_n * x * depth + 7) >> 3);
-			if (stbi__mad2sizes_valid((int)img_width_bytes, (int)y, (int)img_width_bytes) == 0)
-				throw new Exception("too large");
 			a._out_ = new DataBuffer<byte>(x * y * output_bytes);
 			img_len = (img_width_bytes + 1) * y;
 			if (raw_len < img_len)

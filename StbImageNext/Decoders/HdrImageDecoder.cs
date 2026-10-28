@@ -177,8 +177,6 @@ namespace StbImageNext.Decoders
 			var req_comp = req_comp2.ToInternalValue();
 			if (req_comp == 0)
 				req_comp = 3;
-			if (stbi__mad4sizes_valid(width, height, req_comp, sizeof(float), 0) == 0)
-				throw new Exception("too large");
 
 			var hdr_data = new DataBuffer<float>(width * height * req_comp);
 			if (width < 8 || width >= 32768)

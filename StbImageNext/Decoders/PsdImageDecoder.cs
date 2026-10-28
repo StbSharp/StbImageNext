@@ -112,8 +112,6 @@ namespace StbImageNext.Decoders
 			compression = s.stbi__get16be();
 			if (compression > 1)
 				throw new Exception("bad compression");
-			if (stbi__mad3sizes_valid(4, w, h, 0) == 0)
-				throw new Exception("too large");
 
 			var _out_ = new DataBuffer<byte>(4 * w * h);
 

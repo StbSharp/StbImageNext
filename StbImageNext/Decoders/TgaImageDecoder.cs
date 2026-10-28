@@ -221,8 +221,6 @@ namespace StbImageNext.Decoders
 
 			result.Comp = req_comp ?? result.SourceComp;
 
-			if (stbi__mad3sizes_valid(tga_width, tga_height, tga_comp, 0) == 0)
-				throw new Exception("too large");
 			var tga_data = new DataBuffer<byte>(tga_width * tga_height * tga_comp);
 
 			s.stbi__skip(tga_offset);

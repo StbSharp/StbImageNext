@@ -286,8 +286,7 @@ namespace StbImageNext.Decoders
 			if (g._out_.IsNull)
 			{
 				ParseHeader(s, g, false);
-				if (stbi__mad3sizes_valid(4, g.w, g.h, 0) == 0)
-					throw new Exception("too large");
+
 				pcount = g.w * g.h;
 				g._out_ = new DataBuffer<byte>(4 * pcount);
 				g.background = new DataBuffer<byte>(4 * pcount);

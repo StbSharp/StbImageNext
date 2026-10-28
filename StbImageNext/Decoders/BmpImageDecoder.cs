@@ -141,9 +141,6 @@ namespace StbImageNext.Decoders
 			else
 				target = img_n;
 
-			if (stbi__mad3sizes_valid(target, (int)info.img_x, (int)info.img_y, 0) == 0)
-				throw new Exception("too large");
-
 			var _out_ = new DataBuffer<byte>(target * info.img_x * info.img_y);
 			if (info.bpp < 16)
 			{

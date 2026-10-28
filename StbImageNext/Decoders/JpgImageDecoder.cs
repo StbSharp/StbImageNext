@@ -1148,8 +1148,7 @@ namespace StbImageNext.Decoders
 
 			if (scan != STBI__SCAN_load)
 				return 1;
-			if (stbi__mad3sizes_valid((int)z.img_x, (int)z.img_y, z.img_n, 0) == 0)
-				throw new Exception("too large");
+
 			for (i = 0; i < z.img_n; ++i)
 			{
 				if (z.img_comp[i].h > h_max)
