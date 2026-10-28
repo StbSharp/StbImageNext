@@ -1,5 +1,4 @@
 ﻿using System;
-using StbImageNext.Hebron.Runtime;
 using System.Runtime.InteropServices;
 using static StbImageNext.StbImage;
 using System.IO;
@@ -244,7 +243,7 @@ namespace StbImageNext.Decoders
 			if (j.code_bits < n)
 				return 0;
 			sgn = (int)(j.code_buffer >> 31);
-			k = CRuntime._lrotl(j.code_buffer, n);
+			k = Utility._lrotl(j.code_buffer, n);
 			j.code_buffer = k & ~stbi__bmask[n];
 			k &= stbi__bmask[n];
 			j.code_bits -= n;
@@ -258,7 +257,7 @@ namespace StbImageNext.Decoders
 				stbi__grow_buffer_unsafe(j);
 			if (j.code_bits < n)
 				return 0;
-			k = CRuntime._lrotl(j.code_buffer, n);
+			k = Utility._lrotl(j.code_buffer, n);
 			j.code_buffer = k & ~stbi__bmask[n];
 			k &= stbi__bmask[n];
 			j.code_bits -= n;

@@ -1,5 +1,4 @@
-﻿using StbImageNext.Hebron.Runtime;
-using System;
+﻿using System;
 using System.IO;
 using System.Text;
 using static StbImageNext.StbImage;
@@ -305,7 +304,7 @@ namespace StbImageNext.Decoders
 			if (input[3] != 0)
 			{
 				float f1 = 0;
-				f1 = (float)CRuntime.ldexp(1.0f, input[3] - (128 + 8));
+				f1 = (float)Utility.ldexp(1.0f, input[3] - (128 + 8));
 				if (req_comp <= 2)
 				{
 					output[0] = (input[0] + input[1] + input[2]) * f1 / 3;

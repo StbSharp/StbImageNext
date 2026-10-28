@@ -94,16 +94,6 @@ namespace StbImageNext
 			Array.Copy(source, sourceOffset, _data, _offset + offset, size);
 		}
 
-		public unsafe void Copy(long offset, T* source, long size)
-		{
-			fixed (T* ptr = &_data[_offset + offset])
-			{
-				Buffer.MemoryCopy(source, ptr, size, size);
-			}
-		}
-
-		public unsafe void Copy(T* source, long size) => Copy(0, source, size);
-
 		public DataBuffer<T> Expand(long newSize)
 		{
 			if (newSize <= _data.Length)

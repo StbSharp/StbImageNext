@@ -18,7 +18,7 @@ namespace StbImageNext
 
 		public static void Set<T>(this T[] array, T value)
 		{
-			for(var i = 0; i < array.Length; ++i)
+			for (var i = 0; i < array.Length; ++i)
 			{
 				array[i] = value;
 			}
@@ -187,6 +187,16 @@ namespace StbImageNext
 			}
 
 			return good;
+		}
+
+		public static double ldexp(double number, int exponent)
+		{
+			return number * Math.Pow(2, exponent);
+		}
+
+		public static uint _lrotl(uint x, int y)
+		{
+			return (x << y) | (x >> (32 - y));
 		}
 	}
 }

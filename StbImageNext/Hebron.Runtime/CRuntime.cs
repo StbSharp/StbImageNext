@@ -107,20 +107,5 @@ namespace StbImageNext.Hebron.Runtime
 		{
 			return realloc(a, (long)newSize);
 		}
-
-		public static int abs(int v)
-		{
-			return Math.Abs(v);
-		}
-
-		public static double pow(double a, double b)
-		{
-			return Math.Pow(a, b);
-		}
-
-		public static double ldexp(double number, int exponent)
-		{
-			return number * Math.Pow(2, exponent);
-		}
 	}
 }

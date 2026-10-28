@@ -1,5 +1,4 @@
 ﻿using StbImageNext.Decoders;
-using StbImageNext.Hebron.Runtime;
 using System;
 using System.IO;
 
@@ -44,7 +43,7 @@ namespace StbImageNext
 				var k = 0;
 				for (k = 0; k < n; ++k)
 				{
-					var z = (float)CRuntime.pow(Data[i * comp + k] * stbi__h2l_scale_i, stbi__h2l_gamma_i) * 255 + 0.5f;
+					var z = (float)Math.Pow(Data[i * comp + k] * stbi__h2l_scale_i, stbi__h2l_gamma_i) * 255 + 0.5f;
 					if (z < 0)
 						z = 0;
 					if (z > 255)

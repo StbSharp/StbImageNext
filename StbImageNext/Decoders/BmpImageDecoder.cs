@@ -1,5 +1,4 @@
-﻿using StbImageNext.Hebron.Runtime;
-using System;
+﻿using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using static StbImageNext.StbImage;
@@ -77,7 +76,7 @@ namespace StbImageNext.Decoders
 			var info = stbi__bmp_parse_header(s);
 
 			flip_vertically = (int)info.img_y > 0 ? 1 : 0;
-			info.img_y = (uint)CRuntime.abs((int)info.img_y);
+			info.img_y = (uint)Math.Abs((int)info.img_y);
 			if (info.img_y > 1 << 24)
 				throw new Exception("too large");
 			if (info.img_x > 1 << 24)
