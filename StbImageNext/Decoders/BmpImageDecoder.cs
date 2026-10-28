@@ -511,6 +511,5 @@ namespace StbImageNext.Decoders
 			public uint img_x;
 			public uint img_y;
 		}
-
 	}
 }

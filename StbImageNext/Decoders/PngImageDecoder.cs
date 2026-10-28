@@ -73,6 +73,14 @@ namespace StbImageNext.Decoders
 			}
 		}
 
+		/// <summary>
+		/// Decodes a PNG image from a stream.
+		/// </summary>
+		/// <param name="s">The stream containing PNG image data.</param>
+		/// <param name="req_comp">The required color components for the output image, or null to use the source format.</param>
+		/// <param name="de_iphone">Whether to convert iPhone-optimized PNG format.</param>
+		/// <param name="iphone_unpremultiply">Whether to unpremultiply alpha from iPhone-optimized PNG format.</param>
+		/// <returns>An ImageResult containing the decoded PNG image data.</returns>
 		public static ImageResult Decode(Stream s, ColorComponents? req_comp = null, bool de_iphone = false, bool iphone_unpremultiply = false)
 		{
 			var p = new stbi__png

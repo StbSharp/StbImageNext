@@ -83,6 +83,12 @@ namespace StbImageNext
 			return new AnimatedGifEnumerable(stream, requiredComponents);
 		}
 
+		/// <summary>
+		/// Converts the 8-bit LDR (Low Dynamic Range) image to 32-bit floating-point HDR (High Dynamic Range) format.
+		/// </summary>
+		/// <param name="stbi__l2h_gamma">The gamma value for gamma correction, default is 2.2.</param>
+		/// <param name="stbi__l2h_scale">The scale factor for the output values, default is 1.0.</param>
+		/// <returns>An ImageResultFloat containing the HDR image data.</returns>
 		public ImageResultFloat ToHdr(float stbi__l2h_gamma = 2.2f, float stbi__l2h_scale = 1.0f)
 		{
 			var comp = (int)Comp;

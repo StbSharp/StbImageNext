@@ -1,5 +1,9 @@
 ﻿namespace StbImageNext
 {
+	/// <summary>
+	/// Base class for image result data containing pixel information and raw image data.
+	/// </summary>
+	/// <typeparam name="T">The type of pixel data (must be an unmanaged type).</typeparam>
 	public class BaseImageResult<T> where T: unmanaged
 	{
 		/// <summary>
@@ -27,6 +31,9 @@
 		/// </summary>
 		public T[] Data { get; set; }
 
+		/// <summary>
+		/// Vertically flips the image data by swapping rows.
+		/// </summary>
 		public void VerticalFlip()
 		{
 			var row = 0;

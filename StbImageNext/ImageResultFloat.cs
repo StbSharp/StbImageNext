@@ -39,6 +39,12 @@ namespace StbImageNext
 			}
 		}
 
+		/// <summary>
+		/// Converts the 32-bit floating-point HDR (High Dynamic Range) image to 8-bit LDR (Low Dynamic Range) format.
+		/// </summary>
+		/// <param name="stbi__h2l_gamma_i">The inverse gamma value for gamma correction, default is 1/2.2.</param>
+		/// <param name="stbi__h2l_scale_i">The inverse scale factor for the output values, default is 1.0.</param>
+		/// <returns>An ImageResult containing the LDR image data.</returns>
 		public ImageResult ToLdr(float stbi__h2l_gamma_i = 1.0f / 2.2f, float stbi__h2l_scale_i = 1.0f)
 		{
 			var comp = (int)Comp;
