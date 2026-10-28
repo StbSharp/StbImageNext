@@ -93,7 +93,7 @@ namespace StbImageNext.Decoders
 			return result;
 		}
 
-		private static int stbi__build_huffman(stbi__huffman* h, int* count)
+		private static int stbi__build_huffman(stbi__huffman h, int* count)
 		{
 			var i = 0;
 			var j = 0;
@@ -103,61 +103,61 @@ namespace StbImageNext.Decoders
 			{
 				for (j = 0; j < count[i]; ++j)
 				{
-					h->size[k++] = (byte)(i + 1);
+					h.size[k++] = (byte)(i + 1);
 					if (k >= 257)
 						throw new Exception("bad size list");
 				}
 			}
 
-			h->size[k] = 0;
+			h.size[k] = 0;
 			code = 0;
 			k = 0;
 			for (j = 1; j <= 16; ++j)
 			{
-				h->delta[j] = (int)(k - code);
-				if (h->size[k] == j)
+				h.delta[j] = (int)(k - code);
+				if (h.size[k] == j)
 				{
-					while (h->size[k] == j)
-						h->code[k++] = (ushort)code++;
+					while (h.size[k] == j)
+						h.code[k++] = (ushort)code++;
 
 					if (code - 1 >= 1u << j)
 						throw new Exception("bad code lengths");
 				}
 
-				h->maxcode[j] = code << (16 - j);
+				h.maxcode[j] = code << (16 - j);
 				code <<= 1;
 			}
 
-			h->maxcode[j] = 0xffffffff;
-			CRuntime.memset(h->fast, 255, (ulong)(1 << 9));
+			h.maxcode[j] = 0xffffffff;
+			h.fast.Set((byte)255);
 			for (i = 0; i < k; ++i)
 			{
-				int s = h->size[i];
+				int s = h.size[i];
 				if (s <= 9)
 				{
-					var c = h->code[i] << (9 - s);
+					var c = h.code[i] << (9 - s);
 					var m = 1 << (9 - s);
 					for (j = 0; j < m; ++j)
-						h->fast[c + j] = (byte)i;
+						h.fast[c + j] = (byte)i;
 				}
 			}
 
 			return 1;
 		}
 
-		private static void stbi__build_fast_ac(short[] fast_ac, stbi__huffman* h)
+		private static void stbi__build_fast_ac(short[] fast_ac, stbi__huffman h)
 		{
 			var i = 0;
 			for (i = 0; i < 1 << 9; ++i)
 			{
-				var fast = h->fast[i];
+				var fast = h.fast[i];
 				fast_ac[i] = 0;
 				if (fast < 255)
 				{
-					int rs = h->values[fast];
+					int rs = h.values[fast];
 					var run = (rs >> 4) & 15;
 					var magbits = rs & 15;
-					int len = h->size[fast];
+					int len = h.size[fast];
 					if (magbits != 0 && len + magbits <= 9)
 					{
 						var k = ((i << len) & ((1 << 9) - 1)) >> (9 - magbits);
@@ -195,7 +195,7 @@ namespace StbImageNext.Decoders
 			} while (j.code_bits <= 24);
 		}
 
-		private static int stbi__jpeg_huff_decode(stbi__jpeg j, stbi__huffman* h)
+		private static int stbi__jpeg_huff_decode(stbi__jpeg j, stbi__huffman h)
 		{
 			uint temp = 0;
 			var c = 0;
@@ -203,20 +203,20 @@ namespace StbImageNext.Decoders
 			if (j.code_bits < 16)
 				stbi__grow_buffer_unsafe(j);
 			c = (int)((j.code_buffer >> (32 - 9)) & ((1 << 9) - 1));
-			k = h->fast[c];
+			k = h.fast[c];
 			if (k < 255)
 			{
-				int s = h->size[k];
+				int s = h.size[k];
 				if (s > j.code_bits)
 					return -1;
 				j.code_buffer <<= s;
 				j.code_bits -= s;
-				return h->values[k];
+				return h.values[k];
 			}
 
 			temp = j.code_buffer >> 16;
 			for (k = 9 + 1; ; ++k)
-				if (temp < h->maxcode[k])
+				if (temp < h.maxcode[k])
 					break;
 
 			if (k == 17)
@@ -227,12 +227,12 @@ namespace StbImageNext.Decoders
 
 			if (k > j.code_bits)
 				return -1;
-			c = (int)(((j.code_buffer >> (32 - k)) & stbi__bmask[k]) + h->delta[k]);
+			c = (int)(((j.code_buffer >> (32 - k)) & stbi__bmask[k]) + h.delta[k]);
 			if (c < 0 || c >= 256)
 				return -1;
 			j.code_bits -= k;
 			j.code_buffer <<= k;
-			return h->values[c];
+			return h.values[c];
 		}
 
 		private static int stbi__extend_receive(stbi__jpeg j, int n)
@@ -278,7 +278,7 @@ namespace StbImageNext.Decoders
 			return (int)(k & 0x80000000);
 		}
 
-		private static int stbi__jpeg_decode_block(stbi__jpeg j, short* data, stbi__huffman* hdc, stbi__huffman* hac,
+		private static int stbi__jpeg_decode_block(stbi__jpeg j, short* data, stbi__huffman hdc, stbi__huffman hac,
 			short[] fac, int b, ushort[] dequant)
 		{
 			var diff = 0;
@@ -346,7 +346,7 @@ namespace StbImageNext.Decoders
 			return 1;
 		}
 
-		private static int stbi__jpeg_decode_block_prog_dc(stbi__jpeg j, short* data, stbi__huffman* hdc, int b)
+		private static int stbi__jpeg_decode_block_prog_dc(stbi__jpeg j, short* data, stbi__huffman hdc, int b)
 		{
 			var diff = 0;
 			var dc = 0;
@@ -379,7 +379,7 @@ namespace StbImageNext.Decoders
 			return 1;
 		}
 
-		private static int stbi__jpeg_decode_block_prog_ac(stbi__jpeg j, short* data, stbi__huffman* hac, short[] fac)
+		private static int stbi__jpeg_decode_block_prog_ac(stbi__jpeg j, short* data, stbi__huffman hac, short[] fac)
 		{
 			var k = 0;
 			if (j.spec_start == 0)
@@ -715,13 +715,10 @@ namespace StbImageNext.Decoders
 						for (i = 0; i < w; ++i)
 						{
 							var ha = z.img_comp[n].ha;
-							fixed (stbi__huffman* dptr = &z.huff_dc[z.img_comp[n].hd])
-							fixed (stbi__huffman* aptr = &z.huff_ac[ha])
-							{
-								if (stbi__jpeg_decode_block(z, data, dptr, aptr,
-									z.fast_ac[ha], n, z.dequant[z.img_comp[n].tq]) == 0)
-									return 0;
-							}
+							if (stbi__jpeg_decode_block(z, data, z.huff_dc[z.img_comp[n].hd], z.huff_ac[ha],
+								z.fast_ac[ha], n, z.dequant[z.img_comp[n].tq]) == 0)
+								return 0;
+
 							z.idct_block_kernel(z.img_comp[n].data + z.img_comp[n].w2 * j * 8 + i * 8, z.img_comp[n].w2,
 								data);
 							if (--z.todo <= 0)
@@ -757,13 +754,10 @@ namespace StbImageNext.Decoders
 										var y2 = (j * z.img_comp[n].v + y) * 8;
 										var ha = z.img_comp[n].ha;
 
-										fixed (stbi__huffman* dptr = &z.huff_dc[z.img_comp[n].hd])
-										fixed (stbi__huffman* aptr = &z.huff_ac[ha])
-										{
-											if (stbi__jpeg_decode_block(z, data, dptr, aptr,
-											z.fast_ac[ha], n, z.dequant[z.img_comp[n].tq]) == 0)
-												return 0;
-										}
+										if (stbi__jpeg_decode_block(z, data, z.huff_dc[z.img_comp[n].hd], z.huff_ac[ha],
+										z.fast_ac[ha], n, z.dequant[z.img_comp[n].tq]) == 0)
+											return 0;
+
 										z.idct_block_kernel(z.img_comp[n].data + z.img_comp[n].w2 * y2 + x2, z.img_comp[n].w2,
 											data);
 									}
@@ -796,20 +790,14 @@ namespace StbImageNext.Decoders
 						var data = z.img_comp[n].coeff + 64 * (i + j * z.img_comp[n].coeff_w);
 						if (z.spec_start == 0)
 						{
-							fixed (stbi__huffman* dptr = &z.huff_dc[z.img_comp[n].hd])
-							{
-								if (stbi__jpeg_decode_block_prog_dc(z, data, dptr, n) == 0)
-									return 0;
-							}
+							if (stbi__jpeg_decode_block_prog_dc(z, data, z.huff_dc[z.img_comp[n].hd], n) == 0)
+								return 0;
 						}
 						else
 						{
 							var ha = z.img_comp[n].ha;
-							fixed (stbi__huffman* aptr = &z.huff_ac[ha])
-							{
-								if (stbi__jpeg_decode_block_prog_ac(z, data, aptr, z.fast_ac[ha]) == 0)
-									return 0;
-							}
+							if (stbi__jpeg_decode_block_prog_ac(z, data, z.huff_ac[ha], z.fast_ac[ha]) == 0)
+								return 0;
 						}
 
 						if (--z.todo <= 0)
@@ -844,12 +832,8 @@ namespace StbImageNext.Decoders
 									var y2 = j * z.img_comp[n].v + y;
 									var data = z.img_comp[n].coeff + 64 * (x2 + y2 * z.img_comp[n].coeff_w);
 
-
-									fixed (stbi__huffman* dptr = &z.huff_dc[z.img_comp[n].hd])
-									{
-										if (stbi__jpeg_decode_block_prog_dc(z, data, dptr, n) == 0)
-											return 0;
-									}
+									if (stbi__jpeg_decode_block_prog_dc(z, data, z.huff_dc[z.img_comp[n].hd], n) == 0)
+										return 0;
 								}
 						}
 
@@ -952,34 +936,29 @@ namespace StbImageNext.Decoders
 						L -= 17;
 						if (tc == 0)
 						{
-							fixed (stbi__huffman* hptr = &z.huff_dc[th])
-							{
-								if (stbi__build_huffman(hptr, sizes) == 0)
-									return 0;
+							var h = z.huff_dc[th];
+							if (stbi__build_huffman(h, sizes) == 0)
+								return 0;
 
-								var v = hptr->values;
-								for (i = 0; i < n; ++i)
-									v[i] = z.s.stbi__get8();
-							}
+							var v = h.values;
+							for (i = 0; i < n; ++i)
+								v[i] = z.s.stbi__get8();
 						}
 						else
 						{
-							fixed (stbi__huffman* aptr = &z.huff_ac[th])
-							{
-								if (stbi__build_huffman(aptr, sizes) == 0)
-									return 0;
+							var a = z.huff_ac[th];
+							if (stbi__build_huffman(a, sizes) == 0)
+								return 0;
 
-								var v = aptr->values;
-								for (i = 0; i < n; ++i)
-									v[i] = z.s.stbi__get8();
-							}
+							var v = a.values;
+							for (i = 0; i < n; ++i)
+								v[i] = z.s.stbi__get8();
 						}
 
 						if (tc != 0)
-							fixed (stbi__huffman* aptr = &z.huff_ac[th])
-							{
-								stbi__build_fast_ac(z.fast_ac[th], aptr);
-							}
+						{
+							stbi__build_fast_ac(z.fast_ac[th], z.huff_ac[th]);
+						}
 						L -= n;
 					}
 
@@ -1688,15 +1667,14 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		[StructLayout(LayoutKind.Sequential)]
-		private struct stbi__huffman
+		private class stbi__huffman
 		{
-			public fixed byte fast[512];
-			public fixed ushort code[256];
-			public fixed byte values[256];
-			public fixed byte size[257];
-			public fixed uint maxcode[18];
-			public fixed int delta[17];
+			public readonly byte[] fast = new byte[512];
+			public readonly ushort[] code = new ushort[256];
+			public readonly byte[] values = new byte[256];
+			public readonly byte[] size = new byte[257];
+			public readonly uint[] maxcode = new uint[18];
+			public readonly int[] delta = new int[17];
 		}
 
 		private class stbi__jpeg
@@ -1758,6 +1736,19 @@ namespace StbImageNext.Decoders
 				public short* coeff;
 				public int coeff_w;
 				public int coeff_h;
+			}
+
+			public stbi__jpeg()
+			{
+				for(var i = 0; i < huff_ac.Length; ++i)
+				{
+					huff_ac[i] = new stbi__huffman();
+				}
+
+				for(var i = 0; i < huff_dc.Length; ++i)
+				{
+					huff_dc[i] = new stbi__huffman();
+				}
 			}
 		}
 

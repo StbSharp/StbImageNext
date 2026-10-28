@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using static StbImageNext.StbImage;
 
 namespace StbImageNext
 {
@@ -15,6 +14,14 @@ namespace StbImageNext
 			}
 
 			return result;
+		}
+
+		public static void Set<T>(this T[] array, T value)
+		{
+			for(var i = 0; i < array.Length; ++i)
+			{
+				array[i] = value;
+			}
 		}
 
 		public static byte stbi__get8(this Stream s)
