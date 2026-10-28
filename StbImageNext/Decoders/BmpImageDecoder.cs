@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using static StbImageNext.StbImage;
 
 namespace StbImageNext.Decoders
 {
@@ -267,14 +266,14 @@ namespace StbImageNext.Decoders
 						throw new Exception("bad masks");
 					}
 
-					rshift = stbi__high_bit(mr) - 7;
-					rcount = stbi__bitcount(mr);
-					gshift = stbi__high_bit(mg) - 7;
-					gcount = stbi__bitcount(mg);
-					bshift = stbi__high_bit(mb) - 7;
-					bcount = stbi__bitcount(mb);
-					ashift = stbi__high_bit(ma) - 7;
-					acount = stbi__bitcount(ma);
+					rshift = Utility.stbi__high_bit(mr) - 7;
+					rcount = Utility.stbi__bitcount(mr);
+					gshift = Utility.stbi__high_bit(mg) - 7;
+					gcount = Utility.stbi__bitcount(mg);
+					bshift = Utility.stbi__high_bit(mb) - 7;
+					bcount = Utility.stbi__bitcount(mb);
+					ashift = Utility.stbi__high_bit(ma) - 7;
+					acount = Utility.stbi__bitcount(ma);
 					if (rcount > 8 || gcount > 8 || bcount > 8 || acount > 8)
 					{
 						throw new Exception("bad masks");

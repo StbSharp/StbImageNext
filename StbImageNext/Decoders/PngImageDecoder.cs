@@ -2,7 +2,6 @@
 using System.IO;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
-using static StbImageNext.StbImage;
 
 namespace StbImageNext.Decoders
 {
@@ -21,6 +20,7 @@ namespace StbImageNext.Decoders
 		private static readonly byte[] first_row_filter = { STBI__F_none, STBI__F_sub, STBI__F_none, STBI__F_avg_first, STBI__F_sub };
 		private static readonly byte[] stbi__check_png_header_png_sig = { 137, 80, 78, 71, 13, 10, 26, 10 };
 		private static readonly byte[] stbi__depth_scale_table = { 0, 0xff, 0x55, 0, 0x11, 0, 0, 0, 0x01 };
+		private static readonly char[] stbi__parse_png_file_invalid_chunk = new char[25];
 
 		/// <summary>
 		/// Tests whether the specified stream contains a PNG image.
@@ -792,18 +792,15 @@ namespace StbImageNext.Decoders
 				int cm = cmf & 0x0F;
 				if (((cmf * 256 + flg) % 31) != 0)
 				{
-					stbi__err("bad zlib header");
-					return null;
+					throw new Exception("bad zlib header");
 				}
 				if ((flg & 0x20) != 0)
 				{
-					stbi__err("no preset dict");
-					return null;
+					throw new Exception("no preset dict");
 				}
 				if (cm != 8)
 				{
-					stbi__err("bad compression");
-					return null;
+					throw new Exception("bad compression");
 				}
 
 				deflateOffset = 2;

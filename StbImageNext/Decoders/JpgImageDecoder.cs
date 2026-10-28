@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using static StbImageNext.StbImage;
 using System.IO;
 
 namespace StbImageNext.Decoders
@@ -310,11 +309,11 @@ namespace StbImageNext.Decoders
 				throw new Exception("bad huffman code");
 			data.Set(0, 64);
 			diff = t != 0 ? stbi__extend_receive(j, t) : 0;
-			if (stbi__addints_valid(j.img_comp[b].dc_pred, diff) == 0)
+			if (Utility.stbi__addints_valid(j.img_comp[b].dc_pred, diff) == 0)
 				throw new Exception("bad delta");
 			dc = j.img_comp[b].dc_pred + diff;
 			j.img_comp[b].dc_pred = dc;
-			if (stbi__mul2shorts_valid(dc, dequant[0]) == 0)
+			if (Utility.stbi__mul2shorts_valid(dc, dequant[0]) == 0)
 				throw new Exception("can't merge dc and ac");
 			data[0] = (short)(dc * dequant[0]);
 			k = 1;
@@ -380,11 +379,11 @@ namespace StbImageNext.Decoders
 				if (t < 0 || t > 15)
 					throw new Exception("can't merge dc and ac");
 				diff = t != 0 ? stbi__extend_receive(j, t) : 0;
-				if (stbi__addints_valid(j.img_comp[b].dc_pred, diff) == 0)
+				if (Utility.stbi__addints_valid(j.img_comp[b].dc_pred, diff) == 0)
 					throw new Exception("bad delta");
 				dc = j.img_comp[b].dc_pred + diff;
 				j.img_comp[b].dc_pred = dc;
-				if (stbi__mul2shorts_valid(dc, 1 << j.succ_low) == 0)
+				if (Utility.stbi__mul2shorts_valid(dc, 1 << j.succ_low) == 0)
 					throw new Exception("can't merge dc and ac");
 				data[0] = (short)(dc * (1 << j.succ_low));
 			}
@@ -681,14 +680,14 @@ namespace StbImageNext.Decoders
 				x1 += 65536 + (128 << 17);
 				x2 += 65536 + (128 << 17);
 				x3 += 65536 + (128 << 17);
-				o[0] = stbi__clamp((x0 + t3) >> 17);
-				o[7] = stbi__clamp((x0 - t3) >> 17);
-				o[1] = stbi__clamp((x1 + t2) >> 17);
-				o[6] = stbi__clamp((x1 - t2) >> 17);
-				o[2] = stbi__clamp((x2 + t1) >> 17);
-				o[5] = stbi__clamp((x2 - t1) >> 17);
-				o[3] = stbi__clamp((x3 + t0) >> 17);
-				o[4] = stbi__clamp((x3 - t0) >> 17);
+				o[0] = Utility.stbi__clamp((x0 + t3) >> 17);
+				o[7] = Utility.stbi__clamp((x0 - t3) >> 17);
+				o[1] = Utility.stbi__clamp((x1 + t2) >> 17);
+				o[6] = Utility.stbi__clamp((x1 - t2) >> 17);
+				o[2] = Utility.stbi__clamp((x2 + t1) >> 17);
+				o[5] = Utility.stbi__clamp((x2 - t1) >> 17);
+				o[3] = Utility.stbi__clamp((x3 + t0) >> 17);
+				o[4] = Utility.stbi__clamp((x3 - t0) >> 17);
 			}
 		}
 
@@ -1548,9 +1547,9 @@ namespace StbImageNext.Decoders
 								for (i = 0; i < z.img_x; ++i)
 								{
 									var m = coutput[3][i];
-									_out_[0] = stbi__blinn_8x8(coutput[0][i], m);
-									_out_[1] = stbi__blinn_8x8(coutput[1][i], m);
-									_out_[2] = stbi__blinn_8x8(coutput[2][i], m);
+									_out_[0] = Utility.stbi__blinn_8x8(coutput[0][i], m);
+									_out_[1] = Utility.stbi__blinn_8x8(coutput[1][i], m);
+									_out_[2] = Utility.stbi__blinn_8x8(coutput[2][i], m);
 									_out_[3] = 255;
 									_out_ += n;
 								}
@@ -1561,9 +1560,9 @@ namespace StbImageNext.Decoders
 								for (i = 0; i < z.img_x; ++i)
 								{
 									var m = coutput[3][i];
-									_out_[0] = stbi__blinn_8x8((byte)(255 - _out_[0]), m);
-									_out_[1] = stbi__blinn_8x8((byte)(255 - _out_[1]), m);
-									_out_[2] = stbi__blinn_8x8((byte)(255 - _out_[2]), m);
+									_out_[0] = Utility.stbi__blinn_8x8((byte)(255 - _out_[0]), m);
+									_out_[1] = Utility.stbi__blinn_8x8((byte)(255 - _out_[1]), m);
+									_out_[2] = Utility.stbi__blinn_8x8((byte)(255 - _out_[2]), m);
 									_out_ += n;
 								}
 							}
@@ -1588,11 +1587,11 @@ namespace StbImageNext.Decoders
 						{
 							if (n == 1)
 								for (i = 0; i < z.img_x; ++i)
-									_out_.Write(stbi__compute_y(coutput[0][i], coutput[1][i], coutput[2][i]));
+									_out_.Write(Utility.stbi__compute_y(coutput[0][i], coutput[1][i], coutput[2][i]));
 							else
 								for (i = 0; i < z.img_x; ++i, _out_ += 2)
 								{
-									_out_[0] = stbi__compute_y(coutput[0][i], coutput[1][i], coutput[2][i]);
+									_out_[0] = Utility.stbi__compute_y(coutput[0][i], coutput[1][i], coutput[2][i]);
 									_out_[1] = 255;
 								}
 						}
@@ -1601,10 +1600,10 @@ namespace StbImageNext.Decoders
 							for (i = 0; i < z.img_x; ++i)
 							{
 								var m = coutput[3][i];
-								var r = stbi__blinn_8x8(coutput[0][i], m);
-								var g = stbi__blinn_8x8(coutput[1][i], m);
-								var b = stbi__blinn_8x8(coutput[2][i], m);
-								_out_[0] = stbi__compute_y(r, g, b);
+								var r = Utility.stbi__blinn_8x8(coutput[0][i], m);
+								var g = Utility.stbi__blinn_8x8(coutput[1][i], m);
+								var b = Utility.stbi__blinn_8x8(coutput[2][i], m);
+								_out_[0] = Utility.stbi__compute_y(r, g, b);
 								_out_[1] = 255;
 								_out_ += n;
 							}
@@ -1613,7 +1612,7 @@ namespace StbImageNext.Decoders
 						{
 							for (i = 0; i < z.img_x; ++i)
 							{
-								_out_[0] = stbi__blinn_8x8((byte)(255 - coutput[0][i]), coutput[3][i]);
+								_out_[0] = Utility.stbi__blinn_8x8((byte)(255 - coutput[0][i]), coutput[3][i]);
 								_out_[1] = 255;
 								_out_ += n;
 							}
