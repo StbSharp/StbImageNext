@@ -153,7 +153,7 @@ namespace StbImageNext.Decoders
 		}
 
 
-		private static void stbi__create_png_image_raw(stbi__png a, byte* raw, uint raw_len, int out_n, uint x, uint y, int depth, int color)
+		private static void stbi__create_png_image_raw(stbi__png a, DataBuffer<byte> raw, uint raw_len, int out_n, uint x, uint y, int depth, int color)
 		{
 			var bytes = depth == 16 ? 2 : 1;
 			var s = a.s;
@@ -189,7 +189,7 @@ namespace StbImageNext.Decoders
 				var prior = filter_buf + (~j & 1) * img_width_bytes;
 				var dest = a._out_ + stride * j;
 				var nk = width * filter_bytes;
-				int filter = *raw++;
+				int filter = raw.Read();
 				if (filter > 4)
 				{
 					throw new Exception("invalid filter");
@@ -287,7 +287,7 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		private static int stbi__create_png_image(stbi__png a, byte* image_data, uint image_data_len, int out_n,
+		private static int stbi__create_png_image(stbi__png a, DataBuffer<byte> image_data, uint image_data_len, int out_n,
 			int depth, int color, int interlaced)
 		{
 			var bytes = depth == 16 ? 2 : 1;
@@ -338,7 +338,7 @@ namespace StbImageNext.Decoders
 			return 1;
 		}
 
-		private static void stbi__compute_transparency(stbi__png z, byte* tc, int out_n)
+		private static void stbi__compute_transparency(stbi__png z, byte[] tc, int out_n)
 		{
 			var s = z.s;
 			uint i = 0;
@@ -363,7 +363,7 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		private static int stbi__expand_png_palette(stbi__png a, byte* palette, int len, int pal_img_n)
+		private static int stbi__expand_png_palette(stbi__png a, byte[] palette, int len, int pal_img_n)
 		{
 			uint i = 0;
 			var pixel_count = a.img_x * a.img_y;
@@ -451,10 +451,12 @@ namespace StbImageNext.Decoders
 
 		private static int stbi__parse_png_file(stbi__png z, int scan, int req_comp)
 		{
-			var palette = stackalloc byte[1024];
+			var palette = new byte[1024];
 			byte pal_img_n = 0;
 			byte has_trans = 0;
-			var tc = stackalloc byte[] { 0, 0, 0 };
+			var tc = new byte[3];
+			tc.Set((byte)0);
+
 			var tc16 = stackalloc ushort[3];
 			uint ioff = 0;
 			uint idata_limit = 0;
@@ -669,11 +671,10 @@ namespace StbImageNext.Decoders
 							else
 								z.img_out_n = z.img_n;
 
-							fixed (byte* ptr = z.expanded)
-							{
-								if (stbi__create_png_image(z, ptr, (uint)z.expanded.Length, z.img_out_n, z.depth, color, interlace) == 0)
-									return 0;
-							}
+							var ptr = new DataBuffer<byte>(z.expanded);
+							if (stbi__create_png_image(z, ptr, (uint)z.expanded.Length, z.img_out_n, z.depth, color, interlace) == 0)
+								return 0;
+
 							if (has_trans != 0)
 							{
 								if (z.depth == 16)
