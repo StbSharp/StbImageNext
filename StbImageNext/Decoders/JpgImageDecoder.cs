@@ -44,7 +44,7 @@ namespace StbImageNext.Decoders
 				var j = new stbi__jpeg();
 				j.s = s;
 				stbi__setup_jpeg(j);
-				return stbi__decode_jpeg_header(j, STBI__SCAN_type, false);
+				return stbi__decode_jpeg_header(j, Constants.STBI__SCAN_type, false);
 			}
 			finally
 			{
@@ -64,7 +64,7 @@ namespace StbImageNext.Decoders
 				var j = new stbi__jpeg();
 				j.s = s;
 
-				if (!stbi__decode_jpeg_header(j, STBI__SCAN_header, true))
+				if (!stbi__decode_jpeg_header(j, Constants.STBI__SCAN_header, true))
 				{
 					throw new Exception("Could not parse JPG");
 				}
@@ -1146,7 +1146,7 @@ namespace StbImageNext.Decoders
 					throw new Exception("bad TQ");
 			}
 
-			if (scan != STBI__SCAN_load)
+			if (scan != Constants.STBI__SCAN_load)
 				return 1;
 
 			for (i = 0; i < z.img_n; ++i)
@@ -1210,7 +1210,7 @@ namespace StbImageNext.Decoders
 				}
 			}
 
-			if (scan == STBI__SCAN_type)
+			if (scan == Constants.STBI__SCAN_type)
 				return true;
 
 			m = stbi__get_marker(z);
@@ -1270,7 +1270,7 @@ namespace StbImageNext.Decoders
 			}
 
 			j.restart_interval = 0;
-			if (!stbi__decode_jpeg_header(j, STBI__SCAN_load, true))
+			if (!stbi__decode_jpeg_header(j, Constants.STBI__SCAN_load, true))
 				return 0;
 			m = stbi__get_marker(j);
 			while (!(m == 0xd9))

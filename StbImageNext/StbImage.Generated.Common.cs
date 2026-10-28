@@ -2,16 +2,6 @@ namespace StbImageNext
 {
 	partial class StbImage
 	{
-		public const int STBI_default = 0;
-		public const int STBI_grey = 1;
-		public const int STBI_grey_alpha = 2;
-		public const int STBI_rgb = 3;
-		public const int STBI_rgb_alpha = 4;
-		public const int STBI_ORDER_RGB = 0;
-		public const int STBI_ORDER_BGR = 1;
-		public const int STBI__SCAN_load = 0;
-		public const int STBI__SCAN_type = 1;
-		public const int STBI__SCAN_header = 2;
 		public static int stbi__vertically_flip_on_load_global;
 		public static int stbi__vertically_flip_on_load_local;
 		public static int stbi__vertically_flip_on_load_set;
@@ -21,10 +11,6 @@ namespace StbImageNext
 		public static int stbi__unpremultiply_on_load_set;
 		public static int stbi__de_iphone_flag_local;
 		public static int stbi__de_iphone_flag_set;
-		public static byte[] stbi__compute_huffman_codes_length_dezigzag =
-			{ 16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15 };
-		public static int[] stbi__shiftsigned_mul_table = { 0, 0xff, 0x55, 0x49, 0x11, 0x21, 0x41, 0x81, 0x01 };
-		public static int[] stbi__shiftsigned_shift_table = { 0, 0, 0, 1, 0, 2, 4, 6, 0 };
 
 		public static void stbi_set_unpremultiply_on_load(int flag_true_if_should_unpremultiply)
 		{
@@ -165,16 +151,6 @@ namespace StbImageNext
 			a = a + (a >> 8);
 			a = a + (a >> 16);
 			return (int)(a & 0xff);
-		}
-
-		public static int stbi__shiftsigned(uint v, int shift, int bits)
-		{
-			if (shift < 0)
-				v <<= -shift;
-			else
-				v >>= shift;
-			v >>= 8 - bits;
-			return (int)(v * stbi__shiftsigned_mul_table[bits]) >> stbi__shiftsigned_shift_table[bits];
 		}
 	}
 }

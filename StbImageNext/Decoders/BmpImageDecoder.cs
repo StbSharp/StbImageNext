@@ -305,10 +305,10 @@ namespace StbImageNext.Decoders
 						{
 							var v = bpp == 16 ? (uint)s.stbi__get16le() : s.stbi__get32le();
 							uint a = 0;
-							_out_[z++] = (byte)(stbi__shiftsigned(v & mr, rshift, rcount) & 255);
-							_out_[z++] = (byte)(stbi__shiftsigned(v & mg, gshift, gcount) & 255);
-							_out_[z++] = (byte)(stbi__shiftsigned(v & mb, bshift, bcount) & 255);
-							a = (uint)(ma != 0 ? stbi__shiftsigned(v & ma, ashift, acount) : 255);
+							_out_[z++] = (byte)(Utility.stbi__shiftsigned(v & mr, rshift, rcount) & 255);
+							_out_[z++] = (byte)(Utility.stbi__shiftsigned(v & mg, gshift, gcount) & 255);
+							_out_[z++] = (byte)(Utility.stbi__shiftsigned(v & mb, bshift, bcount) & 255);
+							a = (uint)(ma != 0 ? Utility.stbi__shiftsigned(v & ma, ashift, acount) : 255);
 							all_a |= a;
 							if (target == 4)
 								_out_[z++] = (byte)(a & 255);

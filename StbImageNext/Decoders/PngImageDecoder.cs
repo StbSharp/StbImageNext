@@ -471,7 +471,7 @@ namespace StbImageNext.Decoders
 			z._out_ = DataBuffer<byte>.Null;
 			if (stbi__check_png_header(s, true) == 0)
 				return 0;
-			if (scan == STBI__SCAN_type)
+			if (scan == Constants.STBI__SCAN_type)
 				return 1;
 			for (; ; )
 			{
@@ -564,7 +564,7 @@ namespace StbImageNext.Decoders
 								throw new Exception("tRNS after IDAT");
 							if (pal_img_n != 0)
 							{
-								if (scan == STBI__SCAN_header)
+								if (scan == Constants.STBI__SCAN_header)
 								{
 									z.img_n = 4;
 									return 1;
@@ -585,7 +585,7 @@ namespace StbImageNext.Decoders
 								if (c.length != (uint)z.img_n * 2)
 									throw new Exception("bad tRNS len");
 								has_trans = 1;
-								if (scan == STBI__SCAN_header)
+								if (scan == Constants.STBI__SCAN_header)
 								{
 									++z.img_n;
 									return 1;
@@ -608,7 +608,7 @@ namespace StbImageNext.Decoders
 								throw new Exception("first not IHDR");
 							if (pal_img_n != 0 && pal_len == 0)
 								throw new Exception("no PLTE");
-							if (scan == STBI__SCAN_header)
+							if (scan == Constants.STBI__SCAN_header)
 							{
 								if (pal_img_n != 0)
 									z.img_n = pal_img_n;
@@ -654,7 +654,7 @@ namespace StbImageNext.Decoders
 							uint bpl = 0;
 							if (first != 0)
 								throw new Exception("first not IHDR");
-							if (scan != STBI__SCAN_load)
+							if (scan != Constants.STBI__SCAN_load)
 								return 1;
 							if (z.idata.IsNull)
 								throw new Exception("no IDAT");
@@ -735,7 +735,7 @@ namespace StbImageNext.Decoders
 			if (req_comp < 0 || req_comp > 4)
 				throw new Exception("bad req_comp");
 
-			if (stbi__parse_png_file(p, STBI__SCAN_load, req_comp) != 0)
+			if (stbi__parse_png_file(p, Constants.STBI__SCAN_load, req_comp) != 0)
 			{
 				if (p.depth > 8)
 				{
@@ -762,7 +762,7 @@ namespace StbImageNext.Decoders
 		private static int stbi__png_info_raw(stbi__png p, out int x, out int y, out int comp)
 		{
 			x = y = comp = 0;
-			if (stbi__parse_png_file(p, STBI__SCAN_header, 0) == 0)
+			if (stbi__parse_png_file(p, Constants.STBI__SCAN_header, 0) == 0)
 			{
 				p.s.stbi__rewind();
 				return 0;

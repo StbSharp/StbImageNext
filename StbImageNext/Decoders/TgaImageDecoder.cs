@@ -355,13 +355,13 @@ namespace StbImageNext.Decoders
 			switch (bits_per_pixel)
 			{
 				case 8:
-					return STBI_grey;
+					return Constants.STBI_grey;
 				case 16:
 				case 15:
 					if (bits_per_pixel == 16 && is_grey != 0)
-						return STBI_grey_alpha;
+						return Constants.STBI_grey_alpha;
 					is_rgb16 = true;
-					return STBI_rgb;
+					return Constants.STBI_rgb;
 				case 24:
 				case 32:
 					return bits_per_pixel / 8;

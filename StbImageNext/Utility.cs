@@ -5,6 +5,9 @@ namespace StbImageNext
 {
 	internal static class Utility
 	{
+		private static int[] stbi__shiftsigned_mul_table = { 0, 0xff, 0x55, 0x49, 0x11, 0x21, 0x41, 0x81, 0x01 };
+		private static int[] stbi__shiftsigned_shift_table = { 0, 0, 0, 1, 0, 2, 4, 6, 0 };
+
 		public static T[][] CreateArray<T>(int d1, int d2)
 		{
 			var result = new T[d1][];
@@ -197,6 +200,16 @@ namespace StbImageNext
 		public static uint _lrotl(uint x, int y)
 		{
 			return (x << y) | (x >> (32 - y));
+		}
+
+		public static int stbi__shiftsigned(uint v, int shift, int bits)
+		{
+			if (shift < 0)
+				v <<= -shift;
+			else
+				v >>= shift;
+			v >>= 8 - bits;
+			return (int)(v * stbi__shiftsigned_mul_table[bits]) >> stbi__shiftsigned_shift_table[bits];
 		}
 	}
 }
