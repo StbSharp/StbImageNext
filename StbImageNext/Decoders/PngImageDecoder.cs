@@ -62,12 +62,12 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		public static ImageResult Decode(Stream s, ColorComponents req_comp)
+		public static ImageResult Decode(Stream s, ColorComponents? req_comp = null)
 		{
 			var p = new stbi__png();
 			p.s = s;
 
-			var data = stbi__do_png(p, (int)req_comp);
+			var data = stbi__do_png(p, req_comp.ToInternalValue());
 			var result = new ImageResult
 			{
 				Width = (int)p.img_x,
@@ -75,27 +75,10 @@ namespace StbImageNext.Decoders
 				SourceComp = (ColorComponents)p.img_n
 			};
 
-			result.Comp = req_comp == ColorComponents.Default ? result.SourceComp : req_comp;
+			result.Comp = req_comp ?? result.SourceComp;
 			result.Data = data.Data;
 
 			return result;
-		}
-
-		private static int stbi__png_is16(Stream s)
-		{
-			var p = new stbi__png();
-			p.s = s;
-
-			int x, y, comp;
-			if (stbi__png_info_raw(p, out x, out y, out comp) == 0)
-				return 0;
-			if (p.depth != 16)
-			{
-				p.s.stbi__rewind();
-				return 0;
-			}
-
-			return 1;
 		}
 
 		private static stbi__pngchunk stbi__get_chunk_header(Stream s)

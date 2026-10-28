@@ -149,7 +149,7 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		public static ImageResult Load(Stream s, ColorComponents req_comp)
+		public static ImageResult Load(Stream s, ColorComponents? req_comp = null)
 		{
 			int tga_offset = s.stbi__get8();
 			int tga_indexed = s.stbi__get8();
@@ -200,7 +200,7 @@ namespace StbImageNext.Decoders
 				SourceComp = (ColorComponents)tga_comp
 			};
 
-			result.Comp = req_comp == ColorComponents.Default ? result.SourceComp : req_comp;
+			result.Comp = req_comp ?? result.SourceComp;
 
 			if (stbi__mad3sizes_valid(tga_width, tga_height, tga_comp, 0) == 0)
 				throw new Exception("too large");
@@ -323,8 +323,8 @@ namespace StbImageNext.Decoders
 				}
 			}
 
-			if (req_comp != 0 && (int)req_comp != tga_comp)
-				tga_data = Utility.stbi__convert_format(tga_data, tga_comp, (int)req_comp, (uint)tga_width, (uint)tga_height);
+			if (req_comp != null && (int)req_comp.Value != tga_comp)
+				tga_data = Utility.stbi__convert_format(tga_data, tga_comp, (int)req_comp.Value, (uint)tga_width, (uint)tga_height);
 			tga_palette_start = tga_palette_len = tga_palette_bits = tga_x_origin = tga_y_origin = 0;
 
 			result.Data = tga_data.Data;

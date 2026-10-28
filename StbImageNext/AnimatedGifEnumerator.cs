@@ -10,9 +10,9 @@ namespace StbImageNext
 	{
 		private readonly Stream _stream;
 		private stbi__gif _gif;
-		private readonly ColorComponents _colorComponents;
+		private readonly ColorComponents? _colorComponents;
 
-		public AnimatedGifEnumerator(Stream input, ColorComponents colorComponents)
+		public AnimatedGifEnumerator(Stream input, ColorComponents? colorComponents)
 		{
 			if (input == null) throw new ArgumentNullException("input");
 
@@ -27,7 +27,7 @@ namespace StbImageNext
 			_colorComponents = colorComponents;
 		}
 
-		public ColorComponents ColorComponents
+		public ColorComponents? ColorComponents
 		{
 			get
 			{
@@ -52,7 +52,7 @@ namespace StbImageNext
 		public bool MoveNext()
 		{
 			// Read next frame
-			var result = stbi__gif_load_next(_stream, _gif, (int)ColorComponents);
+			var result = stbi__gif_load_next(_stream, _gif, ColorComponents.ToInternalValue());
 			if (result.IsNull) return false;
 
 			if (Current == null)
@@ -62,7 +62,7 @@ namespace StbImageNext
 					Width = _gif.w,
 					Height = _gif.h,
 					SourceComp = _gif.colorComponents,
-					Comp = ColorComponents == ColorComponents.Default ? _gif.colorComponents : ColorComponents
+					Comp = ColorComponents ?? _gif.colorComponents
 				};
 
 			}
@@ -83,15 +83,15 @@ namespace StbImageNext
 	internal class AnimatedGifEnumerable : IEnumerable<AnimatedFrameResult>
 	{
 		private readonly Stream _input;
-		private readonly ColorComponents _colorComponents;
+		private readonly ColorComponents? _colorComponents;
 
-		public AnimatedGifEnumerable(Stream input, ColorComponents colorComponents)
+		public AnimatedGifEnumerable(Stream input, ColorComponents? colorComponents)
 		{
 			_input = input;
 			_colorComponents = colorComponents;
 		}
 
-		public ColorComponents ColorComponents
+		public ColorComponents? ColorComponents
 		{
 			get
 			{

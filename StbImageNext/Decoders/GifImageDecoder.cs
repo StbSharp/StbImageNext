@@ -49,18 +49,18 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		public static ImageResult Load(Stream s, ColorComponents req_comp)
+		public static ImageResult Load(Stream s, ColorComponents? req_comp = null)
 		{
 			var g = new stbi__gif();
-			var u = stbi__gif_load_next(s, g, (int)req_comp);
+			var u = stbi__gif_load_next(s, g, req_comp.ToInternalValue());
 			if (u.IsNull)
 			{
 				throw new Exception("Unknown GIF loading error");
 			}
 
-			if (req_comp != ColorComponents.Default && req_comp != ColorComponents.RedGreenBlueAlpha)
+			if (req_comp != null && req_comp != ColorComponents.RedGreenBlueAlpha)
 			{
-				u = Utility.stbi__convert_format(u, 4, (int)req_comp, (uint)g.w, (uint)g.h);
+				u = Utility.stbi__convert_format(u, 4, (int)req_comp.Value, (uint)g.w, (uint)g.h);
 			}
 
 			var result = new ImageResult
@@ -70,7 +70,7 @@ namespace StbImageNext.Decoders
 				SourceComp = g.colorComponents
 			};
 
-			result.Comp = req_comp == ColorComponents.Default ? result.SourceComp : req_comp;
+			result.Comp = req_comp ?? result.SourceComp;
 			result.Data = u.Data;
 			return result;
 		}

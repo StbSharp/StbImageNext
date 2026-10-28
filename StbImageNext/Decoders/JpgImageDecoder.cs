@@ -70,14 +70,14 @@ namespace StbImageNext.Decoders
 		}
 
 
-		public static ImageResult Load(Stream s, ColorComponents req_comp)
+		public static ImageResult Load(Stream s, ColorComponents? req_comp = null)
 		{
 			var j = new stbi__jpeg();
 			j.s = s;
 			stbi__setup_jpeg(j);
 
 			int x, y, comp;
-			var data = load_jpeg_image(j, out x, out y, out comp, (int)req_comp);
+			var data = load_jpeg_image(j, out x, out y, out comp, req_comp.ToInternalValue());
 
 			var result = new ImageResult
 			{
@@ -86,7 +86,7 @@ namespace StbImageNext.Decoders
 				SourceComp = (ColorComponents)comp
 			};
 
-			result.Comp = req_comp == ColorComponents.Default ? result.SourceComp : req_comp;
+			result.Comp = req_comp ?? result.SourceComp;
 			result.Data = data.Data;
 
 			return result;

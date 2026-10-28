@@ -57,7 +57,7 @@ namespace StbImageNext.Decoders
 			return result;
 		}
 
-		public static ImageResult Load(Stream s, ColorComponents req_comp)
+		public static ImageResult Load(Stream s, ColorComponents? req_comp = null)
 		{
 			var pixelCount = 0;
 			var channelCount = 0;
@@ -170,9 +170,9 @@ namespace StbImageNext.Decoders
 				}
 			}
 
-			if (req_comp != 0 && (int)req_comp != 4)
+			if (req_comp != null && req_comp != ColorComponents.RedGreenBlueAlpha)
 			{
-				_out_ = Utility.stbi__convert_format(_out_, 4, (int)req_comp, (uint)w, (uint)h);
+				_out_ = Utility.stbi__convert_format(_out_, 4, (int)req_comp.Value, (uint)w, (uint)h);
 			}
 
 			var result = new ImageResult
@@ -183,7 +183,7 @@ namespace StbImageNext.Decoders
 				Data = _out_.Data
 			};
 
-			result.Comp = req_comp == ColorComponents.Default ? result.SourceComp : req_comp;
+			result.Comp = req_comp ?? result.SourceComp;
 
 			return result;
 		}

@@ -231,7 +231,7 @@ namespace StbImageNext.Testing
 							{
 								x = image.Width;
 								y = image.Height;
-								ccomp = ColorComponents.Default;
+								ccomp = ColorComponents.RedGreenBlueAlpha;
 
 								var memoryGroup = image.GetPixelMemoryGroup().ToArray()[0];
 								var pixelData = MemoryMarshal.AsBytes(memoryGroup.Span).ToArray();

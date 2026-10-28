@@ -13,7 +13,7 @@ namespace StbImageNext
 		public ColorComponents Comp { get; set; }
 		public byte[] Data { get; set; }
 
-		public static ImageResult FromStream(Stream stream, ColorComponents requiredComponents = ColorComponents.Default)
+		public static ImageResult FromStream(Stream stream, ColorComponents? requiredComponents = null)
 		{
 			if (PngImageDecoder.Test(stream))
 			{
@@ -54,7 +54,7 @@ namespace StbImageNext
 			throw new NotSupportedException("Image format is not supported");
 		}
 
-		public static ImageResult FromMemory(byte[] data, ColorComponents requiredComponents = ColorComponents.Default)
+		public static ImageResult FromMemory(byte[] data, ColorComponents? requiredComponents = null)
 		{
 			using (var stream = new MemoryStream(data))
 			{
@@ -63,7 +63,7 @@ namespace StbImageNext
 		}
 
 		public static IEnumerable<AnimatedFrameResult> AnimatedGifFramesFromStream(Stream stream,
-			ColorComponents requiredComponents = ColorComponents.Default)
+			ColorComponents? requiredComponents = null)
 		{
 			return new AnimatedGifEnumerable(stream, requiredComponents);
 		}

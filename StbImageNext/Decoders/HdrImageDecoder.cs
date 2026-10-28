@@ -82,7 +82,7 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		public static ImageResultFloat Load(Stream s, ColorComponents req_comp2)
+		public static ImageResultFloat Load(Stream s, ColorComponents? req_comp2 = null)
 		{
 			var rgbe = new DataBuffer<byte>(4);
 			string token;
@@ -153,9 +153,9 @@ namespace StbImageNext.Decoders
 				SourceComp = ColorComponents.RedGreenBlue
 			};
 
-			result.Comp = req_comp2 == ColorComponents.Default ? result.SourceComp : req_comp2;
+			result.Comp = req_comp2 ?? result.SourceComp;
 
-			var req_comp = (int)req_comp2;
+			var req_comp = req_comp2.ToInternalValue();
 			if (req_comp == 0)
 				req_comp = 3;
 			if (stbi__mad4sizes_valid(width, height, req_comp, sizeof(float), 0) == 0)

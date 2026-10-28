@@ -67,7 +67,7 @@ namespace StbImageNext
 			return result;
 		}
 
-		public static ImageResultFloat FromStream(Stream stream, ColorComponents requiredComponents = ColorComponents.Default)
+		public static ImageResultFloat FromStream(Stream stream, ColorComponents? requiredComponents = null)
 		{
 			if (HdrImageDecoder.Test(stream))
 			{
@@ -77,7 +77,7 @@ namespace StbImageNext
 			throw new NotSupportedException("Image format is not supported");
 		}
 
-		public static ImageResultFloat FromMemory(byte[] data, ColorComponents requiredComponents = ColorComponents.Default)
+		public static ImageResultFloat FromMemory(byte[] data, ColorComponents? requiredComponents = null)
 		{
 			using (var stream = new MemoryStream(data))
 			{

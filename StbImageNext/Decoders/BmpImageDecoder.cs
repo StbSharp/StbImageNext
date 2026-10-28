@@ -58,7 +58,7 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		public static ImageResult Load(Stream s, ColorComponents req_comp)
+		public static ImageResult Load(Stream s, ColorComponents? req_comp = null)
 		{
 			uint mr = 0;
 			uint mg = 0;
@@ -117,8 +117,8 @@ namespace StbImageNext.Decoders
 				img_n = ma != 0 ? 4 : 3;
 
 			int target;
-			if (req_comp != ColorComponents.Default && req_comp >= ColorComponents.RedGreenBlue)
-				target = (int)req_comp;
+			if (req_comp != null && req_comp.Value >= ColorComponents.RedGreenBlue)
+				target = (int)req_comp.Value;
 			else
 				target = img_n;
 
@@ -323,9 +323,9 @@ namespace StbImageNext.Decoders
 				}
 			}
 
-			if (req_comp != ColorComponents.Default && req_comp != (ColorComponents)target)
+			if (req_comp != null && req_comp != (ColorComponents)target)
 			{
-				_out_ = Utility.stbi__convert_format(_out_, target, (int)req_comp, info.img_x, info.img_y);
+				_out_ = Utility.stbi__convert_format(_out_, target, (int)req_comp.Value, info.img_x, info.img_y);
 			}
 
 			var result = new ImageResult
@@ -334,7 +334,7 @@ namespace StbImageNext.Decoders
 				Height = (int)info.img_y,
 				SourceComp = (ColorComponents)img_n
 			};
-			result.Comp = req_comp == ColorComponents.Default ? result.SourceComp : req_comp;
+			result.Comp = req_comp ?? result.SourceComp;
 			result.Data = _out_.Data;
 
 			return result;
