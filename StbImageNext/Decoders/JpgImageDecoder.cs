@@ -5,6 +5,9 @@ using System.IO;
 
 namespace StbImageNext.Decoders
 {
+	/// <summary>
+	/// Provides methods to test, get information about and decode JPG images.
+	/// </summary>
 	public static class JpgImageDecoder
 	{
 		private static readonly byte[] stbi__process_marker_tag = { 65, 100, 111, 98, 101, 0 };
@@ -29,6 +32,11 @@ namespace StbImageNext.Decoders
 			53, 60, 61, 54, 47, 55, 62, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63
 		};
 
+		/// <summary>
+		/// Tests whether the specified stream contains a JPG image.
+		/// </summary>
+		/// <param name="s">Stream containing the image data.</param>
+		/// <returns><c>true</c> if the stream contains a JPG image, otherwise <c>false</c>.</returns>
 		public static bool Test(Stream s)
 		{
 			try
@@ -44,6 +52,11 @@ namespace StbImageNext.Decoders
 			}
 		}
 
+		/// <summary>
+		/// Gets the image information from the specified stream.
+		/// </summary>
+		/// <param name="s">Stream containing the image data.</param>
+		/// <returns>The image information.</returns>
 		public static ImageInfo Info(Stream s)
 		{
 			try
@@ -70,6 +83,12 @@ namespace StbImageNext.Decoders
 		}
 
 
+		/// <summary>
+		/// Loads the JPG image from the specified stream.
+		/// </summary>
+		/// <param name="s">Stream containing the image data.</param>
+		/// <param name="req_comp">Required pixel components of the image.</param>
+		/// <returns>The decoded image result.</returns>
 		public static ImageResult Load(Stream s, ColorComponents? req_comp = null)
 		{
 			var j = new stbi__jpeg();

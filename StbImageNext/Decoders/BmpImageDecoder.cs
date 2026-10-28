@@ -5,8 +5,16 @@ using static StbImageNext.StbImage;
 
 namespace StbImageNext.Decoders
 {
+	/// <summary>
+	/// Provides methods to test, get information about and decode BMP images.
+	/// </summary>
 	public static class BmpImageDecoder
 	{
+		/// <summary>
+		/// Tests whether the specified stream contains a BMP image.
+		/// </summary>
+		/// <param name="s">Stream containing the image data.</param>
+		/// <returns><c>true</c> if the stream contains a BMP image, otherwise <c>false</c>.</returns>
 		public static bool Test(Stream s)
 		{
 			try
@@ -29,6 +37,11 @@ namespace StbImageNext.Decoders
 			}
 		}
 
+		/// <summary>
+		/// Gets the image information from the specified stream.
+		/// </summary>
+		/// <param name="s">Stream containing the image data.</param>
+		/// <returns>The image information.</returns>
 		public static ImageInfo Info(Stream s)
 		{
 			try
@@ -58,6 +71,12 @@ namespace StbImageNext.Decoders
 			}
 		}
 
+		/// <summary>
+		/// Loads the BMP image from the specified stream.
+		/// </summary>
+		/// <param name="s">Stream containing the image data.</param>
+		/// <param name="req_comp">Required pixel components of the image.</param>
+		/// <returns>The decoded image result.</returns>
 		public static ImageResult Load(Stream s, ColorComponents? req_comp = null)
 		{
 			uint mr = 0;
@@ -480,21 +499,22 @@ namespace StbImageNext.Decoders
 
 			return info;
 		}
-	}
 
-	[StructLayout(LayoutKind.Sequential)]
-	public struct stbi__bmp_data
-	{
-		public int bpp;
-		public int offset;
-		public int hsz;
-		public uint mr;
-		public uint mg;
-		public uint mb;
-		public uint ma;
-		public uint all_a;
-		public int extra_read;
-		public uint img_x;
-		public uint img_y;
+		[StructLayout(LayoutKind.Sequential)]
+		private struct stbi__bmp_data
+		{
+			public int bpp;
+			public int offset;
+			public int hsz;
+			public uint mr;
+			public uint mg;
+			public uint mb;
+			public uint ma;
+			public uint all_a;
+			public int extra_read;
+			public uint img_x;
+			public uint img_y;
+		}
+
 	}
 }

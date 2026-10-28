@@ -5,8 +5,16 @@ using static StbImageNext.StbImage;
 
 namespace StbImageNext.Decoders
 {
+	/// <summary>
+	/// Provides methods to test, get information about and load GIF images.
+	/// </summary>
 	public static class GifImageDecoder
 	{
+		/// <summary>
+		/// Tests whether the specified stream contains a GIF image.
+		/// </summary>
+		/// <param name="s">Stream containing the image data.</param>
+		/// <returns><c>true</c> if the stream contains a GIF image, otherwise <c>false</c>.</returns>
 		public static bool Test(Stream s)
 		{
 			try
@@ -27,6 +35,11 @@ namespace StbImageNext.Decoders
 			}
 		}
 
+		/// <summary>
+		/// Gets the image information from the specified stream.
+		/// </summary>
+		/// <param name="s">Stream containing the image data.</param>
+		/// <returns>The image information.</returns>
 		public static ImageInfo Info(Stream s)
 		{
 			try
@@ -49,6 +62,12 @@ namespace StbImageNext.Decoders
 			}
 		}
 
+		/// <summary>
+		/// Loads the GIF image from the specified stream.
+		/// </summary>
+		/// <param name="s">Stream containing the image data.</param>
+		/// <param name="req_comp">Required pixel components of the image.</param>
+		/// <returns>The decoded image result.</returns>
 		public static ImageResult Load(Stream s, ColorComponents? req_comp = null)
 		{
 			var g = new stbi__gif();

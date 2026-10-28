@@ -4,17 +4,39 @@ using System.IO;
 
 namespace StbImageNext
 {
+	/// <summary>
+	/// Represents a decoded HDR image together with its source and converted pixel formats.
+	/// </summary>
 	public class ImageResultFloat
 	{
 		private static float stbi__h2l_gamma_i = 1.0f / 2.2f;
 		private static float stbi__h2l_scale_i = 1.0f;
 
+		/// <summary>
+		/// Gets or sets the width of the image.
+		/// </summary>
 		public int Width { get; set; }
+		/// <summary>
+		/// Gets or sets the height of the image.
+		/// </summary>
 		public int Height { get; set; }
+		/// <summary>
+		/// Gets or sets the source pixel format of the image.
+		/// </summary>
 		public ColorComponents SourceComp { get; set; }
+		/// <summary>
+		/// Gets or sets the pixel format of the image data.
+		/// </summary>
 		public ColorComponents Comp { get; set; }
+		/// <summary>
+		/// Gets or sets the HDR image data.
+		/// </summary>
 		public float[] Data { get; set; }
 
+		/// <summary>
+		/// Converts the HDR image data to a low dynamic range image.
+		/// </summary>
+		/// <returns>The converted image result.</returns>
 		public ImageResult ToLdr()
 		{
 			var result = new ImageResult
@@ -67,6 +89,12 @@ namespace StbImageNext
 			return result;
 		}
 
+		/// <summary>
+		/// Decodes an HDR image from the specified stream.
+		/// </summary>
+		/// <param name="stream">Stream containing the HDR image data.</param>
+		/// <param name="requiredComponents">Required pixel components of the image.</param>
+		/// <returns>The decoded HDR image result.</returns>
 		public static ImageResultFloat FromStream(Stream stream, ColorComponents? requiredComponents = null)
 		{
 			if (HdrImageDecoder.Test(stream))
@@ -77,6 +105,12 @@ namespace StbImageNext
 			throw new NotSupportedException("Image format is not supported");
 		}
 
+		/// <summary>
+		/// Decodes an HDR image from the specified byte array.
+		/// </summary>
+		/// <param name="data">Byte array containing the HDR image data.</param>
+		/// <param name="requiredComponents">Required pixel components of the image.</param>
+		/// <returns>The decoded HDR image result.</returns>
 		public static ImageResultFloat FromMemory(byte[] data, ColorComponents? requiredComponents = null)
 		{
 			using (var stream = new MemoryStream(data))

@@ -4,6 +4,7 @@
     <Description>C# Image Library based on StbImageNext, StbImageWriteSharp, StbImageResizeSharp and StbDxtSharp</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RootNamespace>StbImageNext</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">

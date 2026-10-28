@@ -4,8 +4,16 @@ using static StbImageNext.StbImage;
 
 namespace StbImageNext.Decoders
 {
+	/// <summary>
+	/// Provides methods to test, get information about and decode PSD images.
+	/// </summary>
 	public static class PsdImageDecoder
 	{
+		/// <summary>
+		/// Tests whether the specified stream contains a PSD image.
+		/// </summary>
+		/// <param name="s">Stream containing the image data.</param>
+		/// <returns><c>true</c> if the stream contains a PSD image, otherwise <c>false</c>.</returns>
 		public static bool Test(Stream s)
 		{
 			var r = s.stbi__get32be() == 0x38425053;
@@ -13,6 +21,11 @@ namespace StbImageNext.Decoders
 			return r;
 		}
 
+		/// <summary>
+		/// Gets the image information from the specified stream.
+		/// </summary>
+		/// <param name="s">Stream containing the image data.</param>
+		/// <returns>The image information.</returns>
 		public static ImageInfo Info(Stream s)
 		{
 			var channelCount = 0;
@@ -57,6 +70,12 @@ namespace StbImageNext.Decoders
 			return result;
 		}
 
+		/// <summary>
+		/// Loads the PSD image from the specified stream.
+		/// </summary>
+		/// <param name="s">Stream containing the image data.</param>
+		/// <param name="req_comp">Required pixel components of the image.</param>
+		/// <returns>The decoded image result.</returns>
 		public static ImageResult Load(Stream s, ColorComponents? req_comp = null)
 		{
 			var pixelCount = 0;

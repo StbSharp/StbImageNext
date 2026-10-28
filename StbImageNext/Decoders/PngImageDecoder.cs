@@ -6,21 +6,27 @@ using static StbImageNext.StbImage;
 
 namespace StbImageNext.Decoders
 {
+	/// <summary>
+	/// Provides methods to test, get information about and decode PNG images.
+	/// </summary>
 	public static class PngImageDecoder
 	{
-		public const int STBI__F_none = 0;
-		public const int STBI__F_sub = 1;
-		public const int STBI__F_up = 2;
-		public const int STBI__F_avg = 3;
-		public const int STBI__F_paeth = 4;
-		public const int STBI__F_avg_first = 5;
+		private const int STBI__F_none = 0;
+		private const int STBI__F_sub = 1;
+		private const int STBI__F_up = 2;
+		private const int STBI__F_avg = 3;
+		private const int STBI__F_paeth = 4;
+		private const int STBI__F_avg_first = 5;
 
-		private static byte[] first_row_filter =
-			{ STBI__F_none, STBI__F_sub, STBI__F_none, STBI__F_avg_first, STBI__F_sub };
+		private static readonly byte[] first_row_filter = { STBI__F_none, STBI__F_sub, STBI__F_none, STBI__F_avg_first, STBI__F_sub };
+		private static readonly byte[] stbi__check_png_header_png_sig = { 137, 80, 78, 71, 13, 10, 26, 10 };
+		private static readonly byte[] stbi__depth_scale_table = { 0, 0xff, 0x55, 0, 0x11, 0, 0, 0, 0x01 };
 
-		private static byte[] stbi__check_png_header_png_sig = { 137, 80, 78, 71, 13, 10, 26, 10 };
-		private static byte[] stbi__depth_scale_table = { 0, 0xff, 0x55, 0, 0x11, 0, 0, 0, 0x01 };
-
+		/// <summary>
+		/// Tests whether the specified stream contains a PNG image.
+		/// </summary>
+		/// <param name="s">Stream containing the image data.</param>
+		/// <returns><c>true</c> if the stream contains a PNG image, otherwise <c>false</c>.</returns>
 		public static bool Test(Stream s)
 		{
 			try
@@ -36,6 +42,11 @@ namespace StbImageNext.Decoders
 			}
 		}
 
+		/// <summary>
+		/// Gets the image information from the specified stream.
+		/// </summary>
+		/// <param name="s">Stream containing the image data.</param>
+		/// <returns>The image information.</returns>
 		public static ImageInfo Info(Stream s)
 		{
 			try
@@ -62,6 +73,12 @@ namespace StbImageNext.Decoders
 			}
 		}
 
+		/// <summary>
+		/// Decodes the PNG image from the specified stream.
+		/// </summary>
+		/// <param name="s">Stream containing the image data.</param>
+		/// <param name="req_comp">Required pixel components of the image.</param>
+		/// <returns>The decoded image result.</returns>
 		public static ImageResult Decode(Stream s, ColorComponents? req_comp = null)
 		{
 			var p = new stbi__png();

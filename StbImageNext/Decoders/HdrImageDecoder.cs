@@ -5,8 +5,16 @@ using static StbImageNext.StbImage;
 
 namespace StbImageNext.Decoders
 {
+	/// <summary>
+	/// Provides methods to test, get information about and load HDR images.
+	/// </summary>
 	public static class HdrImageDecoder
 	{
+		/// <summary>
+		/// Tests whether the specified stream contains a HDR image.
+		/// </summary>
+		/// <param name="s">Stream containing the image data.</param>
+		/// <returns><c>true</c> if the stream contains a HDR image, otherwise <c>false</c>.</returns>
 		public static bool Test(Stream s)
 		{
 			var r = stbi__hdr_test_core(s, "#?RADIANCE\n");
@@ -20,6 +28,11 @@ namespace StbImageNext.Decoders
 			return r == 1;
 		}
 
+		/// <summary>
+		/// Gets the image information from the specified stream.
+		/// </summary>
+		/// <param name="s">Stream containing the image data.</param>
+		/// <returns>The image information.</returns>
 		public static ImageInfo Info(Stream s)
 		{
 			try
@@ -82,6 +95,12 @@ namespace StbImageNext.Decoders
 			}
 		}
 
+		/// <summary>
+		/// Loads the HDR image from the specified stream.
+		/// </summary>
+		/// <param name="s">Stream containing the image data.</param>
+		/// <param name="req_comp2">Required pixel components of the image.</param>
+		/// <returns>The decoded HDR image result.</returns>
 		public static ImageResultFloat Load(Stream s, ColorComponents? req_comp2 = null)
 		{
 			var rgbe = new DataBuffer<byte>(4);
