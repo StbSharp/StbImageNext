@@ -19,7 +19,7 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: '8.0.x'
-    - name: Build StbImageSharp
+    - name: Build StbImageNext
       run: dotnet build StbImageNext.sln --configuration Release
     - name: Test
       run: dotnet test StbImageNext.sln

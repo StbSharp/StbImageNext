@@ -15,11 +15,11 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: '8.0.x'
-    - name: Build StbImageSharp
+    - name: Build StbImageNext
       run: dotnet build StbImageNext.sln --configuration Release
     - name: Test
       run: dotnet test StbImageNext.sln
     - name: Install NuGet
       uses: NuGet/setup-nuget@v1
-    - name: Publish StbImageSharp to NuGet
+    - name: Publish StbImageNext to NuGet
       run: nuget.exe push src\bin\Release\StbImageNext.*.nupkg ${{secrets.NUGET_APIKEY}} -Source https://api.nuget.org/v3/index.json
