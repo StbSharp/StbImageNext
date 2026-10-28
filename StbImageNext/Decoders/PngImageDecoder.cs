@@ -6,7 +6,7 @@ using static StbImageNext.StbImage;
 
 namespace StbImageNext.Decoders
 {
-	public static unsafe class PngImageDecoder
+	public static class PngImageDecoder
 	{
 		public const int STBI__F_none = 0;
 		public const int STBI__F_sub = 1;
@@ -44,7 +44,7 @@ namespace StbImageNext.Decoders
 				p.s = s;
 
 				int x, y, comp;
-				if (stbi__png_info_raw(p, &x, &y, &comp) == 0)
+				if (stbi__png_info_raw(p, out x, out y, out comp) == 0)
 				{
 					throw new Exception("Could not parse PNG");
 				}
@@ -85,7 +85,9 @@ namespace StbImageNext.Decoders
 		{
 			var p = new stbi__png();
 			p.s = s;
-			if (stbi__png_info_raw(p, null, null, null) == 0)
+
+			int x, y, comp;
+			if (stbi__png_info_raw(p, out x, out y, out comp) == 0)
 				return 0;
 			if (p.depth != 16)
 			{
@@ -301,10 +303,10 @@ namespace StbImageNext.Decoders
 
 			var final = new DataBuffer<byte>(a.img_x * a.img_y * out_bytes);
 
-			var xorig = stackalloc int[] { 0, 4, 0, 2, 0, 1, 0 };
-			var yorig = stackalloc int[] { 0, 0, 4, 0, 2, 0, 1 };
-			var xspc = stackalloc int[] { 8, 8, 4, 4, 2, 2, 1 };
-			var yspc = stackalloc int[] { 8, 8, 8, 4, 4, 2, 2 };
+			var xorig = new int[] { 0, 4, 0, 2, 0, 1, 0 };
+			var yorig = new int[] { 0, 0, 4, 0, 2, 0, 1 };
+			var xspc = new int[] { 8, 8, 4, 4, 2, 2, 1 };
+			var yspc = new int[] { 8, 8, 8, 4, 4, 2, 2 };
 			for (p = 0; p < 7; ++p)
 			{
 				var i = 0;
@@ -457,7 +459,7 @@ namespace StbImageNext.Decoders
 			var tc = new byte[3];
 			tc.Set((byte)0);
 
-			var tc16 = stackalloc ushort[3];
+			var tc16 = new ushort[3];
 			uint ioff = 0;
 			uint idata_limit = 0;
 			uint i = 0;
@@ -761,20 +763,18 @@ namespace StbImageNext.Decoders
 			return result;
 		}
 
-		private static int stbi__png_info_raw(stbi__png p, int* x, int* y, int* comp)
+		private static int stbi__png_info_raw(stbi__png p, out int x, out int y, out int comp)
 		{
+			x = y = comp = 0;
 			if (stbi__parse_png_file(p, STBI__SCAN_header, 0) == 0)
 			{
 				p.s.stbi__rewind();
 				return 0;
 			}
 
-			if (x != null)
-				*x = (int)p.img_x;
-			if (y != null)
-				*y = (int)p.img_y;
-			if (comp != null)
-				*comp = p.img_n;
+			x = (int)p.img_x;
+			y = (int)p.img_y;
+			comp = p.img_n;
 			return 1;
 		}
 
