@@ -81,7 +81,7 @@ namespace StbImageNext.Decoders
 		/// <param name="de_iphone">Whether to convert iPhone-optimized PNG format.</param>
 		/// <param name="iphone_unpremultiply">Whether to unpremultiply alpha from iPhone-optimized PNG format.</param>
 		/// <returns>An ImageResult containing the decoded PNG image data.</returns>
-		public static ImageResult Decode(Stream s, ColorComponents? req_comp = null, bool de_iphone = false, bool iphone_unpremultiply = false)
+		public static ImageResult Load(Stream s, ColorComponents? req_comp = null, bool de_iphone = false, bool iphone_unpremultiply = false)
 		{
 			var p = new stbi__png
 			{

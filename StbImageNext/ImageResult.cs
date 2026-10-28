@@ -20,7 +20,7 @@ namespace StbImageNext
 		{
 			if (PngImageDecoder.Test(stream))
 			{
-				return PngImageDecoder.Decode(stream, requiredComponents);
+				return PngImageDecoder.Load(stream, requiredComponents);
 			}
 
 			if (BmpImageDecoder.Test(stream))
