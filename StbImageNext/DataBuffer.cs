@@ -2,10 +2,14 @@
 
 namespace StbImageNext
 {
-	internal class DataBuffer<T> where T : unmanaged
+	internal struct DataBuffer<T> where T : unmanaged
 	{
+		public static readonly DataBuffer<T> Null = new DataBuffer<T>();
+
 		private T[] _data;
 		private long _offset;
+
+		public bool IsNull => _data == null;
 
 		public T[] Data => _data;
 

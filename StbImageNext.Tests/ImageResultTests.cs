@@ -1,0 +1,121 @@
+﻿using StbImageNext.Tests.Utility;
+using System;
+using System.IO;
+using System.Reflection;
+using Xunit;
+
+namespace StbImageNext.Tests;
+
+public class ImageResultTests
+{
+	private static readonly Assembly _assembly = typeof(ImageResultTests).Assembly;
+
+	[Theory]
+	[InlineData("The Public Domain_ Enclosing the Commons of the Mind.pdf")]
+	[InlineData("empty")]
+	public void LoadUnknownFormat(string filename)
+	{
+		Assert.Throws<NotSupportedException>(() =>
+		{
+			ImageResult result = null;
+			using (var stream = _assembly.OpenResourceStream(filename))
+			{
+				result = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
+			}
+		});
+	}
+
+	[Theory]
+	[InlineData("panel.bmp", 164, 314, ColorComponents.RedGreenBlueAlpha)]
+	[InlineData("AgedPavement_specular.png", 512, 512, ColorComponents.GreyAlpha)]
+	[InlineData("Normal.psd", 128, 128, ColorComponents.RedGreenBlueAlpha)]
+	[InlineData("MonoGameLogo_64px.bmp", 64, 64, ColorComponents.RedGreenBlue)]
+	[InlineData("IDockable.png", 715, 426, ColorComponents.RedGreenBlueAlpha)]
+	[InlineData("sample_1280×853.hdr", 1280, 853, ColorComponents.RedGreenBlue)]
+	[InlineData("DockPanes.jpg", 609, 406, ColorComponents.RedGreenBlue)]
+	[InlineData("head.tga", 1024, 1024, ColorComponents.RedGreenBlue)]
+	public void Load(string filename, int width, int height, ColorComponents colorComponents)
+	{
+		ImageResult result = null;
+		using (var stream = _assembly.OpenResourceStream(filename))
+		{
+			result = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
+		}
+
+		Assert.NotNull(result);
+		Assert.Equal(width, result.Width);
+		Assert.Equal(height, result.Height);
+		Assert.Equal(ColorComponents.RedGreenBlueAlpha, result.Comp);
+		Assert.Equal(colorComponents, result.SourceComp);
+		Assert.NotNull(result.Data);
+		Assert.Equal(result.Width * result.Height * 4, result.Data.Length);
+	}
+
+	[Theory]
+	[InlineData("sample_1280×853.hdr", 1280, 853, ColorComponents.RedGreenBlue)]
+	public void LoadHdr(string filename, int width, int height, ColorComponents colorComponents)
+	{
+		ImageResultFloat result = null;
+		using (var stream = _assembly.OpenResourceStream(filename))
+		{
+			result = ImageResultFloat.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
+		}
+
+		Assert.NotNull(result);
+		Assert.Equal(width, result.Width);
+		Assert.Equal(height, result.Height);
+		Assert.Equal(ColorComponents.RedGreenBlueAlpha, result.Comp);
+		Assert.Equal(colorComponents, result.SourceComp);
+		Assert.NotNull(result.Data);
+		Assert.Equal(result.Width * result.Height * 4, result.Data.Length);
+	}
+
+	[Theory]
+	[InlineData("panel.bmp", 164, 314, ColorComponents.RedGreenBlueAlpha)]
+	[InlineData("AgedPavement_specular.png", 512, 512, ColorComponents.GreyAlpha)]
+	[InlineData("Normal.psd", 128, 128, ColorComponents.RedGreenBlueAlpha)]
+	[InlineData("MonoGameLogo_64px.bmp", 64, 64, ColorComponents.RedGreenBlue)]
+	[InlineData("IDockable.png", 715, 426, ColorComponents.RedGreenBlueAlpha)]
+	[InlineData("sample_1280×853.hdr", 1280, 853, ColorComponents.RedGreenBlue)]
+	[InlineData("DockPanes.jpg", 609, 406, ColorComponents.RedGreenBlue)]
+	[InlineData("head.tga", 1024, 1024, ColorComponents.RedGreenBlue)]
+	public void Info(string filename, int width, int height, ColorComponents colorComponents)
+	{
+		ImageInfo info;
+
+		using (var stream = _assembly.OpenResourceStream(filename))
+		{
+			info = ImageInfo.FromStream(stream);
+		}
+
+		Assert.Equal(width, info.Width);
+		Assert.Equal(height, info.Height);
+		Assert.Equal(colorComponents, info.ColorComponents);
+	}
+
+	[Theory]
+	[InlineData("somersault.gif", 384, 480, ColorComponents.RedGreenBlueAlpha, 43)]
+	public void AnimatedGifFrames(string fileName, int width, int height, ColorComponents colorComponents, int originalFrameCount)
+	{
+		using (var stream = _assembly.OpenResourceStream(fileName))
+		{
+			var frameCount = 0;
+			foreach (var frame in ImageResult.AnimatedGifFramesFromStream(stream))
+			{
+				Assert.Equal(width, frame.Width);
+				Assert.Equal(height, frame.Height);
+				Assert.Equal(colorComponents, frame.Comp);
+				Assert.NotNull(frame.Data);
+				Assert.Equal(frame.Width * frame.Height * (int)frame.Comp, frame.Data.Length);
+
+				++frameCount;
+			}
+
+			Assert.Equal(frameCount, originalFrameCount);
+
+			stream.Seek(0, SeekOrigin.Begin);
+		}
+
+		Assert.Equal(0, StbImage.NativeAllocations);
+	}
+}

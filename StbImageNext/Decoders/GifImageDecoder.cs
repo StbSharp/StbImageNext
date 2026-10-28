@@ -53,7 +53,7 @@ namespace StbImageNext.Decoders
 		{
 			var g = new stbi__gif();
 			var u = stbi__gif_load_next(s, g, (int)req_comp);
-			if (u == null)
+			if (u.IsNull)
 			{
 				throw new Exception("Unknown GIF loading error");
 			}
@@ -264,7 +264,7 @@ namespace StbImageNext.Decoders
 			var pi = 0;
 			var pcount = 0;
 			first_frame = 0;
-			if (g._out_ == null)
+			if (g._out_.IsNull)
 			{
 				ParseHeader(s, g, false);
 				if (stbi__mad3sizes_valid(4, g.w, g.h, 0) == 0)
@@ -353,7 +353,7 @@ namespace StbImageNext.Decoders
 
 							if (!stbi__process_gif_raster(s, g))
 							{
-								return null;
+								return DataBuffer<byte>.Null;
 							}
 
 							pcount = g.w * g.h;
@@ -406,7 +406,7 @@ namespace StbImageNext.Decoders
 						}
 
 					case 0x3B:
-						return null;
+						return DataBuffer<byte>.Null;
 					default:
 						throw new Exception("unknown code");
 				}

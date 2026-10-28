@@ -90,7 +90,7 @@ namespace StbImageNext.Decoders
 			var valid = 0;
 			var width = 0;
 			var height = 0;
-			DataBuffer<byte> scanline;
+			DataBuffer<byte> scanline = DataBuffer<byte>.Null;
 			var len = 0;
 			byte count = 0;
 			byte value = 0;
@@ -176,7 +176,6 @@ namespace StbImageNext.Decoders
 			}
 			else
 			{
-				scanline = null;
 				for (j = 0; j < height; ++j)
 				{
 					c1 = s.stbi__get8();
@@ -223,7 +222,7 @@ namespace StbImageNext.Decoders
 						throw new Exception("invalid decoded scanline length");
 					}
 
-					if (scanline == null)
+					if (scanline.IsNull)
 					{
 						scanline = new DataBuffer<byte>(width * 4);
 					}

@@ -1475,7 +1475,7 @@ namespace StbImageNext.Decoders
 			if (stbi__decode_jpeg_image(z) == 0)
 			{
 				stbi__cleanup_jpeg(z);
-				return null;
+				return DataBuffer<byte>.Null;
 			}
 
 			n = req_comp != 0 ? req_comp : z.img_n >= 3 ? 3 : 1;
@@ -1487,7 +1487,7 @@ namespace StbImageNext.Decoders
 			if (decode_n <= 0)
 			{
 				stbi__cleanup_jpeg(z);
-				return null;
+				return DataBuffer<byte>.Null;
 			}
 
 			{

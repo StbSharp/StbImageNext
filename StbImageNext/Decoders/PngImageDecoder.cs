@@ -177,8 +177,6 @@ namespace StbImageNext.Decoders
 			if (raw_len < img_len)
 				throw new Exception("not enough pixels");
 			var filter_buf = new DataBuffer<byte>(img_width_bytes * 2);
-			if (filter_buf == null)
-				throw new Exception("outofmem");
 			if (depth < 8)
 			{
 				filter_bytes = 1;
@@ -469,8 +467,8 @@ namespace StbImageNext.Decoders
 			var is_iphone = 0;
 			var s = z.s;
 			z.expanded = null;
-			z.idata = null;
-			z._out_ = null;
+			z.idata = DataBuffer<byte>.Null;
+			z._out_ = DataBuffer<byte>.Null;
 			if (stbi__check_png_header(s, true) == 0)
 				return 0;
 			if (scan == STBI__SCAN_type)
@@ -562,7 +560,7 @@ namespace StbImageNext.Decoders
 						{
 							if (first != 0)
 								throw new Exception("first not IHDR");
-							if (z.idata != null)
+							if (!z.idata.IsNull)
 								throw new Exception("tRNS after IDAT");
 							if (pal_img_n != 0)
 							{
@@ -628,7 +626,7 @@ namespace StbImageNext.Decoders
 								while (ioff + c.length > idata_limit)
 									idata_limit *= 2;
 
-								if (z.idata == null)
+								if (z.idata.IsNull)
 								{
 									z.idata = new DataBuffer<byte>(idata_limit);
 								}
@@ -638,7 +636,7 @@ namespace StbImageNext.Decoders
 								}
 							}
 
-							if (z.idata == null)
+							if (z.idata.IsNull)
 							{
 								z.idata = new DataBuffer<byte>((int)(ioff + c.length));
 								idata_limit = (uint)z.idata.Length;
@@ -658,14 +656,14 @@ namespace StbImageNext.Decoders
 								throw new Exception("first not IHDR");
 							if (scan != STBI__SCAN_load)
 								return 1;
-							if (z.idata == null)
+							if (z.idata.IsNull)
 								throw new Exception("no IDAT");
 							bpl = (uint)((z.img_x * z.depth + 7) / 8);
 							raw_len = (uint)(bpl * z.img_y * z.img_n + z.img_y);
 							z.expanded = stbi_zlib_decode_malloc_guesssize_headerflag(z.idata, (int)ioff, (int)raw_len, is_iphone == 0 ? 1 : 0);
 							if (z.expanded == null)
 								return 0;
-							z.idata = null;
+							z.idata = DataBuffer<byte>.Null;
 							if ((req_comp == z.img_n + 1 && req_comp != 3 && pal_img_n == 0) || has_trans != 0)
 								z.img_out_n = z.img_n + 1;
 							else
@@ -734,7 +732,7 @@ namespace StbImageNext.Decoders
 
 		private static DataBuffer<byte> stbi__do_png(stbi__png p, int req_comp)
 		{
-			DataBuffer<byte> result = null;
+			DataBuffer<byte> result = DataBuffer<byte>.Null;
 			if (req_comp < 0 || req_comp > 4)
 				throw new Exception("bad req_comp");
 
@@ -746,7 +744,7 @@ namespace StbImageNext.Decoders
 				}
 
 				result = p._out_;
-				p._out_ = null;
+				p._out_ = DataBuffer<byte>.Null;
 				if (req_comp != 0 && req_comp != p.img_out_n)
 				{
 					result = Utility.stbi__convert_format(result, p.img_out_n, req_comp, p.img_x, p.img_y);
@@ -756,9 +754,9 @@ namespace StbImageNext.Decoders
 				}
 			}
 
-			p._out_ = null;
+			p._out_ = DataBuffer<byte>.Null;
 			p.expanded = null;
-			p.idata = null;
+			p.idata = DataBuffer<byte>.Null;
 			return result;
 		}
 
@@ -781,7 +779,7 @@ namespace StbImageNext.Decoders
 
 		private static byte[] stbi_zlib_decode_malloc_guesssize_headerflag(DataBuffer<byte> buffer, int len, int initial_size, int parse_header)
 		{
-			if (buffer == null || len <= 0)
+			if (buffer.IsNull || len <= 0)
 				return null;
 
 			int deflateOffset = 0;

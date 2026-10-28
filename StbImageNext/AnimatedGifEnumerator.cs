@@ -49,11 +49,11 @@ namespace StbImageNext
 		{
 		}
 
-		public unsafe bool MoveNext()
+		public bool MoveNext()
 		{
 			// Read next frame
 			var result = stbi__gif_load_next(_stream, _gif, (int)ColorComponents);
-			if (result == null) return false;
+			if (result.IsNull) return false;
 
 			if (Current == null)
 			{

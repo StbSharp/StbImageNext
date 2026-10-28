@@ -218,7 +218,7 @@ namespace StbImageNext.Decoders
 			}
 			else
 			{
-				DataBuffer<byte> tga_palette = null;
+				DataBuffer<byte> tga_palette = DataBuffer<byte>.Null;
 				if (tga_indexed != 0)
 				{
 					if (tga_palette_len == 0)
