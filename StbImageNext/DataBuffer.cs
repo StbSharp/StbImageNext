@@ -33,22 +33,16 @@ namespace StbImageNext
 
 		public int Length => _data.Length;
 
-		public DataBuffer(T[] data)
+		public DataBuffer(T[] data, long offset = 0)
 		{
 			_data = data;
-			_offset = 0;
+			_offset = offset;
 		}
 
 		public DataBuffer(long size)
 		{
 			_data = new T[size];
 			_offset = 0;
-		}
-
-		private DataBuffer(T[] data, long offset)
-		{
-			_data = data;
-			_offset = offset;
 		}
 
 		public DataBuffer<T> SubBuffer(long offset)

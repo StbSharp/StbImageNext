@@ -147,53 +147,6 @@ namespace StbImageNext
 			return a >= -32768 / b ? 1 : 0;
 		}
 
-		public static void stbi__vertical_flip(void* image, int w, int h, int bytes_per_pixel)
-		{
-			var row = 0;
-			var bytes_per_row = w * bytes_per_pixel;
-			var temp = stackalloc byte[2048];
-			var bytes = (byte*)image;
-			for (row = 0; row < h >> 1; row++)
-			{
-				var row0 = bytes + row * bytes_per_row;
-				var row1 = bytes + (h - row - 1) * bytes_per_row;
-				var bytes_left = (ulong)bytes_per_row;
-				while (bytes_left != 0)
-				{
-					var bytes_copy = bytes_left < 2048 * sizeof(byte) ? bytes_left : 2048 * sizeof(byte);
-					CRuntime.memcpy(temp, row0, bytes_copy);
-					CRuntime.memcpy(row0, row1, bytes_copy);
-					CRuntime.memcpy(row1, temp, bytes_copy);
-					row0 += bytes_copy;
-					row1 += bytes_copy;
-					bytes_left -= bytes_copy;
-				}
-			}
-		}
-
-		public static void stbi__vertical_flip_slices(void* image, int w, int h, int z, int bytes_per_pixel)
-		{
-			var slice = 0;
-			var slice_size = w * h * bytes_per_pixel;
-			var bytes = (byte*)image;
-			for (slice = 0; slice < z; ++slice)
-			{
-				stbi__vertical_flip(bytes, w, h, bytes_per_pixel);
-				bytes += slice_size;
-			}
-		}
-
-		public static void stbi__float_postprocess(float* result, int* x, int* y, int* comp, int req_comp)
-		{
-			if ((stbi__vertically_flip_on_load_set != 0
-				? stbi__vertically_flip_on_load_local
-				: stbi__vertically_flip_on_load_global) != 0 && result != null)
-			{
-				var channels = req_comp != 0 ? req_comp : *comp;
-				stbi__vertical_flip(result, *x, *y, channels * sizeof(float));
-			}
-		}
-
 		public static byte stbi__compute_y(int r, int g, int b)
 		{
 			return (byte)((r * 77 + g * 150 + 29 * b) >> 8);

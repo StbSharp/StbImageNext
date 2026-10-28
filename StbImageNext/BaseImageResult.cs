@@ -1,10 +1,6 @@
 ﻿namespace StbImageNext
 {
-	/// <summary>
-	/// Represents a base image result with common image information and data.
-	/// </summary>
-	/// <typeparam name="T">The type of the image data.</typeparam>
-	public class BaseImageResult<T>
+	public class BaseImageResult<T> where T: unmanaged
 	{
 		/// <summary>
 		/// Gets or sets the width of the image.
@@ -30,5 +26,21 @@
 		/// Gets or sets the image data.
 		/// </summary>
 		public T[] Data { get; set; }
+
+		public void VerticalFlip()
+		{
+			var row = 0;
+			var values_per_row = Width * (int)Comp;
+			var temp = new DataBuffer<T>(values_per_row);
+			for (row = 0; row < Height >> 1; row++)
+			{
+				var row0 = new DataBuffer<T>(Data, row * values_per_row);
+				var row1 = new DataBuffer<T>(Data, (Height - row - 1) * values_per_row);
+
+				temp.Copy(row0, values_per_row);
+				row0.Copy(row1, values_per_row);
+				row1.Copy(temp, values_per_row);
+			}
+		}
 	}
 }
