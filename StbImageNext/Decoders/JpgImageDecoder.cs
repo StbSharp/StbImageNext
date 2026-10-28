@@ -1072,9 +1072,8 @@ namespace StbImageNext.Decoders
 			var i = 0;
 			for (i = 0; i < ncomp; ++i)
 			{
-				if (!z.img_comp[i].raw_data.IsNull)
+				if (!z.img_comp[i].data.IsNull)
 				{
-					z.img_comp[i].raw_data = DataBuffer<byte>.Null;
 					z.img_comp[i].data = DataBuffer<byte>.Null;
 				}
 
@@ -1183,8 +1182,7 @@ namespace StbImageNext.Decoders
 				z.img_comp[i].coeff = null;
 				z.img_comp[i].raw_coeff = null;
 				z.img_comp[i].linebuf = DataBuffer<byte>.Null;
-				z.img_comp[i].raw_data = new DataBuffer<byte>(z.img_comp[i].w2 * z.img_comp[i].h2 + 15);
-				z.img_comp[i].data = z.img_comp[i].raw_data;
+				z.img_comp[i].data = new DataBuffer<byte>(z.img_comp[i].w2 * z.img_comp[i].h2 + 15);
 				if (z.progressive != 0)
 				{
 					z.img_comp[i].coeff_w = z.img_comp[i].w2 / 8;
@@ -1277,7 +1275,7 @@ namespace StbImageNext.Decoders
 			var m = 0;
 			for (m = 0; m < 4; m++)
 			{
-				j.img_comp[m].raw_data = DataBuffer<byte>.Null;
+				j.img_comp[m].data = DataBuffer<byte>.Null;
 				j.img_comp[m].raw_coeff = null;
 			}
 
@@ -1724,7 +1722,6 @@ namespace StbImageNext.Decoders
 				public int w2;
 				public int h2;
 				public DataBuffer<byte> data;
-				public DataBuffer<byte> raw_data;
 				public void* raw_coeff;
 				public DataBuffer<byte> linebuf;
 				public short* coeff;
