@@ -2,49 +2,6 @@ namespace StbImageNext
 {
 	partial class StbImage
 	{
-		public static int stbi__vertically_flip_on_load_global;
-		public static int stbi__vertically_flip_on_load_local;
-		public static int stbi__vertically_flip_on_load_set;
-		public static int stbi__unpremultiply_on_load_global;
-		public static int stbi__de_iphone_flag_global;
-		public static int stbi__unpremultiply_on_load_local;
-		public static int stbi__unpremultiply_on_load_set;
-		public static int stbi__de_iphone_flag_local;
-		public static int stbi__de_iphone_flag_set;
-
-		public static void stbi_set_unpremultiply_on_load(int flag_true_if_should_unpremultiply)
-		{
-			stbi__unpremultiply_on_load_global = flag_true_if_should_unpremultiply;
-		}
-
-		public static void stbi_convert_iphone_png_to_rgb(int flag_true_if_should_convert)
-		{
-			stbi__de_iphone_flag_global = flag_true_if_should_convert;
-		}
-
-		public static void stbi_set_flip_vertically_on_load(int flag_true_if_should_flip)
-		{
-			stbi__vertically_flip_on_load_global = flag_true_if_should_flip;
-		}
-
-		public static void stbi_set_unpremultiply_on_load_thread(int flag_true_if_should_unpremultiply)
-		{
-			stbi__unpremultiply_on_load_local = flag_true_if_should_unpremultiply;
-			stbi__unpremultiply_on_load_set = 1;
-		}
-
-		public static void stbi_convert_iphone_png_to_rgb_thread(int flag_true_if_should_convert)
-		{
-			stbi__de_iphone_flag_local = flag_true_if_should_convert;
-			stbi__de_iphone_flag_set = 1;
-		}
-
-		public static void stbi_set_flip_vertically_on_load_thread(int flag_true_if_should_flip)
-		{
-			stbi__vertically_flip_on_load_local = flag_true_if_should_flip;
-			stbi__vertically_flip_on_load_set = 1;
-		}
-
 		public static int stbi__addints_valid(int a, int b)
 		{
 			if (a >= 0 != b >= 0)

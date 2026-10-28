@@ -73,16 +73,14 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		/// <summary>
-		/// Decodes the PNG image from the specified stream.
-		/// </summary>
-		/// <param name="s">Stream containing the image data.</param>
-		/// <param name="req_comp">Required pixel components of the image.</param>
-		/// <returns>The decoded image result.</returns>
-		public static ImageResult Decode(Stream s, ColorComponents? req_comp = null)
+		public static ImageResult Decode(Stream s, ColorComponents? req_comp = null, bool de_iphone = false, bool iphone_unpremultiply = false)
 		{
-			var p = new stbi__png();
-			p.s = s;
+			var p = new stbi__png
+			{
+				s = s,
+				de_iphone = de_iphone,
+				iphone_unpremultiply = iphone_unpremultiply
+			};
 
 			var data = stbi__do_png(p, req_comp.ToInternalValue());
 			var result = new ImageResult
@@ -414,9 +412,8 @@ namespace StbImageNext.Decoders
 			}
 			else
 			{
-				if ((stbi__unpremultiply_on_load_set != 0
-						? stbi__unpremultiply_on_load_local
-						: stbi__unpremultiply_on_load_global) != 0)
+				if (z.iphone_unpremultiply)
+				{
 					for (i = 0; i < pixel_count; ++i)
 					{
 						var a = p[3];
@@ -436,7 +433,9 @@ namespace StbImageNext.Decoders
 
 						p += 4;
 					}
+				}
 				else
+				{
 					for (i = 0; i < pixel_count; ++i)
 					{
 						var t = p[0];
@@ -444,6 +443,7 @@ namespace StbImageNext.Decoders
 						p[2] = t;
 						p += 4;
 					}
+				}
 			}
 		}
 
@@ -685,11 +685,10 @@ namespace StbImageNext.Decoders
 								}
 							}
 
-							if (is_iphone != 0 &&
-								(stbi__de_iphone_flag_set != 0
-									? stbi__de_iphone_flag_local
-									: stbi__de_iphone_flag_global) != 0 && z.img_out_n > 2)
+							if (is_iphone != 0 && z.de_iphone && z.img_out_n > 2)
+							{
 								stbi__de_iphone(z);
+							}
 							if (pal_img_n != 0)
 							{
 								z.img_n = pal_img_n;
@@ -839,6 +838,8 @@ namespace StbImageNext.Decoders
 			public uint img_y;
 			public int img_n;
 			public int img_out_n;
+			public bool de_iphone;
+			public bool iphone_unpremultiply;
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
