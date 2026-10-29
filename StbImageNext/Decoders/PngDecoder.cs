@@ -8,7 +8,7 @@ namespace StbImageNext.Decoders
 	/// <summary>
 	/// Provides methods to test, get information about and decode PNG images.
 	/// </summary>
-	public static class PngImageDecoder
+	public static class PngDecoder
 	{
 		private const int STBI__F_none = 0;
 		private const int STBI__F_sub = 1;

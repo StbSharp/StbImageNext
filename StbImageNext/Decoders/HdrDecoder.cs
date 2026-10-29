@@ -7,7 +7,7 @@ namespace StbImageNext.Decoders
 	/// <summary>
 	/// Provides methods to test, get information about and load HDR images.
 	/// </summary>
-	public static class HdrImageDecoder
+	public static class HdrDecoder
 	{
 		/// <summary>
 		/// Tests whether the specified stream contains a HDR image.

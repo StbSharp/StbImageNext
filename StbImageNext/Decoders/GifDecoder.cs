@@ -7,7 +7,7 @@ namespace StbImageNext.Decoders
 	/// <summary>
 	/// Provides methods to test, get information about and load GIF images.
 	/// </summary>
-	public static class GifImageDecoder
+	public static class GifDecoder
 	{
 		/// <summary>
 		/// Tests whether the specified stream contains a GIF image.

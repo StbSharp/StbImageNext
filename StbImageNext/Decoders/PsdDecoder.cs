@@ -6,7 +6,7 @@ namespace StbImageNext.Decoders
 	/// <summary>
 	/// Provides methods to test, get information about and decode PSD images.
 	/// </summary>
-	public static class PsdImageDecoder
+	public static class PsdDecoder
 	{
 		/// <summary>
 		/// Tests whether the specified stream contains a PSD image.

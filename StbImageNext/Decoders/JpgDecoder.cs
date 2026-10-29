@@ -7,7 +7,7 @@ namespace StbImageNext.Decoders
 	/// <summary>
 	/// Provides methods to test, get information about and decode JPG images.
 	/// </summary>
-	public static class JpgImageDecoder
+	public static class JpgDecoder
 	{
 		private static readonly byte[] stbi__process_marker_tag = { 65, 100, 111, 98, 101, 0 };
 		private static readonly byte[] stbi__process_frame_header_rgb = { 82, 71, 66 };

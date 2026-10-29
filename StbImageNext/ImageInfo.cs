@@ -30,39 +30,39 @@ namespace StbImageNext
 		/// <returns>The image information.</returns>
 		public static ImageInfo FromStream(Stream stream)
 		{
-			if (PngImageDecoder.Test(stream))
+			if (PngDecoder.Test(stream))
 			{
-				return PngImageDecoder.Info(stream);
+				return PngDecoder.Info(stream);
 			}
 
-			if (BmpImageDecoder.Test(stream))
+			if (BmpDecoder.Test(stream))
 			{
-				return BmpImageDecoder.Info(stream);
+				return BmpDecoder.Info(stream);
 			}
 
-			if (GifImageDecoder.Test(stream))
+			if (GifDecoder.Test(stream))
 			{
-				return GifImageDecoder.Info(stream);
+				return GifDecoder.Info(stream);
 			}
 
-			if (JpgImageDecoder.Test(stream))
+			if (JpgDecoder.Test(stream))
 			{
-				return JpgImageDecoder.Info(stream);
+				return JpgDecoder.Info(stream);
 			}
 
-			if (TgaImageDecoder.Test(stream))
+			if (TgaDecoder.Test(stream))
 			{
-				return TgaImageDecoder.Info(stream);
+				return TgaDecoder.Info(stream);
 			}
 
-			if (PsdImageDecoder.Test(stream))
+			if (PsdDecoder.Test(stream))
 			{
-				return PsdImageDecoder.Info(stream);
+				return PsdDecoder.Info(stream);
 			}
 
-			if (HdrImageDecoder.Test(stream))
+			if (HdrDecoder.Test(stream))
 			{
-				return HdrImageDecoder.Info(stream);
+				return HdrDecoder.Info(stream);
 			}
 
 			throw new NotSupportedException("Image format is not supported");

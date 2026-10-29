@@ -18,39 +18,39 @@ namespace StbImageNext
 		/// <returns>The decoded image result.</returns>
 		public static ImageResult FromStream(Stream stream, ColorComponents? requiredComponents = null)
 		{
-			if (PngImageDecoder.Test(stream))
+			if (PngDecoder.Test(stream))
 			{
-				return PngImageDecoder.Load(stream, requiredComponents);
+				return PngDecoder.Load(stream, requiredComponents);
 			}
 
-			if (BmpImageDecoder.Test(stream))
+			if (BmpDecoder.Test(stream))
 			{
-				return BmpImageDecoder.Load(stream, requiredComponents);
+				return BmpDecoder.Load(stream, requiredComponents);
 			}
 
-			if (GifImageDecoder.Test(stream))
+			if (GifDecoder.Test(stream))
 			{
-				return GifImageDecoder.Load(stream, requiredComponents);
+				return GifDecoder.Load(stream, requiredComponents);
 			}
 
-			if (JpgImageDecoder.Test(stream))
+			if (JpgDecoder.Test(stream))
 			{
-				return JpgImageDecoder.Load(stream, requiredComponents);
+				return JpgDecoder.Load(stream, requiredComponents);
 			}
 
-			if (TgaImageDecoder.Test(stream))
+			if (TgaDecoder.Test(stream))
 			{
-				return TgaImageDecoder.Load(stream, requiredComponents);
+				return TgaDecoder.Load(stream, requiredComponents);
 			}
 
-			if (PsdImageDecoder.Test(stream))
+			if (PsdDecoder.Test(stream))
 			{
-				return PsdImageDecoder.Load(stream, requiredComponents);
+				return PsdDecoder.Load(stream, requiredComponents);
 			}
 
-			if (HdrImageDecoder.Test(stream))
+			if (HdrDecoder.Test(stream))
 			{
-				var floatResult = HdrImageDecoder.Load(stream, requiredComponents);
+				var floatResult = HdrDecoder.Load(stream, requiredComponents);
 				return floatResult.ToLdr();
 			}
 

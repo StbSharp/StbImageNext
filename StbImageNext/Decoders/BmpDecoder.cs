@@ -7,7 +7,7 @@ namespace StbImageNext.Decoders
 	/// <summary>
 	/// Provides methods to test, get information about and decode BMP images.
 	/// </summary>
-	public static class BmpImageDecoder
+	public static class BmpDecoder
 	{
 		/// <summary>
 		/// Tests whether the specified stream contains a BMP image.

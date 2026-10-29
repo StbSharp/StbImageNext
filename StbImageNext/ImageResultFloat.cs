@@ -17,9 +17,9 @@ namespace StbImageNext
 		/// <returns>The decoded HDR image result.</returns>
 		public static ImageResultFloat FromStream(Stream stream, ColorComponents? requiredComponents = null)
 		{
-			if (HdrImageDecoder.Test(stream))
+			if (HdrDecoder.Test(stream))
 			{
-				return HdrImageDecoder.Load(stream, requiredComponents);
+				return HdrDecoder.Load(stream, requiredComponents);
 			}
 
 			throw new NotSupportedException("Image format is not supported");

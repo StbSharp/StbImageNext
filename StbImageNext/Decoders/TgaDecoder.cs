@@ -6,7 +6,7 @@ namespace StbImageNext.Decoders
 	/// <summary>
 	/// Provides methods to test, get information about and load TGA images.
 	/// </summary>
-	public static class TgaImageDecoder
+	public static class TgaDecoder
 	{
 		/// <summary>
 		/// Tests whether the specified stream contains a TGA image.
