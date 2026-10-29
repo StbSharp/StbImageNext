@@ -3,7 +3,7 @@
 [![Build & Publish Beta](https://github.com/StbSharp/StbImageNext/actions/workflows/build-and-publish-beta.yml/badge.svg)](https://github.com/StbSharp/StbImageNext/actions/workflows/build-and-publish-beta.yml)
 [![Chat](https://img.shields.io/discord/628186029488340992.svg)](https://discord.gg/ZeHxhCY)
 
-StbImageNext is safe fork of [StbImageSharp](https://github.com/StbSharp/StbImageSharp)
+StbImageNext is the safe fork of [StbImageSharp](https://github.com/StbSharp/StbImageSharp)
 
 In other words, it's a cross-platform .NET library for decoding images.
 
