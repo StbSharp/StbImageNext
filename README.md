@@ -1,4 +1,7 @@
 # StbImageNext
+[![Nuget](https://img.shields.io/nuget/dt/StbImageNext)](https://www.nuget.org/packages/StbImageNext/)
+[![Build & Publish Beta](https://github.com/StbSharp/StbImageNext/actions/workflows/build-and-publish-beta.yml/badge.svg)](https://github.com/StbSharp/StbImageNext/actions/workflows/build-and-publish-beta.yml)
+[![Chat](https://img.shields.io/discord/628186029488340992.svg)](https://discord.gg/ZeHxhCY)
 
 StbImageNext is safe fork of [StbImageSharp](https://github.com/StbSharp/StbImageSharp)
 
