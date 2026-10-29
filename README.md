@@ -2,7 +2,7 @@
 
 StbImageNext is safe fork of [StbImageSharp](https://github.com/StbSharp/StbImageSharp)
 
-In other words, it's a cross-platform .NET library for decoding and manipulating images.
+In other words, it's a cross-platform .NET library for decoding images.
 
 ## Supported Image Formats
 
