@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net471;net8.0</TargetFrameworks>
-    <Description>C# Image Library based on StbImageNext, StbImageWriteSharp, StbImageResizeSharp and StbDxtSharp</Description>
+    <Description>Safe fork of StbImageSharp</Description>
     <RootNamespace>StbImageNext</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
