@@ -186,7 +186,7 @@ Public Domain or MIT
 2. Open StbImageNext.sln.
 
 ## Sponsor
-If this project is useful for you, you can support development:
+If this project is useful for you, you can support the development:
 - Boosty: https://boosty.to/rds1983
 - Telegram Wallet: https://t.me/rds1983
 
