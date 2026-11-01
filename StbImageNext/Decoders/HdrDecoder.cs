@@ -102,12 +102,12 @@ namespace StbImageNext.Decoders
 		/// <returns>The decoded HDR image result.</returns>
 		public static ImageResultFloat Load(Stream s, ColorComponents? req_comp2 = null)
 		{
-			var rgbe = new DataBuffer<byte>(4);
+			var rgbe = new FakePtr<byte>(4);
 			string token;
 			var valid = 0;
 			var width = 0;
 			var height = 0;
-			DataBuffer<byte> scanline = DataBuffer<byte>.Null;
+			FakePtr<byte> scanline = FakePtr<byte>.Null;
 			var len = 0;
 			byte count = 0;
 			byte value = 0;
@@ -177,7 +177,7 @@ namespace StbImageNext.Decoders
 			if (req_comp == 0)
 				req_comp = 3;
 
-			var hdr_data = new DataBuffer<float>(width * height * req_comp);
+			var hdr_data = new FakePtr<float>(width * height * req_comp);
 			if (width < 8 || width >= 32768)
 			{
 				for (; j < height; ++j)
@@ -239,7 +239,7 @@ namespace StbImageNext.Decoders
 
 					if (scanline.IsNull)
 					{
-						scanline = new DataBuffer<byte>(width * 4);
+						scanline = new FakePtr<byte>(width * 4);
 					}
 
 					for (k = 0; k < 4; ++k)
@@ -315,7 +315,7 @@ namespace StbImageNext.Decoders
 			return string.IsNullOrEmpty(result) ? null : result;
 		}
 
-		private static void stbi__hdr_convert(DataBuffer<float> output, DataBuffer<byte> input, int req_comp)
+		private static void stbi__hdr_convert(FakePtr<float> output, FakePtr<byte> input, int req_comp)
 		{
 			if (input[3] != 0)
 			{

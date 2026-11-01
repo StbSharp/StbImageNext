@@ -275,7 +275,7 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		internal static DataBuffer<byte> stbi__gif_load_next(Stream s, stbi__gif g, int req_comp)
+		internal static FakePtr<byte> stbi__gif_load_next(Stream s, stbi__gif g, int req_comp)
 		{
 			var dispose = 0;
 			var first_frame = 0;
@@ -287,9 +287,9 @@ namespace StbImageNext.Decoders
 				ParseHeader(s, g, false);
 
 				pcount = g.w * g.h;
-				g._out_ = new DataBuffer<byte>(4 * pcount);
-				g.background = new DataBuffer<byte>(4 * pcount);
-				g.history = new DataBuffer<byte>(pcount);
+				g._out_ = new FakePtr<byte>(4 * pcount);
+				g.background = new FakePtr<byte>(4 * pcount);
+				g.history = new FakePtr<byte>(pcount);
 				g._out_.Set(0);
 				g.background.Set(0);
 				g.history.Set(0);
@@ -370,7 +370,7 @@ namespace StbImageNext.Decoders
 
 							if (!stbi__process_gif_raster(s, g))
 							{
-								return DataBuffer<byte>.Null;
+								return FakePtr<byte>.Null;
 							}
 
 							pcount = g.w * g.h;
@@ -423,7 +423,7 @@ namespace StbImageNext.Decoders
 						}
 
 					case 0x3B:
-						return DataBuffer<byte>.Null;
+						return FakePtr<byte>.Null;
 					default:
 						throw new Exception("unknown code");
 				}
@@ -433,8 +433,8 @@ namespace StbImageNext.Decoders
 
 		internal class stbi__gif
 		{
-			public DataBuffer<byte> _out_;
-			public DataBuffer<byte> background;
+			public FakePtr<byte> _out_;
+			public FakePtr<byte> background;
 			public int bgindex;
 			public stbi__gif_lzw[] codes = new stbi__gif_lzw[8192];
 			public byte[][] color_table;
@@ -444,7 +444,7 @@ namespace StbImageNext.Decoders
 			public int eflags;
 			public int flags;
 			public int h;
-			public DataBuffer<byte> history;
+			public FakePtr<byte> history;
 			public int lflags;
 			public int line_size;
 			public byte[][] lpal = Utility.CreateArray<byte>(256, 4);

@@ -12,11 +12,11 @@ namespace StbImageNext.Decoders
 		private static readonly byte[] stbi__process_marker_tag = { 65, 100, 111, 98, 101, 0 };
 		private static readonly byte[] stbi__process_frame_header_rgb = { 82, 71, 66 };
 
-		private delegate void delegate0(DataBuffer<byte> arg0, int arg1, DataBuffer<short> arg2);
+		private delegate void delegate0(FakePtr<byte> arg0, int arg1, FakePtr<short> arg2);
 
-		private delegate void delegate1(DataBuffer<byte> arg0, DataBuffer<byte> arg1, DataBuffer<byte> arg2, DataBuffer<byte> arg3, int arg4, int arg5);
+		private delegate void delegate1(FakePtr<byte> arg0, FakePtr<byte> arg1, FakePtr<byte> arg2, FakePtr<byte> arg3, int arg4, int arg5);
 
-		private delegate DataBuffer<byte> delegate2(DataBuffer<byte> arg0, DataBuffer<byte> arg1, DataBuffer<byte> arg2, int arg3, int arg4);
+		private delegate FakePtr<byte> delegate2(FakePtr<byte> arg0, FakePtr<byte> arg1, FakePtr<byte> arg2, int arg3, int arg4);
 
 		private static uint[] stbi__bmask =
 			{ 0, 1, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047, 4095, 8191, 16383, 32767, 65535 };
@@ -295,7 +295,7 @@ namespace StbImageNext.Decoders
 			return (int)(k & 0x80000000);
 		}
 
-		private static int stbi__jpeg_decode_block(stbi__jpeg j, DataBuffer<short> data, stbi__huffman hdc, stbi__huffman hac,
+		private static int stbi__jpeg_decode_block(stbi__jpeg j, FakePtr<short> data, stbi__huffman hdc, stbi__huffman hac,
 			short[] fac, int b, ushort[] dequant)
 		{
 			var diff = 0;
@@ -363,7 +363,7 @@ namespace StbImageNext.Decoders
 			return 1;
 		}
 
-		private static int stbi__jpeg_decode_block_prog_dc(stbi__jpeg j, DataBuffer<short> data, stbi__huffman hdc, int b)
+		private static int stbi__jpeg_decode_block_prog_dc(stbi__jpeg j, FakePtr<short> data, stbi__huffman hdc, int b)
 		{
 			var diff = 0;
 			var dc = 0;
@@ -396,7 +396,7 @@ namespace StbImageNext.Decoders
 			return 1;
 		}
 
-		private static int stbi__jpeg_decode_block_prog_ac(stbi__jpeg j, DataBuffer<short> data, stbi__huffman hac, short[] fac)
+		private static int stbi__jpeg_decode_block_prog_ac(stbi__jpeg j, FakePtr<short> data, stbi__huffman hac, short[] fac)
 		{
 			var k = 0;
 			if (j.spec_start == 0)
@@ -551,12 +551,12 @@ namespace StbImageNext.Decoders
 			return 1;
 		}
 
-		private static void stbi__idct_block(DataBuffer<byte> _out_, int out_stride, DataBuffer<short> data)
+		private static void stbi__idct_block(FakePtr<byte> _out_, int out_stride, FakePtr<short> data)
 		{
 			var i = 0;
 			var val = new int[64];
-			var v = new DataBuffer<int>(val);
-			DataBuffer<byte> o;
+			var v = new FakePtr<int>(val);
+			FakePtr<byte> o;
 			var d = data;
 			for (i = 0; i < 8; ++i, ++d.Offset, ++v.Offset)
 				if (d[8] == 0 && d[16] == 0 && d[24] == 0 && d[32] == 0 && d[40] == 0 && d[48] == 0 && d[56] == 0)
@@ -627,7 +627,7 @@ namespace StbImageNext.Decoders
 					v[32] = (x3 - t0) >> 10;
 				}
 
-			for (i = 0, v = new DataBuffer<int>(val), o = _out_; i < 8; ++i, v += 8, o += out_stride)
+			for (i = 0, v = new FakePtr<int>(val), o = _out_; i < 8; ++i, v += 8, o += out_stride)
 			{
 				var t0 = 0;
 				var t1 = 0;
@@ -726,7 +726,7 @@ namespace StbImageNext.Decoders
 			stbi__jpeg_reset(z);
 			if (z.progressive == 0)
 			{
-				var data = new DataBuffer<short>(64);
+				var data = new FakePtr<short>(64);
 				if (z.scan_n == 1)
 				{
 					var i = 0;
@@ -873,7 +873,7 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		private static void stbi__jpeg_dequantize(DataBuffer<short> data, ushort[] dequant)
+		private static void stbi__jpeg_dequantize(FakePtr<short> data, ushort[] dequant)
 		{
 			var i = 0;
 			for (i = 0; i < 64; ++i)
@@ -1121,8 +1121,8 @@ namespace StbImageNext.Decoders
 			z.img_n = c;
 			for (i = 0; i < c; ++i)
 			{
-				z.img_comp[i].data = DataBuffer<byte>.Null;
-				z.img_comp[i].linebuf = DataBuffer<byte>.Null;
+				z.img_comp[i].data = FakePtr<byte>.Null;
+				z.img_comp[i].linebuf = FakePtr<byte>.Null;
 			}
 
 			if (Lf != 8 + 3 * z.img_n)
@@ -1176,14 +1176,14 @@ namespace StbImageNext.Decoders
 				z.img_comp[i].y = (int)((z.img_y * z.img_comp[i].v + v_max - 1) / v_max);
 				z.img_comp[i].w2 = z.img_mcu_x * z.img_comp[i].h * 8;
 				z.img_comp[i].h2 = z.img_mcu_y * z.img_comp[i].v * 8;
-				z.img_comp[i].coeff = DataBuffer<short>.Null;
-				z.img_comp[i].linebuf = DataBuffer<byte>.Null;
-				z.img_comp[i].data = new DataBuffer<byte>(z.img_comp[i].w2 * z.img_comp[i].h2);
+				z.img_comp[i].coeff = FakePtr<short>.Null;
+				z.img_comp[i].linebuf = FakePtr<byte>.Null;
+				z.img_comp[i].data = new FakePtr<byte>(z.img_comp[i].w2 * z.img_comp[i].h2);
 				if (z.progressive != 0)
 				{
 					z.img_comp[i].coeff_w = z.img_comp[i].w2 / 8;
 					z.img_comp[i].coeff_h = z.img_comp[i].h2 / 8;
-					z.img_comp[i].coeff = new DataBuffer<short>(z.img_comp[i].w2 * z.img_comp[i].h2);
+					z.img_comp[i].coeff = new FakePtr<short>(z.img_comp[i].w2 * z.img_comp[i].h2);
 				}
 			}
 
@@ -1264,8 +1264,8 @@ namespace StbImageNext.Decoders
 			var m = 0;
 			for (m = 0; m < 4; m++)
 			{
-				j.img_comp[m].data = DataBuffer<byte>.Null;
-				j.img_comp[m].coeff = DataBuffer<short>.Null;
+				j.img_comp[m].data = FakePtr<byte>.Null;
+				j.img_comp[m].coeff = FakePtr<short>.Null;
 			}
 
 			j.restart_interval = 0;
@@ -1308,12 +1308,12 @@ namespace StbImageNext.Decoders
 			return 1;
 		}
 
-		private static DataBuffer<byte> resample_row_1(DataBuffer<byte> _out_, DataBuffer<byte> in_near, DataBuffer<byte> in_far, int w, int hs)
+		private static FakePtr<byte> resample_row_1(FakePtr<byte> _out_, FakePtr<byte> in_near, FakePtr<byte> in_far, int w, int hs)
 		{
 			return in_near;
 		}
 
-		private static DataBuffer<byte> stbi__resample_row_v_2(DataBuffer<byte> _out_, DataBuffer<byte> in_near, DataBuffer<byte> in_far, int w, int hs)
+		private static FakePtr<byte> stbi__resample_row_v_2(FakePtr<byte> _out_, FakePtr<byte> in_near, FakePtr<byte> in_far, int w, int hs)
 		{
 			var i = 0;
 			for (i = 0; i < w; ++i)
@@ -1322,7 +1322,7 @@ namespace StbImageNext.Decoders
 			return _out_;
 		}
 
-		private static DataBuffer<byte> stbi__resample_row_h_2(DataBuffer<byte> _out_, DataBuffer<byte> in_near, DataBuffer<byte> in_far, int w, int hs)
+		private static FakePtr<byte> stbi__resample_row_h_2(FakePtr<byte> _out_, FakePtr<byte> in_near, FakePtr<byte> in_far, int w, int hs)
 		{
 			var i = 0;
 			var input = in_near;
@@ -1346,7 +1346,7 @@ namespace StbImageNext.Decoders
 			return _out_;
 		}
 
-		private static DataBuffer<byte> stbi__resample_row_hv_2(DataBuffer<byte> _out_, DataBuffer<byte> in_near, DataBuffer<byte> in_far, int w, int hs)
+		private static FakePtr<byte> stbi__resample_row_hv_2(FakePtr<byte> _out_, FakePtr<byte> in_near, FakePtr<byte> in_far, int w, int hs)
 		{
 			var i = 0;
 			var t0 = 0;
@@ -1371,7 +1371,7 @@ namespace StbImageNext.Decoders
 			return _out_;
 		}
 
-		private static DataBuffer<byte> stbi__resample_row_generic(DataBuffer<byte> _out_, DataBuffer<byte> in_near, DataBuffer<byte> in_far, int w, int hs)
+		private static FakePtr<byte> stbi__resample_row_generic(FakePtr<byte> _out_, FakePtr<byte> in_near, FakePtr<byte> in_far, int w, int hs)
 		{
 			var i = 0;
 			var j = 0;
@@ -1382,7 +1382,7 @@ namespace StbImageNext.Decoders
 			return _out_;
 		}
 
-		private static void stbi__YCbCr_to_RGB_row(DataBuffer<byte> _out_, DataBuffer<byte> y, DataBuffer<byte> pcb, DataBuffer<byte> pcr, int count, int step)
+		private static void stbi__YCbCr_to_RGB_row(FakePtr<byte> _out_, FakePtr<byte> y, FakePtr<byte> pcb, FakePtr<byte> pcr, int count, int step)
 		{
 			var i = 0;
 			for (i = 0; i < count; ++i)
@@ -1439,7 +1439,7 @@ namespace StbImageNext.Decoders
 			j.resample_row_hv_2_kernel = stbi__resample_row_hv_2;
 		}
 
-		private static DataBuffer<byte> load_jpeg_image(stbi__jpeg z, out int out_x, out int out_y, out int comp, int req_comp)
+		private static FakePtr<byte> load_jpeg_image(stbi__jpeg z, out int out_x, out int out_y, out int comp, int req_comp)
 		{
 			out_x = out_y = comp = 0;
 			var n = 0;
@@ -1450,7 +1450,7 @@ namespace StbImageNext.Decoders
 				throw new Exception("bad req_comp");
 			if (stbi__decode_jpeg_image(z) == 0)
 			{
-				return DataBuffer<byte>.Null;
+				return FakePtr<byte>.Null;
 			}
 
 			n = req_comp != 0 ? req_comp : z.img_n >= 3 ? 3 : 1;
@@ -1461,20 +1461,20 @@ namespace StbImageNext.Decoders
 				decode_n = z.img_n;
 			if (decode_n <= 0)
 			{
-				return DataBuffer<byte>.Null;
+				return FakePtr<byte>.Null;
 			}
 
 			{
 				var k = 0;
 				uint i = 0;
 				uint j = 0;
-				DataBuffer<byte> output;
-				var coutput = new DataBuffer<byte>[4]
+				FakePtr<byte> output;
+				var coutput = new FakePtr<byte>[4]
 				{
-					DataBuffer<byte>.Null,
-					DataBuffer<byte>.Null,
-					DataBuffer<byte>.Null,
-					DataBuffer<byte>.Null
+					FakePtr<byte>.Null,
+					FakePtr<byte>.Null,
+					FakePtr<byte>.Null,
+					FakePtr<byte>.Null
 				};
 				var res_comp = new stbi__resample[4];
 				res_comp[0] = new stbi__resample();
@@ -1484,7 +1484,7 @@ namespace StbImageNext.Decoders
 				for (k = 0; k < decode_n; ++k)
 				{
 					var r = res_comp[k];
-					z.img_comp[k].linebuf = new DataBuffer<byte>(z.img_x + 3);
+					z.img_comp[k].linebuf = new FakePtr<byte>(z.img_x + 3);
 
 					r.hs = z.img_h_max / z.img_comp[k].h;
 					r.vs = z.img_v_max / z.img_comp[k].v;
@@ -1504,7 +1504,7 @@ namespace StbImageNext.Decoders
 						r.resample = stbi__resample_row_generic;
 				}
 
-				output = new DataBuffer<byte>(n * z.img_x * z.img_y);
+				output = new FakePtr<byte>(n * z.img_x * z.img_y);
 				for (j = 0; j < z.img_y; ++j)
 				{
 					var _out_ = output + n * z.img_x * j;
@@ -1702,9 +1702,9 @@ namespace StbImageNext.Decoders
 				public int y;
 				public int w2;
 				public int h2;
-				public DataBuffer<byte> data;
-				public DataBuffer<byte> linebuf;
-				public DataBuffer<short> coeff;
+				public FakePtr<byte> data;
+				public FakePtr<byte> linebuf;
+				public FakePtr<short> coeff;
 				public int coeff_w;
 				public int coeff_h;
 			}
@@ -1726,8 +1726,8 @@ namespace StbImageNext.Decoders
 		private class stbi__resample
 		{
 			public int hs;
-			public DataBuffer<byte> line0;
-			public DataBuffer<byte> line1;
+			public FakePtr<byte> line0;
+			public FakePtr<byte> line1;
 			public delegate2 resample;
 			public int vs;
 			public int w_lores;

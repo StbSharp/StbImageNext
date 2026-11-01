@@ -185,7 +185,7 @@ namespace StbImageNext.Decoders
 			int tga_inverted = s.stbi__get8();
 			var i = 0;
 			var j = 0;
-			var raw_data = new DataBuffer<byte>(4);
+			var raw_data = new FakePtr<byte>(4);
 			raw_data.Set(0);
 
 			var RLE_count = 0;
@@ -220,7 +220,7 @@ namespace StbImageNext.Decoders
 
 			result.Comp = req_comp ?? result.SourceComp;
 
-			var tga_data = new DataBuffer<byte>(tga_width * tga_height * tga_comp);
+			var tga_data = new FakePtr<byte>(tga_width * tga_height * tga_comp);
 
 			s.stbi__skip(tga_offset);
 			if (tga_indexed == 0 && tga_is_RLE == 0 && !tga_rgb16)
@@ -234,7 +234,7 @@ namespace StbImageNext.Decoders
 			}
 			else
 			{
-				DataBuffer<byte> tga_palette = DataBuffer<byte>.Null;
+				FakePtr<byte> tga_palette = FakePtr<byte>.Null;
 				if (tga_indexed != 0)
 				{
 					if (tga_palette_len == 0)
@@ -243,7 +243,7 @@ namespace StbImageNext.Decoders
 					}
 
 					s.stbi__skip(tga_palette_start);
-					tga_palette = new DataBuffer<byte>(tga_palette_len * tga_comp);
+					tga_palette = new FakePtr<byte>(tga_palette_len * tga_comp);
 					if (tga_rgb16)
 					{
 						var pal_entry = tga_palette;
@@ -369,7 +369,7 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		private static void stbi__tga_read_rgb16(Stream s, DataBuffer<byte> _out_)
+		private static void stbi__tga_read_rgb16(Stream s, FakePtr<byte> _out_)
 		{
 			var px = (ushort)s.stbi__get16le();
 			ushort fiveBitMask = 31;

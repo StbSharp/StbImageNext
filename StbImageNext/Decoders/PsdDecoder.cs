@@ -112,7 +112,7 @@ namespace StbImageNext.Decoders
 			if (compression > 1)
 				throw new Exception("bad compression");
 
-			var _out_ = new DataBuffer<byte>(4 * w * h);
+			var _out_ = new FakePtr<byte>(4 * w * h);
 
 			pixelCount = w * h;
 			if (compression != 0)
@@ -204,7 +204,7 @@ namespace StbImageNext.Decoders
 			return result;
 		}
 
-		private static int stbi__psd_decode_rle(Stream s, DataBuffer<byte> p, int pixelCount)
+		private static int stbi__psd_decode_rle(Stream s, FakePtr<byte> p, int pixelCount)
 		{
 			var count = 0;
 			var nleft = 0;

@@ -92,7 +92,7 @@ namespace StbImageNext
 		public ImageResultFloat ToHdr(float stbi__l2h_gamma = 2.2f, float stbi__l2h_scale = 1.0f)
 		{
 			var comp = (int)Comp;
-			var output = new DataBuffer<float>(Width * Height * comp);
+			var output = new FakePtr<float>(Width * Height * comp);
 
 			var n = 0;
 			if ((comp & 1) != 0)

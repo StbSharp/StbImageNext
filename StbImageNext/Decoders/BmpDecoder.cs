@@ -140,7 +140,7 @@ namespace StbImageNext.Decoders
 			else
 				target = img_n;
 
-			var _out_ = new DataBuffer<byte>(target * info.img_x * info.img_y);
+			var _out_ = new FakePtr<byte>(target * info.img_x * info.img_y);
 			if (info.bpp < 16)
 			{
 				var z = 0;

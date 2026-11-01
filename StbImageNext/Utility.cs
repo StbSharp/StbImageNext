@@ -78,7 +78,7 @@ namespace StbImageNext
 			s.Seek(skip, SeekOrigin.Current);
 		}
 
-		public static int stbi__getn(this Stream s, DataBuffer<byte> buf, int size)
+		public static int stbi__getn(this Stream s, FakePtr<byte> buf, int size)
 		{
 			return s.Read(buf.Data, (int)buf.Offset, size);
 		}
@@ -94,14 +94,14 @@ namespace StbImageNext
 		}
 
 
-		public static DataBuffer<byte> stbi__convert_format(DataBuffer<byte> data, int img_n, int req_comp, uint x, uint y)
+		public static FakePtr<byte> stbi__convert_format(FakePtr<byte> data, int img_n, int req_comp, uint x, uint y)
 		{
 			var i = 0;
 			var j = 0;
 			if (req_comp == img_n)
 				return data;
 
-			var good = new DataBuffer<byte>(req_comp * x * y);
+			var good = new FakePtr<byte>(req_comp * x * y);
 			for (j = 0; j < (int)y; ++j)
 			{
 				var src = data + j * x * img_n;

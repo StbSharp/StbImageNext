@@ -95,7 +95,7 @@ namespace StbImageNext.Encoders
 			}
 		}
 
-		private static uint stbiw__crc32(DataBuffer<byte> buffer, int len)
+		private static uint stbiw__crc32(FakePtr<byte> buffer, int len)
 		{
 			var crc = ~0u;
 			var i = 0;
@@ -104,7 +104,7 @@ namespace StbImageNext.Encoders
 			return ~crc;
 		}
 
-		private static void stbiw__wpcrc(ref DataBuffer<byte> data, int len)
+		private static void stbiw__wpcrc(ref FakePtr<byte> data, int len)
 		{
 			var crc = stbiw__crc32(data - len - 4, len + 4);
 			data[0] = (byte)((crc >> 24) & 0xff);
@@ -133,7 +133,7 @@ namespace StbImageNext.Encoders
 			var mymap = y != 0 ? stbiw__encode_png_line_mapping : stbiw__encode_png_line_firstmap;
 			var i = 0;
 			var type = mymap[filter_type];
-			var z = new DataBuffer<byte>(pixels, stride_bytes * (stbi__flip_vertically_on_write != 0 ? height - 1 - y : y));
+			var z = new FakePtr<byte>(pixels, stride_bytes * (stbi__flip_vertically_on_write != 0 ? height - 1 - y : y));
 			var signed_stride = stbi__flip_vertically_on_write != 0 ? -stride_bytes : stride_bytes;
 			if (type == 0)
 			{
@@ -257,7 +257,7 @@ namespace StbImageNext.Encoders
 
 			var zlen = zlib.Length;
 			var _out_ = new byte[8 + 12 + 13 + 12 + zlen + 12];
-			var o = new DataBuffer<byte>(_out_);
+			var o = new FakePtr<byte>(_out_);
 			o.Write(sig);
 			o[0] = (13 >> 24) & 0xff;
 			o[1] = (13 >> 16) & 0xff;

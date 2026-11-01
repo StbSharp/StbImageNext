@@ -140,7 +140,7 @@ namespace StbImageNext.Decoders
 			return t1;
 		}
 
-		private static void stbi__create_png_alpha_expand8(DataBuffer<byte> dest, DataBuffer<byte> src, uint x, int img_n)
+		private static void stbi__create_png_alpha_expand8(FakePtr<byte> dest, FakePtr<byte> src, uint x, int img_n)
 		{
 			var i = 0;
 			if (img_n == 1)
@@ -160,7 +160,7 @@ namespace StbImageNext.Decoders
 		}
 
 
-		private static void stbi__create_png_image_raw(stbi__png a, DataBuffer<byte> raw, uint raw_len, int out_n, uint x, uint y, int depth, int color)
+		private static void stbi__create_png_image_raw(stbi__png a, FakePtr<byte> raw, uint raw_len, int out_n, uint x, uint y, int depth, int color)
 		{
 			var bytes = depth == 16 ? 2 : 1;
 			var s = a.s;
@@ -175,11 +175,11 @@ namespace StbImageNext.Decoders
 			var filter_bytes = img_n * bytes;
 			var width = (int)x;
 			img_width_bytes = (uint)((img_n * x * depth + 7) >> 3);
-			a._out_ = new DataBuffer<byte>(x * y * output_bytes);
+			a._out_ = new FakePtr<byte>(x * y * output_bytes);
 			img_len = (img_width_bytes + 1) * y;
 			if (raw_len < img_len)
 				throw new Exception("not enough pixels");
-			var filter_buf = new DataBuffer<byte>(img_width_bytes * 2);
+			var filter_buf = new FakePtr<byte>(img_width_bytes * 2);
 			if (depth < 8)
 			{
 				filter_bytes = 1;
@@ -290,7 +290,7 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		private static int stbi__create_png_image(stbi__png a, DataBuffer<byte> image_data, uint image_data_len, int out_n,
+		private static int stbi__create_png_image(stbi__png a, FakePtr<byte> image_data, uint image_data_len, int out_n,
 			int depth, int color, int interlaced)
 		{
 			var bytes = depth == 16 ? 2 : 1;
@@ -302,7 +302,7 @@ namespace StbImageNext.Decoders
 				return 1;
 			}
 
-			var final = new DataBuffer<byte>(a.img_x * a.img_y * out_bytes);
+			var final = new FakePtr<byte>(a.img_x * a.img_y * out_bytes);
 
 			var xorig = new int[] { 0, 4, 0, 2, 0, 1, 0 };
 			var yorig = new int[] { 0, 0, 4, 0, 2, 0, 1 };
@@ -372,7 +372,7 @@ namespace StbImageNext.Decoders
 			var pixel_count = a.img_x * a.img_y;
 			var orig = a._out_;
 
-			var p = new DataBuffer<byte>(pixel_count * pal_img_n);
+			var p = new FakePtr<byte>(pixel_count * pal_img_n);
 			if (pal_img_n == 3)
 			{
 				for (i = 0; i < pixel_count; ++i)
@@ -474,8 +474,8 @@ namespace StbImageNext.Decoders
 			var is_iphone = 0;
 			var s = z.s;
 			z.expanded = null;
-			z.idata = DataBuffer<byte>.Null;
-			z._out_ = DataBuffer<byte>.Null;
+			z.idata = FakePtr<byte>.Null;
+			z._out_ = FakePtr<byte>.Null;
 			if (stbi__check_png_header(s, true) == 0)
 				return 0;
 			if (scan == Constants.STBI__SCAN_type)
@@ -635,7 +635,7 @@ namespace StbImageNext.Decoders
 
 								if (z.idata.IsNull)
 								{
-									z.idata = new DataBuffer<byte>(idata_limit);
+									z.idata = new FakePtr<byte>(idata_limit);
 								}
 								else
 								{
@@ -645,7 +645,7 @@ namespace StbImageNext.Decoders
 
 							if (z.idata.IsNull)
 							{
-								z.idata = new DataBuffer<byte>((int)(ioff + c.length));
+								z.idata = new FakePtr<byte>((int)(ioff + c.length));
 								idata_limit = (uint)z.idata.Length;
 							}
 
@@ -670,13 +670,13 @@ namespace StbImageNext.Decoders
 							z.expanded = stbi_zlib_decode_malloc_guesssize_headerflag(z.idata, (int)ioff, (int)raw_len, is_iphone == 0 ? 1 : 0);
 							if (z.expanded == null)
 								return 0;
-							z.idata = DataBuffer<byte>.Null;
+							z.idata = FakePtr<byte>.Null;
 							if ((req_comp == z.img_n + 1 && req_comp != 3 && pal_img_n == 0) || has_trans != 0)
 								z.img_out_n = z.img_n + 1;
 							else
 								z.img_out_n = z.img_n;
 
-							var ptr = new DataBuffer<byte>(z.expanded);
+							var ptr = new FakePtr<byte>(z.expanded);
 							if (stbi__create_png_image(z, ptr, (uint)z.expanded.Length, z.img_out_n, z.depth, color, interlace) == 0)
 								return 0;
 
@@ -735,9 +735,9 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		private static DataBuffer<byte> stbi__do_png(stbi__png p, int req_comp)
+		private static FakePtr<byte> stbi__do_png(stbi__png p, int req_comp)
 		{
-			DataBuffer<byte> result = DataBuffer<byte>.Null;
+			FakePtr<byte> result = FakePtr<byte>.Null;
 			if (req_comp < 0 || req_comp > 4)
 				throw new Exception("bad req_comp");
 
@@ -749,7 +749,7 @@ namespace StbImageNext.Decoders
 				}
 
 				result = p._out_;
-				p._out_ = DataBuffer<byte>.Null;
+				p._out_ = FakePtr<byte>.Null;
 				if (req_comp != 0 && req_comp != p.img_out_n)
 				{
 					result = Utility.stbi__convert_format(result, p.img_out_n, req_comp, p.img_x, p.img_y);
@@ -759,9 +759,9 @@ namespace StbImageNext.Decoders
 				}
 			}
 
-			p._out_ = DataBuffer<byte>.Null;
+			p._out_ = FakePtr<byte>.Null;
 			p.expanded = null;
-			p.idata = DataBuffer<byte>.Null;
+			p.idata = FakePtr<byte>.Null;
 			return result;
 		}
 
@@ -780,7 +780,7 @@ namespace StbImageNext.Decoders
 			return 1;
 		}
 
-		private static byte[] stbi_zlib_decode_malloc_guesssize_headerflag(DataBuffer<byte> buffer, int len, int initial_size, int parse_header)
+		private static byte[] stbi_zlib_decode_malloc_guesssize_headerflag(FakePtr<byte> buffer, int len, int initial_size, int parse_header)
 		{
 			if (buffer.IsNull || len <= 0)
 				return null;
@@ -833,10 +833,10 @@ namespace StbImageNext.Decoders
 
 		private class stbi__png
 		{
-			public DataBuffer<byte> _out_;
+			public FakePtr<byte> _out_;
 			public int depth;
 			public byte[] expanded;
-			public DataBuffer<byte> idata;
+			public FakePtr<byte> idata;
 			public Stream s;
 			public uint img_x;
 			public uint img_y;

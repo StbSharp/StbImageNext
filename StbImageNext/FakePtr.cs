@@ -2,9 +2,9 @@
 
 namespace StbImageNext
 {
-	internal struct DataBuffer<T> where T : unmanaged
+	internal struct FakePtr<T> where T : unmanaged
 	{
-		public static readonly DataBuffer<T> Null = new DataBuffer<T>();
+		public static readonly FakePtr<T> Null = new FakePtr<T>();
 
 		private T[] _data;
 		private long _offset;
@@ -33,21 +33,21 @@ namespace StbImageNext
 
 		public int Length => _data.Length;
 
-		public DataBuffer(T[] data, long offset = 0)
+		public FakePtr(T[] data, long offset = 0)
 		{
 			_data = data;
 			_offset = offset;
 		}
 
-		public DataBuffer(long size)
+		public FakePtr(long size)
 		{
 			_data = new T[size];
 			_offset = 0;
 		}
 
-		public DataBuffer<T> SubBuffer(long offset)
+		public FakePtr<T> SubBuffer(long offset)
 		{
-			return new DataBuffer<T>(_data, _offset + offset);
+			return new FakePtr<T>(_data, _offset + offset);
 		}
 
 		public void Write(T value)
@@ -80,36 +80,36 @@ namespace StbImageNext
 
 		public void Set(T value) => Set(value, _data.Length - _offset);
 
-		public void Copy(long offset, DataBuffer<T> source, long sourceOffset, long size)
+		public void Copy(long offset, FakePtr<T> source, long sourceOffset, long size)
 		{
 			Array.Copy(source._data, source._offset + sourceOffset, _data, _offset + offset, size);
 		}
 
-		public void Copy(DataBuffer<T> source, long size) => Copy(0, source, 0, size);
+		public void Copy(FakePtr<T> source, long size) => Copy(0, source, 0, size);
 
 		public void Copy(long offset, T[] source, long sourceOffset, long size)
 		{
 			Array.Copy(source, sourceOffset, _data, _offset + offset, size);
 		}
 
-		public DataBuffer<T> Expand(long newSize)
+		public FakePtr<T> Expand(long newSize)
 		{
 			if (newSize <= _data.Length)
 				return this;
-			var newBuffer = new DataBuffer<T>(newSize);
+			var newBuffer = new FakePtr<T>(newSize);
 			Array.Copy(_data, 0, newBuffer._data, 0, _data.Length);
 			newBuffer._offset = _offset;
 			return newBuffer;
 		}
 
-		public static DataBuffer<T> operator +(DataBuffer<T> buffer, long offset)
+		public static FakePtr<T> operator +(FakePtr<T> buffer, long offset)
 		{
-			return new DataBuffer<T>(buffer._data, buffer._offset + offset);
+			return new FakePtr<T>(buffer._data, buffer._offset + offset);
 		}
 
-		public static DataBuffer<T> operator -(DataBuffer<T> buffer, long offset)
+		public static FakePtr<T> operator -(FakePtr<T> buffer, long offset)
 		{
-			return new DataBuffer<T>(buffer._data, buffer._offset - offset);
+			return new FakePtr<T>(buffer._data, buffer._offset - offset);
 		}
 	}
 }
