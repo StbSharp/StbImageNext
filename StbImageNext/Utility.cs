@@ -27,6 +27,14 @@ namespace StbImageNext
 			}
 		}
 
+		public static void Move<T>(this T[] destination, T[] source, int size)
+		{
+			var temp = new T[size];
+
+			Array.Copy(source, temp, size);
+			Array.Copy(temp, destination, size);
+		}
+
 		public static byte stbi__get8(this Stream s)
 		{
 			var b = s.ReadByte();

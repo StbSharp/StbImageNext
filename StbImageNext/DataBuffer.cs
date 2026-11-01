@@ -56,6 +56,12 @@ namespace StbImageNext
 			++_offset;
 		}
 
+		public void Write(T[] value)
+		{
+			Array.Copy(value, 0, _data, _offset, value.Length);
+			_offset += value.Length;
+		}
+
 		public T Read()
 		{
 			var result = _data[_offset];
@@ -79,8 +85,6 @@ namespace StbImageNext
 			Array.Copy(source._data, source._offset + sourceOffset, _data, _offset + offset, size);
 		}
 
-		public void Copy(DataBuffer<T> source, long sourceOffset, long size) => Copy(0, source, sourceOffset, size);
-
 		public void Copy(DataBuffer<T> source, long size) => Copy(0, source, 0, size);
 
 		public void Copy(long offset, T[] source, long sourceOffset, long size)
@@ -101,6 +105,11 @@ namespace StbImageNext
 		public static DataBuffer<T> operator +(DataBuffer<T> buffer, long offset)
 		{
 			return new DataBuffer<T>(buffer._data, buffer._offset + offset);
+		}
+
+		public static DataBuffer<T> operator -(DataBuffer<T> buffer, long offset)
+		{
+			return new DataBuffer<T>(buffer._data, buffer._offset - offset);
 		}
 	}
 }

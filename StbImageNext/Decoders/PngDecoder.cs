@@ -22,6 +22,11 @@ namespace StbImageNext.Decoders
 		private static readonly byte[] stbi__depth_scale_table = { 0, 0xff, 0x55, 0, 0x11, 0, 0, 0, 0x01 };
 		private static readonly char[] stbi__parse_png_file_invalid_chunk = new char[25];
 
+		/// <summary>Gets or sets whether to de-iphone PNG images.</summary>
+		public static bool de_iphone = false;
+		/// <summary>Gets or sets whether to unpremultiply iPhone PNG images.</summary>
+		public static bool iphone_unpremultiply = false;
+
 		/// <summary>
 		/// Tests whether the specified stream contains a PNG image.
 		/// </summary>
@@ -73,21 +78,15 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		/// <summary>
-		/// Loads the PNG image from the specified stream.
-		/// </summary>
+		/// <summary>Loads a PNG image from the specified stream.</summary>
 		/// <param name="s">Stream containing the image data.</param>
-		/// <param name="req_comp">Required pixel components of the image.</param>
-		/// <param name="de_iphone">Whether to de-iphone the image.</param>
-		/// <param name="iphone_unpremultiply">Whether to unpremultiply iPhone alpha.</param>
-		/// <returns>The decoded image result.</returns>
-		public static ImageResult Load(Stream s, ColorComponents? req_comp = null, bool de_iphone = false, bool iphone_unpremultiply = false)
+		/// <param name="req_comp">Requested color components, or <c>null</c> for default.</param>
+		/// <returns>The loaded image result.</returns>
+		public static ImageResult Load(Stream s, ColorComponents? req_comp = null)
 		{
 			var p = new stbi__png
 			{
 				s = s,
-				de_iphone = de_iphone,
-				iphone_unpremultiply = iphone_unpremultiply
 			};
 
 			var data = stbi__do_png(p, req_comp.ToInternalValue());
@@ -420,7 +419,7 @@ namespace StbImageNext.Decoders
 			}
 			else
 			{
-				if (z.iphone_unpremultiply)
+				if (iphone_unpremultiply)
 				{
 					for (i = 0; i < pixel_count; ++i)
 					{
@@ -693,7 +692,7 @@ namespace StbImageNext.Decoders
 								}
 							}
 
-							if (is_iphone != 0 && z.de_iphone && z.img_out_n > 2)
+							if (is_iphone != 0 && de_iphone && z.img_out_n > 2)
 							{
 								stbi__de_iphone(z);
 							}
@@ -843,8 +842,6 @@ namespace StbImageNext.Decoders
 			public uint img_y;
 			public int img_n;
 			public int img_out_n;
-			public bool de_iphone;
-			public bool iphone_unpremultiply;
 		}
 
 		[StructLayout(LayoutKind.Sequential)]

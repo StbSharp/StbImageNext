@@ -6,9 +6,9 @@ using Xunit;
 
 namespace StbImageNext.Tests;
 
-public class ImageResultTests
+public class DecodeTests
 {
-	private static readonly Assembly _assembly = typeof(ImageResultTests).Assembly;
+	private static readonly Assembly _assembly = typeof(DecodeTests).Assembly;
 
 	[Theory]
 	[InlineData("The Public Domain_ Enclosing the Commons of the Mind.pdf")]
