@@ -54,7 +54,34 @@ public class EncodeTests
 			result1 = ImageResult.FromStream(stream);
 		}
 
-		var encoded = JpgEncoder.EncodeToByteArray(result1.Data, result1.Width, result1.Height, result1.Comp, 100);
+		var encoded = JpgEncoder.EncodeToByteArray(result1.Data, result1.Width, result1.Height, result1.Comp, 95);
+		Assert.NotNull(encoded);
+
+		var result2 = ImageResult.FromMemory(encoded);
+
+		AssertEqual(result1, result2, 20);
+
+		// Jpg: 100
+		encoded = JpgEncoder.EncodeToByteArray(result1.Data, result1.Width, result1.Height, result1.Comp, 100);
+		Assert.NotNull(encoded);
+
+		result2 = ImageResult.FromMemory(encoded);
+
+		AssertEqual(result1, result2, 4);
+	}
+
+	[Theory]
+	[InlineData("panel.bmp")]
+	[InlineData("MonoGameLogo_64px.bmp")]
+	public void BmpEncode(string filename)
+	{
+		ImageResult result1 = null;
+		using (var stream = _assembly.OpenResourceStream(filename))
+		{
+			result1 = ImageResult.FromStream(stream);
+		}
+
+		var encoded = BmpEncoder.EncodeToByteArray(result1.Data, result1.Width, result1.Height, result1.Comp);
 		Assert.NotNull(encoded);
 
 		var result2 = ImageResult.FromMemory(encoded);

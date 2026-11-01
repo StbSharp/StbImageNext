@@ -193,13 +193,13 @@ namespace StbImageNext.Encoders
 		}
 
 		/// <summary>Encodes raw pixel data into a PNG byte array.</summary>
-		/// <param name="pixels">Raw pixel array.</param>
+		/// <param name="data">Raw pixel array.</param>
 		/// <param name="width">Image width in pixels.</param>
 		/// <param name="height">Image height in pixels.</param>
 		/// <param name="comp">Color component format.</param>
 		/// <param name="customStrideBytes">Optional row stride; null uses width * comp.</param>
 		/// <returns>The PNG-encoded byte array.</returns>
-		public static byte[] EncodeToByteArray(byte[] pixels, int width, int height, ColorComponents comp, int? customStrideBytes = null)
+		public static byte[] EncodeToByteArray(byte[] data, int width, int height, ColorComponents comp, int? customStrideBytes = null)
 		{
 			var j = 0;
 
@@ -219,7 +219,7 @@ namespace StbImageNext.Encoders
 				if (force_filter > -1)
 				{
 					filter_type = force_filter;
-					stbiw__encode_png_line(pixels, stride_bytes, width, height, j, n, force_filter, line_buffer);
+					stbiw__encode_png_line(data, stride_bytes, width, height, j, n, force_filter, line_buffer);
 				}
 				else
 				{
@@ -229,7 +229,7 @@ namespace StbImageNext.Encoders
 					var i = 0;
 					for (filter_type = 0; filter_type < 5; filter_type++)
 					{
-						stbiw__encode_png_line(pixels, stride_bytes, width, height, j, n, filter_type, line_buffer);
+						stbiw__encode_png_line(data, stride_bytes, width, height, j, n, filter_type, line_buffer);
 						est = 0;
 						for (i = 0; i < width * n; ++i)
 							est += Math.Abs((int)line_buffer[i]);
@@ -242,7 +242,7 @@ namespace StbImageNext.Encoders
 
 					if (filter_type != best_filter)
 					{
-						stbiw__encode_png_line(pixels, stride_bytes, width, height, j, n, best_filter, line_buffer);
+						stbiw__encode_png_line(data, stride_bytes, width, height, j, n, best_filter, line_buffer);
 						filter_type = best_filter;
 					}
 				}
@@ -314,27 +314,27 @@ namespace StbImageNext.Encoders
 
 		/// <summary>Writes PNG-encoded pixel data to a <see cref="BinaryWriter"/>.</summary>
 		/// <param name="output">The destination binary writer.</param>
-		/// <param name="pixels">Raw pixel array (RGB or RGBA).</param>
+		/// <param name="data">Raw pixel array.</param>
 		/// <param name="width">Image width in pixels.</param>
 		/// <param name="height">Image height in pixels.</param>
 		/// <param name="comp">Color component format.</param>
 		/// <param name="customStrideBytes">Optional row stride in bytes; null uses width * comp.</param>
-		public static void EncodeToWriter(BinaryWriter output, byte[] pixels, int width, int height, ColorComponents comp, int? customStrideBytes = null)
+		public static void EncodeToWriter(BinaryWriter output, byte[] data, int width, int height, ColorComponents comp, int? customStrideBytes = null)
 		{
-			var pngData = EncodeToByteArray(pixels, width, height, comp, customStrideBytes);
+			var pngData = EncodeToByteArray(data, width, height, comp, customStrideBytes);
 			output.Write(pngData);
 		}
 
 		/// <summary>Writes PNG-encoded pixel data to an output <see cref="Stream"/>.</summary>
 		/// <param name="output">The destination stream.</param>
-		/// <param name="pixels">Raw pixel array.</param>
+		/// <param name="data">Raw pixel array.</param>
 		/// <param name="width">Image width in pixels.</param>
 		/// <param name="height">Image height in pixels.</param>
 		/// <param name="comp">Color component format.</param>
 		/// <param name="customStrideBytes">Optional row stride; null uses width * comp.</param>
-		public static void EncodeToStream(Stream output, byte[] pixels, int width, int height, ColorComponents comp, int? customStrideBytes = null)
+		public static void EncodeToStream(Stream output, byte[] data, int width, int height, ColorComponents comp, int? customStrideBytes = null)
 		{
-			var pngData = EncodeToByteArray(pixels, width, height, comp, customStrideBytes);
+			var pngData = EncodeToByteArray(data, width, height, comp, customStrideBytes);
 			output.Write(pngData, 0, pngData.Length);
 		}
 	}
