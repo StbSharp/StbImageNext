@@ -46,8 +46,6 @@ namespace StbImageNext.Encoders
 		private static readonly int[] stbiw__encode_png_line_firstmap = { 0, 1, 0, 5, 6 };
 		private static readonly int[] stbiw__encode_png_line_mapping = { 0, 1, 2, 3, 4 };
 
-		/// <summary>Gets or sets whether to flip vertically on write.</summary>
-		public static bool FlipVerticallyOnWrite { get; set; } = false;
 		/// <summary>Gets or sets the forced PNG filter (or -1 for automatic).</summary>
 		public static int WriteForcePngFilter { get; set; } = -1;
 
@@ -133,8 +131,8 @@ namespace StbImageNext.Encoders
 			var mymap = y != 0 ? stbiw__encode_png_line_mapping : stbiw__encode_png_line_firstmap;
 			var i = 0;
 			var type = mymap[filter_type];
-			var z = new FakePtr<byte>(pixels, stride_bytes * (FlipVerticallyOnWrite ? height - 1 - y : y));
-			var signed_stride = FlipVerticallyOnWrite ? -stride_bytes : stride_bytes;
+			var z = new FakePtr<byte>(pixels, stride_bytes * (EncodingOptions.FlipVerticallyOnWrite ? height - 1 - y : y));
+			var signed_stride = EncodingOptions.FlipVerticallyOnWrite ? -stride_bytes : stride_bytes;
 			if (type == 0)
 			{
 				Array.Copy(z.Data, z.Offset, line_buffer, 0, width * n);
@@ -194,14 +192,14 @@ namespace StbImageNext.Encoders
 			}
 		}
 
-		/// <summary>Encodes raw pixel data to a PNG byte array.</summary>
-		/// <param name="pixels">Raw pixel data.</param>
-		/// <param name="width">Image width.</param>
-		/// <param name="height">Image height.</param>
-		/// <param name="comp">Color components.</param>
-		/// <param name="customStrideBytes">Optional custom stride.</param>
-		/// <returns>PNG-encoded bytes.</returns>
-		public static byte[] Encode(byte[] pixels, int width, int height, ColorComponents comp, int? customStrideBytes = null)
+		/// <summary>Encodes raw pixel data into a PNG byte array.</summary>
+		/// <param name="pixels">Raw pixel array.</param>
+		/// <param name="width">Image width in pixels.</param>
+		/// <param name="height">Image height in pixels.</param>
+		/// <param name="comp">Color component format.</param>
+		/// <param name="customStrideBytes">Optional row stride; null uses width * comp.</param>
+		/// <returns>The PNG-encoded byte array.</returns>
+		public static byte[] EncodeToByteArray(byte[] pixels, int width, int height, ColorComponents comp, int? customStrideBytes = null)
 		{
 			var j = 0;
 
@@ -312,6 +310,32 @@ namespace StbImageNext.Encoders
 			o += 4;
 			stbiw__wpcrc(ref o, 0);
 			return _out_;
+		}
+
+		/// <summary>Writes PNG-encoded pixel data to a <see cref="BinaryWriter"/>.</summary>
+		/// <param name="output">The destination binary writer.</param>
+		/// <param name="pixels">Raw pixel array (RGB or RGBA).</param>
+		/// <param name="width">Image width in pixels.</param>
+		/// <param name="height">Image height in pixels.</param>
+		/// <param name="comp">Color component format.</param>
+		/// <param name="customStrideBytes">Optional row stride in bytes; null uses width * comp.</param>
+		public static void EncodeToWriter(BinaryWriter output, byte[] pixels, int width, int height, ColorComponents comp, int? customStrideBytes = null)
+		{
+			var pngData = EncodeToByteArray(pixels, width, height, comp, customStrideBytes);
+			output.Write(pngData);
+		}
+
+		/// <summary>Writes PNG-encoded pixel data to an output <see cref="Stream"/>.</summary>
+		/// <param name="output">The destination stream.</param>
+		/// <param name="pixels">Raw pixel array.</param>
+		/// <param name="width">Image width in pixels.</param>
+		/// <param name="height">Image height in pixels.</param>
+		/// <param name="comp">Color component format.</param>
+		/// <param name="customStrideBytes">Optional row stride; null uses width * comp.</param>
+		public static void EncodeToStream(Stream output, byte[] pixels, int width, int height, ColorComponents comp, int? customStrideBytes = null)
+		{
+			var pngData = EncodeToByteArray(pixels, width, height, comp, customStrideBytes);
+			output.Write(pngData, 0, pngData.Length);
 		}
 	}
 }

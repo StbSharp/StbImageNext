@@ -1502,7 +1502,14 @@ namespace StbImageNext.Decoders
 						r.resample = stbi__resample_row_generic;
 				}
 
-				output = new FakePtr<byte>(n * z.img_x * z.img_y);
+				var size = n * z.img_x * z.img_y;
+				if (n < 4)
+				{
+					// Since we always set the alpha channel to 255, we need 1 additional byte if n < 4
+					++size;
+				}
+
+				output = new FakePtr<byte>(size);
 				for (j = 0; j < z.img_y; ++j)
 				{
 					var _out_ = output + n * z.img_x * j;
