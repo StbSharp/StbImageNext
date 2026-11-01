@@ -12,6 +12,7 @@ public class EncodeTests
 
 	[Theory]
 	[InlineData("AgedPavement_specular.png")]
+	[InlineData("IDockable.png")]
 	public void PngEncode(string filename)
 	{
 		ImageResult result1 = null;
