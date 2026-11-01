@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "StbImageNext.Benchmark": {
+      "commandName": "Project",
+      "commandLineArgs": "\"D:\\Projects\\StbSharp\\TestImages\""
+    }
+  }
+}

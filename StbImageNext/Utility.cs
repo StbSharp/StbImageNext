@@ -317,5 +317,19 @@ namespace StbImageNext
 			a = a + (a >> 16);
 			return (int)(a & 0xff);
 		}
+
+		public static int Compare(this FakePtr<byte> a, FakePtr<byte> b, int size)
+		{
+			var result = 0;
+			for(var i = 0; i < size; ++i)
+			{
+				if (a[i] != b[i])
+				{
+					++result;
+				}
+			}
+
+			return result;
+		}
 	}
 }

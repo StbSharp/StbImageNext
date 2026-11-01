@@ -6,7 +6,7 @@ namespace StbImageNext.Encoders
 {
 	public static class BmpEncoder
 	{
-		private static void stbiw__writefv(BinaryWriter output, string fmt, params object[] v)
+		internal static void stbiw__writefv(BinaryWriter output, string fmt, params object[] v)
 		{
 			var vindex = 0;
 			for (var i = 0; i < fmt.Length; ++i)
@@ -46,7 +46,7 @@ namespace StbImageNext.Encoders
 			}
 		}
 
-		private static void stbiw__write_pixel(BinaryWriter output, int rgb_dir, int comp, int write_alpha, int expand_mono, FakePtr<byte> d)
+		internal static void stbiw__write_pixel(BinaryWriter output, int rgb_dir, int comp, int write_alpha, int expand_mono, FakePtr<byte> d)
 		{
 			var bg = new byte[] { 255, 0, 255 };
 			var px = new byte[3];
@@ -133,7 +133,7 @@ namespace StbImageNext.Encoders
 			}
 		}
 
-		private static void stbiw__outfile(BinaryWriter output, int rgb_dir, int vdir, int x, int y, int comp,
+		internal static void stbiw__outfile(BinaryWriter output, int rgb_dir, int vdir, int x, int y, int comp,
 			int expand_mono, byte[] data, int alpha, int pad, string fmt, params object[] v)
 		{
 			if (x < 0 || y < 0)
