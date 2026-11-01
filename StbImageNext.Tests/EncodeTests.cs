@@ -58,8 +58,9 @@ public class EncodeTests
 	}
 
 	[Theory]
-	[InlineData("DockPanes.jpg")]
-	public void JpgEncode(string filename)
+	[InlineData("DockPanes.jpg", 95, 20)]
+	[InlineData("DockPanes.jpg", 100, 4)]
+	public void JpgEncode95(string filename, int quality, int limit)
 	{
 		ImageResult result1 = null;
 		using (var stream = _assembly.OpenResourceStream(filename))
@@ -67,20 +68,12 @@ public class EncodeTests
 			result1 = ImageResult.FromStream(stream);
 		}
 
-		var encoded = JpgEncoder.EncodeToByteArray(result1.Data, result1.Width, result1.Height, result1.Comp, 95);
+		var encoded = JpgEncoder.EncodeToByteArray(result1.Data, result1.Width, result1.Height, result1.Comp, quality);
 		Assert.NotNull(encoded);
 
 		var result2 = ImageResult.FromMemory(encoded);
 
-		AssertEqual(result1, result2, 20);
-
-		// Jpg: 100
-		encoded = JpgEncoder.EncodeToByteArray(result1.Data, result1.Width, result1.Height, result1.Comp, 100);
-		Assert.NotNull(encoded);
-
-		result2 = ImageResult.FromMemory(encoded);
-
-		AssertEqual(result1, result2, 4);
+		AssertEqual(result1, result2, limit);
 	}
 
 	[Theory]
@@ -103,8 +96,9 @@ public class EncodeTests
 	}
 
 	[Theory]
-	[InlineData("head.tga")]
-	public void TgaEncode(string filename)
+	[InlineData("head.tga", false)]
+	[InlineData("head.tga", true)]
+	public void TgaEncodeWithoutRle(string filename, bool rle)
 	{
 		ImageResult result1 = null;
 		using (var stream = _assembly.OpenResourceStream(filename))
@@ -112,12 +106,21 @@ public class EncodeTests
 			result1 = ImageResult.FromStream(stream);
 		}
 
-		var encoded = TgaEncoder.EncodeToByteArray(result1.Data, result1.Width, result1.Height, result1.Comp);
-		Assert.NotNull(encoded);
+		var oldRle = TgaEncoder.WriteWithRle;
+		try
+		{
+			TgaEncoder.WriteWithRle = rle;
+			var encoded = TgaEncoder.EncodeToByteArray(result1.Data, result1.Width, result1.Height, result1.Comp);
+			Assert.NotNull(encoded);
 
-		var result2 = ImageResult.FromMemory(encoded);
+			var result2 = ImageResult.FromMemory(encoded);
 
-		AssertEqual(result1, result2);
+			AssertEqual(result1, result2);
+		}
+		finally
+		{
+			TgaEncoder.WriteWithRle = oldRle;
+		}
 	}
 
 	[Theory]
