@@ -20,37 +20,37 @@ namespace StbImageNext
 		{
 			if (PngDecoder.Test(stream))
 			{
-				return PngDecoder.Load(stream, requiredComponents);
+				return PngDecoder.Decode(stream, requiredComponents);
 			}
 
 			if (BmpDecoder.Test(stream))
 			{
-				return BmpDecoder.Load(stream, requiredComponents);
+				return BmpDecoder.Decode(stream, requiredComponents);
 			}
 
 			if (GifDecoder.Test(stream))
 			{
-				return GifDecoder.Load(stream, requiredComponents);
+				return GifDecoder.Decode(stream, requiredComponents);
 			}
 
 			if (JpgDecoder.Test(stream))
 			{
-				return JpgDecoder.Load(stream, requiredComponents);
+				return JpgDecoder.Decode(stream, requiredComponents);
 			}
 
 			if (TgaDecoder.Test(stream))
 			{
-				return TgaDecoder.Load(stream, requiredComponents);
+				return TgaDecoder.Decode(stream, requiredComponents);
 			}
 
 			if (PsdDecoder.Test(stream))
 			{
-				return PsdDecoder.Load(stream, requiredComponents);
+				return PsdDecoder.Decode(stream, requiredComponents);
 			}
 
 			if (HdrDecoder.Test(stream))
 			{
-				var floatResult = HdrDecoder.Load(stream, requiredComponents);
+				var floatResult = HdrDecoder.Decode(stream, requiredComponents);
 				return floatResult.ToLdr();
 			}
 

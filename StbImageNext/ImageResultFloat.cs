@@ -19,7 +19,7 @@ namespace StbImageNext
 		{
 			if (HdrDecoder.Test(stream))
 			{
-				return HdrDecoder.Load(stream, requiredComponents);
+				return HdrDecoder.Decode(stream, requiredComponents);
 			}
 
 			throw new NotSupportedException("Image format is not supported");

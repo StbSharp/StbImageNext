@@ -82,13 +82,11 @@ namespace StbImageNext.Decoders
 		}
 
 
-		/// <summary>
-		/// Loads the JPG image from the specified stream.
-		/// </summary>
+		/// <summary>Decodes a JPEG image from the specified stream.</summary>
 		/// <param name="s">Stream containing the image data.</param>
-		/// <param name="req_comp">Required pixel components of the image.</param>
+		/// <param name="req_comp">Requested color components, or <c>null</c> for default.</param>
 		/// <returns>The decoded image result.</returns>
-		public static ImageResult Load(Stream s, ColorComponents? req_comp = null)
+		public static ImageResult Decode(Stream s, ColorComponents? req_comp = null)
 		{
 			var j = new stbi__jpeg();
 			j.s = s;

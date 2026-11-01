@@ -94,13 +94,11 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		/// <summary>
-		/// Loads the HDR image from the specified stream.
-		/// </summary>
+		/// <summary>Decodes an HDR image from the specified stream.</summary>
 		/// <param name="s">Stream containing the image data.</param>
-		/// <param name="req_comp2">Required pixel components of the image.</param>
-		/// <returns>The decoded HDR image result.</returns>
-		public static ImageResultFloat Load(Stream s, ColorComponents? req_comp2 = null)
+		/// <param name="req_comp2">Requested color components, or <c>null</c> for default.</param>
+		/// <returns>The decoded image result with floating-point data.</returns>
+		public static ImageResultFloat Decode(Stream s, ColorComponents? req_comp2 = null)
 		{
 			var rgbe = new FakePtr<byte>(4);
 			string token;

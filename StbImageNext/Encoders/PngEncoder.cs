@@ -47,9 +47,9 @@ namespace StbImageNext.Encoders
 		private static readonly int[] stbiw__encode_png_line_mapping = { 0, 1, 2, 3, 4 };
 
 		/// <summary>Gets or sets whether to flip vertically on write.</summary>
-		public static int stbi__flip_vertically_on_write;
+		public static bool FlipVerticallyOnWrite { get; set; } = false;
 		/// <summary>Gets or sets the forced PNG filter (or -1 for automatic).</summary>
-		public static int stbi_write_force_png_filter = -1;
+		public static int WriteForcePngFilter { get; set; } = -1;
 
 		private static void WriteUInt32BigEndian(Stream stream, uint value)
 		{
@@ -133,8 +133,8 @@ namespace StbImageNext.Encoders
 			var mymap = y != 0 ? stbiw__encode_png_line_mapping : stbiw__encode_png_line_firstmap;
 			var i = 0;
 			var type = mymap[filter_type];
-			var z = new FakePtr<byte>(pixels, stride_bytes * (stbi__flip_vertically_on_write != 0 ? height - 1 - y : y));
-			var signed_stride = stbi__flip_vertically_on_write != 0 ? -stride_bytes : stride_bytes;
+			var z = new FakePtr<byte>(pixels, stride_bytes * (FlipVerticallyOnWrite ? height - 1 - y : y));
+			var signed_stride = FlipVerticallyOnWrite ? -stride_bytes : stride_bytes;
 			if (type == 0)
 			{
 				Array.Copy(z.Data, z.Offset, line_buffer, 0, width * n);
@@ -194,21 +194,21 @@ namespace StbImageNext.Encoders
 			}
 		}
 
-		/// <summary>Saves a PNG image from raw pixel data.</summary>
-		/// <param name="pixels">The raw pixel data.</param>
-		/// <param name="width">The image width in pixels.</param>
-		/// <param name="height">The image height in pixels.</param>
-		/// <param name="comp">The color components of the image.</param>
-		/// <param name="customStrideBytes">Optional custom stride in bytes (defaults to width * comp).</param>
-		/// <returns>The PNG-encoded byte array.</returns>
-		public static byte[] Save(byte[] pixels, int width, int height, ColorComponents comp, int? customStrideBytes = null)
+		/// <summary>Encodes raw pixel data to a PNG byte array.</summary>
+		/// <param name="pixels">Raw pixel data.</param>
+		/// <param name="width">Image width.</param>
+		/// <param name="height">Image height.</param>
+		/// <param name="comp">Color components.</param>
+		/// <param name="customStrideBytes">Optional custom stride.</param>
+		/// <returns>PNG-encoded bytes.</returns>
+		public static byte[] Encode(byte[] pixels, int width, int height, ColorComponents comp, int? customStrideBytes = null)
 		{
 			var j = 0;
 
 			var n = (int)comp;
 			var stride_bytes = customStrideBytes ?? width * n;
 
-			var force_filter = stbi_write_force_png_filter;
+			var force_filter = WriteForcePngFilter;
 			if (force_filter >= 5)
 				force_filter = -1;
 

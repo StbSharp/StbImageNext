@@ -20,7 +20,7 @@ public class EncodeTests
 			result1 = ImageResult.FromStream(stream);
 		}
 
-		var encoded = PngEncoder.Save(result1.Data, result1.Width, result1.Height, result1.Comp);
+		var encoded = PngEncoder.Encode(result1.Data, result1.Width, result1.Height, result1.Comp);
 		Assert.NotNull(encoded);
 
 		var result2 = ImageResult.FromMemory(encoded);

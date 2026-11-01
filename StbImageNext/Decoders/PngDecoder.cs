@@ -22,10 +22,11 @@ namespace StbImageNext.Decoders
 		private static readonly byte[] stbi__depth_scale_table = { 0, 0xff, 0x55, 0, 0x11, 0, 0, 0, 0x01 };
 		private static readonly char[] stbi__parse_png_file_invalid_chunk = new char[25];
 
-		/// <summary>Gets or sets whether to de-iphone PNG images.</summary>
-		public static bool de_iphone = false;
+		/// <summary>Gets or sets whether to de-iphone PNG images (swap RGB channels).</summary>
+		public static bool DeiPhone { get; set; } = false;
+
 		/// <summary>Gets or sets whether to unpremultiply iPhone PNG images.</summary>
-		public static bool iphone_unpremultiply = false;
+		public static bool iPhoneUnpremultiply = false;
 
 		/// <summary>
 		/// Tests whether the specified stream contains a PNG image.
@@ -78,11 +79,11 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		/// <summary>Loads a PNG image from the specified stream.</summary>
+		/// <summary>Decodes a PNG image from the specified stream.</summary>
 		/// <param name="s">Stream containing the image data.</param>
 		/// <param name="req_comp">Requested color components, or <c>null</c> for default.</param>
-		/// <returns>The loaded image result.</returns>
-		public static ImageResult Load(Stream s, ColorComponents? req_comp = null)
+		/// <returns>The decoded image result.</returns>
+		public static ImageResult Decode(Stream s, ColorComponents? req_comp = null)
 		{
 			var p = new stbi__png
 			{
@@ -419,7 +420,7 @@ namespace StbImageNext.Decoders
 			}
 			else
 			{
-				if (iphone_unpremultiply)
+				if (iPhoneUnpremultiply)
 				{
 					for (i = 0; i < pixel_count; ++i)
 					{
@@ -692,7 +693,7 @@ namespace StbImageNext.Decoders
 								}
 							}
 
-							if (is_iphone != 0 && de_iphone && z.img_out_n > 2)
+							if (is_iphone != 0 && DeiPhone && z.img_out_n > 2)
 							{
 								stbi__de_iphone(z);
 							}
