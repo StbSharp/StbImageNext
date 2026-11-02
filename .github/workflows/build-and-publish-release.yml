@@ -27,4 +27,4 @@ jobs:
       with:
         user: ${{secrets.NUGET_USER}}
     - name: Publish StbImageNext to NuGet
-      run: nuget.exe push StbImageNext\bin\Release\StbImageNext.*.nupkg ${{steps.login.outputs.NUGET_API_KEY} -Source https://api.nuget.org/v3/index.json
+      run: nuget.exe push StbImageNext\bin\Release\StbImageNext.*.nupkg ${{steps.login.outputs.NUGET_API_KEY}} -Source https://api.nuget.org/v3/index.json
