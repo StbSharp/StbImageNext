@@ -19,7 +19,10 @@ jobs:
       run: dotnet build StbImageNext.sln --configuration Release
     - name: Test
       run: dotnet test StbImageNext.sln
-    - name: Install NuGet
-      uses: NuGet/setup-nuget@v1
+    - name: NuGet login (OIDC → temp API key)
+      uses: NuGet/login@v1
+      id: login
+      with:
+        user: ${{secrets.NUGET_USER}}
     - name: Publish StbImageNext to NuGet
-      run: nuget.exe push StbImageNext\bin\Release\StbImageNext.*.nupkg ${{secrets.NUGET_APIKEY}} -Source https://api.nuget.org/v3/index.json
+      run: nuget.exe push StbImageNext\bin\Release\StbImageNext.*.nupkg ${{steps.login.outputs.NUGET_API_KEY} -Source https://api.nuget.org/v3/index.json
