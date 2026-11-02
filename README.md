@@ -10,14 +10,14 @@ In other words, it's a cross-platform .NET library for decoding and encoding ima
 ## Supported Image Formats
 
 | Format | Decode | Encode | Notes |
-|--------|--------|--------|-------|
-| PNG    | Yes    | Yes    |       |
-| JPEG / JPG | Yes | Yes |       |
-| BMP    | Yes    | Yes   |       |
-| GIF    | Yes    | No    | Including animated frames |
-| TGA    | Yes    | Yes   |       |
-| PSD    | Yes    | No    |       |
-| HDR    | Yes    | Yes   | Radiance format, floating-point |
+|--------|--------|--------|--------|-------|
+| PNG    | ✅     | ✅     |        |
+| JPG    | ✅     | ✅     |        |
+| BMP    | ✅     | ✅     |        |
+| GIF    | ✅     | ❌     | Including animated frames |
+| TGA    | ✅     | ✅     |        |
+| PSD    | ✅     | ❌     |        |
+| HDR    | ✅     | ✅     | Radiance format, floating-point |
 
 
 ## Installation
