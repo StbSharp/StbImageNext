@@ -24,7 +24,7 @@ In other words, it's a cross-platform .NET library for decoding and encoding ima
 
 https://www.nuget.org/packages/StbImageNext/
 
-## Basic Usage
+## Decoding
 
 Add the namespace at the top of your file:
 
