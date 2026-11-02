@@ -4,6 +4,7 @@ using System.Text;
 
 namespace StbImageNext.Encoders
 {
+	/// <summary>Provides BMP encoding functionality.</summary>
 	public static class BmpEncoder
 	{
 		internal static void stbiw__writefv(BinaryWriter output, string fmt, params object[] v)
@@ -145,35 +146,53 @@ namespace StbImageNext.Encoders
 			stbiw__write_pixels(output, rgb_dir, vdir, x, y, comp, data, alpha, pad, expand_mono);
 		}
 
-		public static void EncodeToWriter(BinaryWriter output, byte[] data, int x, int y, ColorComponents compEnum)
+		/// <summary>Encodes image data to a BinaryWriter.</summary>
+		/// <param name="output">The BinaryWriter to write to.</param>
+		/// <param name="data">The image data.</param>
+		/// <param name="width">The image width.</param>
+		/// <param name="height">The image height.</param>
+		/// <param name="compEnum">The color components.</param>
+		public static void EncodeToWriter(BinaryWriter output, byte[] data, int width, int height, ColorComponents compEnum)
 		{
 			var comp = (int)compEnum;
 			if (comp != 4)
 			{
-				var pad = (-x * 3) & 3;
-				stbiw__outfile(output, -1, -1, x, y, comp, 1, data, 0, pad, "11 4 22 44 44 22 444444", 66, 77,
-					14 + 40 + (x * 3 + pad) * y, 0, 0, 14 + 40, 40, x, y, 1, 24, 0, 0, 0, 0, 0, 0);
+				var pad = (-width * 3) & 3;
+				stbiw__outfile(output, -1, -1, width, height, comp, 1, data, 0, pad, "11 4 22 44 44 22 444444", 66, 77,
+					14 + 40 + (width * 3 + pad) * height, 0, 0, 14 + 40, 40, width, height, 1, 24, 0, 0, 0, 0, 0, 0);
 				return;
 			}
 
-			stbiw__outfile(output, -1, -1, x, y, comp, 1, data, 1, 0,
-				"11 4 22 44 44 22 444444 4444 4 444 444 444 444", 66, 77, 14 + 108 + x * y * 4, 0, 0, 14 + 108, 108, x,
-				y, 1, 32, 3, 0, 0, 0, 0, 0, 0xff0000, 0xff00, 0xff, 0xff000000u, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+			stbiw__outfile(output, -1, -1, width, height, comp, 1, data, 1, 0,
+				"11 4 22 44 44 22 444444 4444 4 444 444 444 444", 66, 77, 14 + 108 + width * height * 4, 0, 0, 14 + 108, 108, width,
+				height, 1, 32, 3, 0, 0, 0, 0, 0, 0xff0000, 0xff00, 0xff, 0xff000000u, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 		}
 
-		public static void EncodeToStream(Stream output, byte[] data, int x, int y, ColorComponents comp)
+		/// <summary>Encodes image data to a Stream.</summary>
+		/// <param name="output">The Stream to write to.</param>
+		/// <param name="data">The image data.</param>
+		/// <param name="width">The image width.</param>
+		/// <param name="height">The image height.</param>
+		/// <param name="comp">The color components.</param>
+		public static void EncodeToStream(Stream output, byte[] data, int width, int height, ColorComponents comp)
 		{
 			using (var writer = new BinaryWriter(output, Encoding.UTF8, true))
 			{
-				EncodeToWriter(writer, data, x, y, comp);
+				EncodeToWriter(writer, data, width, height, comp);
 			}
 		}
 
-		public static byte[] EncodeToByteArray(byte[] data, int x, int y, ColorComponents comp)
+		/// <summary>Encodes image data to a byte array.</summary>
+		/// <param name="data">The image data.</param>
+		/// <param name="width">The image width.</param>
+		/// <param name="height">The image height.</param>
+		/// <param name="comp">The color components.</param>
+		/// <returns>The encoded image data as a byte array.</returns>
+		public static byte[] EncodeToByteArray(byte[] data, int width, int height, ColorComponents comp)
 		{
 			using (var stream = new MemoryStream())
 			{
-				EncodeToStream(stream, data, x, y, comp);
+				EncodeToStream(stream, data, width, height, comp);
 				return stream.ToArray();
 			}
 		}

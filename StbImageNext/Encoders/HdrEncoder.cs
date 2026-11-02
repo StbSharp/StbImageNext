@@ -4,6 +4,7 @@ using System.Text;
 
 namespace StbImageNext.Encoders
 {
+	/// <summary>Provides HDR encoding functionality.</summary>
 	public static class HdrEncoder
 	{
 		private static void stbiw__linear_to_rgbe(byte[] rgbe, float[] linear)
@@ -138,6 +139,12 @@ namespace StbImageNext.Encoders
 			}
 		}
 
+		/// <summary>Encodes image data to a BinaryWriter.</summary>
+		/// <param name="s">The BinaryWriter to write to.</param>
+		/// <param name="data">The image data.</param>
+		/// <param name="width">The image width.</param>
+		/// <param name="height">The image height.</param>
+		/// <param name="compEnum">The color components.</param>
 		public static void EncodeToWriter(BinaryWriter s, float[] data, int width, int height, ColorComponents compEnum)
 		{
 			if (data == null)
@@ -174,6 +181,12 @@ namespace StbImageNext.Encoders
 			}
 		}
 
+		/// <summary>Encodes image data to a Stream.</summary>
+		/// <param name="output">The Stream to write to.</param>
+		/// <param name="data">The image data.</param>
+		/// <param name="width">The image width.</param>
+		/// <param name="height">The image height.</param>
+		/// <param name="comp">The color components.</param>
 		public static void EncodeToStream(Stream output, float[] data, int width, int height, ColorComponents comp)
 		{
 			using (var writer = new BinaryWriter(output, Encoding.UTF8, true))
@@ -182,6 +195,12 @@ namespace StbImageNext.Encoders
 			}
 		}
 
+		/// <summary>Encodes image data to a byte array.</summary>
+		/// <param name="data">The image data.</param>
+		/// <param name="width">The image width.</param>
+		/// <param name="height">The image height.</param>
+		/// <param name="comp">The color components.</param>
+		/// <returns>The encoded image data as a byte array.</returns>
 		public static byte[] EncodeToByteArray(float[] data, int width, int height, ColorComponents comp)
 		{
 			using (var ms = new MemoryStream())
