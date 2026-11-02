@@ -10,7 +10,7 @@ In other words, it's a cross-platform .NET library for decoding and encoding ima
 ## Supported Image Formats
 
 | Format | Decode | Encode | Notes |
-|--------|--------|-------|
+|--------|--------|--------|
 | PNG    | Yes    | Yes    |       |
 | JPEG / JPG | Yes | Yes |       |
 | BMP    | Yes    | Yes   |       |
