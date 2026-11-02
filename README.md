@@ -5,19 +5,19 @@
 
 StbImageNext is the safe fork of [StbImageSharp](https://github.com/StbSharp/StbImageSharp)
 
-In other words, it's a cross-platform .NET library for decoding images.
+In other words, it's a cross-platform .NET library for decoding and encoding images.
 
 ## Supported Image Formats
 
-| Format | Decode | Notes |
+| Format | Decode | Encode | Notes |
 |--------|--------|-------|
-| PNG    | Yes    |       |
-| JPEG / JPG | Yes |       |
-| BMP    | Yes    |       |
-| GIF    | Yes    | Including animated frames |
-| TGA    | Yes    |       |
-| PSD    | Yes    |       |
-| HDR    | Yes    | Radiance format, floating-point |
+| PNG    | Yes    | Yes    |       |
+| JPEG / JPG | Yes | Yes |       |
+| BMP    | Yes    | Yes   |       |
+| GIF    | Yes    | No    | Including animated frames |
+| TGA    | Yes    | Yes   |       |
+| PSD    | Yes    | No    |       |
+| HDR    | Yes    | Yes   | Radiance format, floating-point |
 
 
 ## Installation
@@ -79,6 +79,32 @@ using var stream = File.OpenRead("photo.jpg");
 var info = ImageInfo.FromStream(stream);
 
 Console.WriteLine($"{info.Width}x{info.Height}, {info.ColorComponents}");
+```
+
+## Encoding
+
+StbImageNext provides encoders for several image formats. Each encoder exposes static methods to write to a `Stream`, a `BinaryWriter`, or directly to a `byte[]`.
+
+Add the encoders namespace at the top of your file:
+
+```csharp
+using StbImageNext.Encoders;
+using System.IO;
+```
+
+### Encode to a byte array
+
+```csharp
+byte[] data = /* decoded pixel data */;
+var encoded = BmpEncoder.EncodeToByteArray(data, width, height, ColorComponents.RedGreenBlueAlpha);
+File.WriteAllBytes("output.bmp", encoded);
+```
+
+### Encode to a Stream
+
+```csharp
+using var stream = File.OpenWrite("output.png");
+PngEncoder.EncodeToStream(stream, data, width, height, ColorComponents.RedGreenBlueAlpha);
 ```
 
 ## Image Manipulation
