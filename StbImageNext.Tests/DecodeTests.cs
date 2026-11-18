@@ -69,6 +69,28 @@ public class DecodeTests
 		Assert.Equal(result.Width * result.Height * (int)result.Comp, result.Data.Length);
 	}
 
+	// The expected hashes are the first 16 hex digits of the SHA-256 of the output of stb_image 2.30
+	// and StbImageSharp 2.30.15, which agree. DockPanes.jpg is 4:4:4, synthetic_420.jpg 4:2:0.
+	[Theory]
+	[InlineData("DockPanes.jpg", null, "9532daac86b63f3c")]
+	[InlineData("DockPanes.jpg", ColorComponents.Grey, "46759c9f708843a7")]
+	[InlineData("DockPanes.jpg", ColorComponents.RedGreenBlueAlpha, "89d644643f2fb3ce")]
+	[InlineData("synthetic_420.jpg", null, "e9a5404aa03c598e")]
+	[InlineData("synthetic_420.jpg", ColorComponents.Grey, "dde8e7012031107c")]
+	[InlineData("synthetic_420.jpg", ColorComponents.GreyAlpha, "2987a5034ed88eeb")]
+	[InlineData("synthetic_420.jpg", ColorComponents.RedGreenBlueAlpha, "02e761e5a3a61e37")]
+	public void LoadJpgMatchesStbImage(string fileName, ColorComponents? requiredComponents, string expectedHash)
+	{
+		ImageResult result;
+		using (var stream = _assembly.OpenResourceStream(fileName))
+		{
+			result = ImageResult.FromStream(stream, requiredComponents);
+		}
+
+		var hash = Convert.ToHexString(SHA256.HashData(result.Data)).Substring(0, 16).ToLowerInvariant();
+		Assert.Equal(expectedHash, hash);
+	}
+
 	[Theory]
 	[InlineData("sample_1280×853.hdr", 1280, 853, ColorComponents.RedGreenBlue)]
 	public void LoadHdr(string filename, int width, int height, ColorComponents colorComponents)
