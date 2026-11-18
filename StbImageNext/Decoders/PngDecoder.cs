@@ -256,6 +256,7 @@ namespace StbImageNext.Decoders
 							if ((i & 1) == 0)
 								inb = _in_.Read();
 							_out_.Write((byte)(scale * (inb >> 4)));
+							inb <<= 4;
 						}
 					else if (depth == 2)
 						for (i = 0; i < nsmp; ++i)
@@ -263,6 +264,7 @@ namespace StbImageNext.Decoders
 							if ((i & 3) == 0)
 								inb = _in_.Read();
 							_out_.Write((byte)(scale * (inb >> 6)));
+							inb <<= 2;
 						}
 					else
 						for (i = 0; i < nsmp; ++i)
@@ -450,6 +452,7 @@ namespace StbImageNext.Decoders
 			var orig = a._out_;
 
 			var p = new FakePtr<byte>(pixel_count * pal_img_n);
+			var temp_out = p;
 			if (pal_img_n == 3)
 			{
 				for (i = 0; i < pixel_count; ++i)
@@ -474,7 +477,7 @@ namespace StbImageNext.Decoders
 				}
 			}
 
-			a._out_ = p;
+			a._out_ = temp_out;
 			return 1;
 		}
 
