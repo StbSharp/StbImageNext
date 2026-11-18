@@ -286,9 +286,34 @@ namespace StbImageNext.Decoders
 				}
 				else if (depth == 16)
 				{
-					throw new NotSupportedException("16-bit PNG not supported");
+					// Samples stay big-endian, two bytes each as in the file; stbi__do_png reduces them to 8 bits
+					if (img_n == out_n)
+						dest.Copy(cur, x * img_n * 2);
+					else
+						stbi__create_png_alpha_expand16(dest, cur, x, img_n);
 				}
 			}
+		}
+
+		private static void stbi__create_png_alpha_expand16(FakePtr<byte> dest, FakePtr<byte> src, uint x, int img_n)
+		{
+			var i = 0;
+			if (img_n == 1)
+				for (i = (int)(x - 1); i >= 0; --i)
+				{
+					dest[i * 4 + 3] = 255;
+					dest[i * 4 + 2] = 255;
+					dest[i * 4 + 1] = src[i * 2 + 1];
+					dest[i * 4 + 0] = src[i * 2 + 0];
+				}
+			else
+				for (i = (int)(x - 1); i >= 0; --i)
+				{
+					dest[i * 8 + 7] = 255;
+					dest[i * 8 + 6] = 255;
+					for (var k = 5; k >= 0; --k)
+						dest[i * 8 + k] = src[i * 6 + k];
+				}
 		}
 
 		private static int stbi__create_png_image(stbi__png a, FakePtr<byte> image_data, uint image_data_len, int out_n,
@@ -365,6 +390,57 @@ namespace StbImageNext.Decoders
 					p += 4;
 				}
 			}
+		}
+
+		private static void stbi__compute_transparency16(stbi__png z, ushort[] tc, int out_n)
+		{
+			uint i = 0;
+			var pixel_count = z.img_x * z.img_y;
+			var p = z._out_;
+			if (out_n == 2)
+			{
+				for (i = 0; i < pixel_count; ++i)
+				{
+					var alpha = (byte)(((p[0] << 8) | p[1]) == tc[0] ? 0 : 255);
+					p[2] = alpha;
+					p[3] = alpha;
+					p += 4;
+				}
+			}
+			else
+			{
+				for (i = 0; i < pixel_count; ++i)
+				{
+					if (((p[0] << 8) | p[1]) == tc[0] && ((p[2] << 8) | p[3]) == tc[1] && ((p[4] << 8) | p[5]) == tc[2])
+					{
+						p[6] = 0;
+						p[7] = 0;
+					}
+					p += 8;
+				}
+			}
+		}
+
+		private static FakePtr<byte> stbi__convert_png16_to_8(stbi__png p, FakePtr<byte> data, int req_comp)
+		{
+			// Like stb_image: convert the format at 16 bits, then keep the high byte of each sample
+			if (req_comp != 0 && req_comp != p.img_out_n)
+			{
+				var count = p.img_x * p.img_y * p.img_out_n;
+				var samples = new FakePtr<ushort>(count);
+				for (long i = 0; i < count; ++i)
+					samples[i] = (ushort)((data[i * 2] << 8) | data[i * 2 + 1]);
+
+				samples = Utility.stbi__convert_format16(samples, p.img_out_n, req_comp, p.img_x, p.img_y);
+				p.img_out_n = req_comp;
+				return Utility.stbi__convert_16_to_8(samples);
+			}
+
+			var reduced = new FakePtr<byte>(p.img_x * p.img_y * p.img_out_n);
+			for (long i = 0; i < reduced.Length; ++i)
+				reduced[i] = data[i * 2];
+
+			return reduced;
 		}
 
 		private static int stbi__expand_png_palette(stbi__png a, byte[] palette, int len, int pal_img_n)
@@ -685,7 +761,7 @@ namespace StbImageNext.Decoders
 							{
 								if (z.depth == 16)
 								{
-									throw new NotSupportedException("16-bit PNGs aren't supported");
+									stbi__compute_transparency16(z, tc16, z.img_out_n);
 								}
 								else
 								{
@@ -744,14 +820,13 @@ namespace StbImageNext.Decoders
 
 			if (stbi__parse_png_file(p, Constants.STBI__SCAN_load, req_comp) != 0)
 			{
-				if (p.depth > 8)
-				{
-					throw new NotSupportedException($"{p.depth}-bit PNGs aren't supported");
-				}
-
 				result = p._out_;
 				p._out_ = FakePtr<byte>.Null;
-				if (req_comp != 0 && req_comp != p.img_out_n)
+				if (p.depth == 16)
+				{
+					result = stbi__convert_png16_to_8(p, result, req_comp);
+				}
+				else if (req_comp != 0 && req_comp != p.img_out_n)
 				{
 					result = Utility.stbi__convert_format(result, p.img_out_n, req_comp, p.img_x, p.img_y);
 					p.img_out_n = req_comp;

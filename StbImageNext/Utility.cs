@@ -205,6 +205,126 @@ namespace StbImageNext
 			return good;
 		}
 
+		public static ushort stbi__compute_y_16(int r, int g, int b)
+		{
+			return (ushort)((r * 77 + g * 150 + 29 * b) >> 8);
+		}
+
+		public static FakePtr<ushort> stbi__convert_format16(FakePtr<ushort> data, int img_n, int req_comp, uint x, uint y)
+		{
+			var i = 0;
+			var j = 0;
+			if (req_comp == img_n)
+				return data;
+
+			var good = new FakePtr<ushort>(req_comp * x * y);
+			for (j = 0; j < (int)y; ++j)
+			{
+				var src = data + j * x * img_n;
+				var dest = good + j * x * req_comp;
+				switch (img_n * 8 + req_comp)
+				{
+					case 1 * 8 + 2:
+						for (i = (int)(x - 1); i >= 0; --i, src += 1, dest += 2)
+						{
+							dest[0] = src[0];
+							dest[1] = 0xffff;
+						}
+
+						break;
+					case 1 * 8 + 3:
+						for (i = (int)(x - 1); i >= 0; --i, src += 1, dest += 3)
+							dest[0] = dest[1] = dest[2] = src[0];
+
+						break;
+					case 1 * 8 + 4:
+						for (i = (int)(x - 1); i >= 0; --i, src += 1, dest += 4)
+						{
+							dest[0] = dest[1] = dest[2] = src[0];
+							dest[3] = 0xffff;
+						}
+
+						break;
+					case 2 * 8 + 1:
+						for (i = (int)(x - 1); i >= 0; --i, src += 2, dest += 1)
+							dest[0] = src[0];
+
+						break;
+					case 2 * 8 + 3:
+						for (i = (int)(x - 1); i >= 0; --i, src += 2, dest += 3)
+							dest[0] = dest[1] = dest[2] = src[0];
+
+						break;
+					case 2 * 8 + 4:
+						for (i = (int)(x - 1); i >= 0; --i, src += 2, dest += 4)
+						{
+							dest[0] = dest[1] = dest[2] = src[0];
+							dest[3] = src[1];
+						}
+
+						break;
+					case 3 * 8 + 4:
+						for (i = (int)(x - 1); i >= 0; --i, src += 3, dest += 4)
+						{
+							dest[0] = src[0];
+							dest[1] = src[1];
+							dest[2] = src[2];
+							dest[3] = 0xffff;
+						}
+
+						break;
+					case 3 * 8 + 1:
+						for (i = (int)(x - 1); i >= 0; --i, src += 3, dest += 1)
+							dest[0] = stbi__compute_y_16(src[0], src[1], src[2]);
+
+						break;
+					case 3 * 8 + 2:
+						for (i = (int)(x - 1); i >= 0; --i, src += 3, dest += 2)
+						{
+							dest[0] = stbi__compute_y_16(src[0], src[1], src[2]);
+							dest[1] = 0xffff;
+						}
+
+						break;
+					case 4 * 8 + 1:
+						for (i = (int)(x - 1); i >= 0; --i, src += 4, dest += 1)
+							dest[0] = stbi__compute_y_16(src[0], src[1], src[2]);
+
+						break;
+					case 4 * 8 + 2:
+						for (i = (int)(x - 1); i >= 0; --i, src += 4, dest += 2)
+						{
+							dest[0] = stbi__compute_y_16(src[0], src[1], src[2]);
+							dest[1] = src[3];
+						}
+
+						break;
+					case 4 * 8 + 3:
+						for (i = (int)(x - 1); i >= 0; --i, src += 4, dest += 3)
+						{
+							dest[0] = src[0];
+							dest[1] = src[1];
+							dest[2] = src[2];
+						}
+
+						break;
+					default:
+						throw new NotSupportedException("unsupported conversion");
+				}
+			}
+
+			return good;
+		}
+
+		public static FakePtr<byte> stbi__convert_16_to_8(FakePtr<ushort> orig)
+		{
+			var reduced = new FakePtr<byte>(orig.Length - orig.Offset);
+			for (long i = 0; i < reduced.Length; ++i)
+				reduced[i] = (byte)((orig[i] >> 8) & 0xFF);
+
+			return reduced;
+		}
+
 		public static double ldexp(double number, int exponent)
 		{
 			return number * Math.Pow(2, exponent);
