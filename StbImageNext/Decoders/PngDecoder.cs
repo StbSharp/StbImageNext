@@ -142,8 +142,9 @@ namespace StbImageNext.Decoders
 			return t1;
 		}
 
-		private static void stbi__create_png_alpha_expand8(FakePtr<byte> dest, FakePtr<byte> src, uint x, int img_n)
+		private static void stbi__create_png_alpha_expand8(Span<byte> dest, ReadOnlySpan<byte> src, uint x, int img_n)
 		{
+			// Goes backwards, so that src and dest can be the same row
 			var i = 0;
 			if (img_n == 1)
 				for (i = (int)(x - 1); i >= 0; --i)
@@ -161,152 +162,7 @@ namespace StbImageNext.Decoders
 				}
 		}
 
-
-		private static void stbi__create_png_image_raw(stbi__png a, Stream image_data, int out_n, uint x, uint y, int depth, int color)
-		{
-			var bytes = depth == 16 ? 2 : 1;
-			uint i = 0;
-			uint j = 0;
-			var stride = (uint)(x * out_n * bytes);
-			uint img_width_bytes = 0;
-			var k = 0;
-			var img_n = a.img_n;
-			var output_bytes = out_n * bytes;
-			var filter_bytes = img_n * bytes;
-			var width = (int)x;
-			img_width_bytes = (uint)((img_n * x * depth + 7) >> 3);
-			a._out_ = new FakePtr<byte>(x * y * output_bytes);
-			// Rows (filter byte, then the filtered row) are inflated a block of about 64 KB at a time,
-			// so the whole decompressed image never needs to be in memory
-			var raw_row_len = (int)img_width_bytes + 1;
-			var raw_block_rows = (int)Math.Min(y, (uint)Math.Max(1, 65536 / raw_row_len));
-			var raw_block = new byte[raw_block_rows * raw_row_len];
-			var raw_block_row = raw_block_rows;
-			var filter_buf = new FakePtr<byte>(img_width_bytes * 2);
-			if (depth < 8)
-			{
-				filter_bytes = 1;
-				width = (int)img_width_bytes;
-			}
-
-			for (j = 0; j < y; ++j)
-			{
-				var cur = filter_buf + (j & 1) * img_width_bytes;
-				var prior = filter_buf + (~j & 1) * img_width_bytes;
-				var dest = a._out_ + stride * j;
-				var nk = width * filter_bytes;
-				if (raw_block_row == raw_block_rows)
-				{
-					if (!stbi__read_fully(image_data, raw_block, (int)Math.Min(raw_block_rows, y - j) * raw_row_len))
-						throw new Exception("not enough pixels");
-					raw_block_row = 0;
-				}
-
-				var raw = new FakePtr<byte>(raw_block, raw_block_row++ * raw_row_len);
-				int filter = raw.Read();
-				if (filter > 4)
-				{
-					throw new Exception("invalid filter");
-				}
-
-				if (j == 0)
-					filter = first_row_filter[filter];
-				switch (filter)
-				{
-					case STBI__F_none:
-						cur.Copy(raw, nk);
-						break;
-					case STBI__F_sub:
-						cur.Copy(raw, filter_bytes);
-						for (k = filter_bytes; k < nk; ++k)
-							cur[k] = (byte)((raw[k] + cur[k - filter_bytes]) & 255);
-
-						break;
-					case STBI__F_up:
-						for (k = 0; k < nk; ++k)
-							cur[k] = (byte)((raw[k] + prior[k]) & 255);
-
-						break;
-					case STBI__F_avg:
-						for (k = 0; k < filter_bytes; ++k)
-							cur[k] = (byte)((raw[k] + (prior[k] >> 1)) & 255);
-
-						for (k = filter_bytes; k < nk; ++k)
-							cur[k] = (byte)((raw[k] + ((prior[k] + cur[k - filter_bytes]) >> 1)) & 255);
-
-						break;
-					case STBI__F_paeth:
-						for (k = 0; k < filter_bytes; ++k)
-							cur[k] = (byte)((raw[k] + prior[k]) & 255);
-
-						for (k = filter_bytes; k < nk; ++k)
-							cur[k] = (byte)((raw[k] + stbi__paeth(cur[k - filter_bytes], prior[k],
-								prior[k - filter_bytes])) & 255);
-
-						break;
-					case STBI__F_avg_first:
-						cur.Copy(raw, filter_bytes);
-						for (k = filter_bytes; k < nk; ++k)
-							cur[k] = (byte)((raw[k] + (cur[k - filter_bytes] >> 1)) & 255);
-
-						break;
-				}
-
-				if (depth < 8)
-				{
-					var scale = (byte)(color == 0 ? stbi__depth_scale_table[depth] : 1);
-					var _in_ = cur;
-					var _out_ = dest;
-					byte inb = 0;
-					var nsmp = (uint)(x * img_n);
-					if (depth == 4)
-						for (i = 0; i < nsmp; ++i)
-						{
-							if ((i & 1) == 0)
-								inb = _in_.Read();
-							_out_.Write((byte)(scale * (inb >> 4)));
-							inb <<= 4;
-						}
-					else if (depth == 2)
-						for (i = 0; i < nsmp; ++i)
-						{
-							if ((i & 3) == 0)
-								inb = _in_.Read();
-							_out_.Write((byte)(scale * (inb >> 6)));
-							inb <<= 2;
-						}
-					else
-						for (i = 0; i < nsmp; ++i)
-						{
-							if ((i & 7) == 0)
-								inb = _in_.Read();
-
-							_out_.Write((byte)(scale * (inb >> 7)));
-							inb <<= 1;
-						}
-
-					if (img_n != out_n)
-						stbi__create_png_alpha_expand8(dest, dest, x, img_n);
-				}
-				else if (depth == 8)
-				{
-					if (img_n == out_n)
-						dest.Copy(cur, x * img_n);
-					else
-						stbi__create_png_alpha_expand8(dest, cur, x, img_n);
-				}
-				else if (depth == 16)
-				{
-					// Samples stay big-endian, two bytes each as in the file; stbi__do_png reduces them to 8 bits
-					if (img_n == out_n)
-						dest.Copy(cur, x * img_n * 2);
-					else
-						stbi__create_png_alpha_expand16(dest, cur, x, img_n);
-				}
-			}
-		}
-
-		private static void stbi__create_png_alpha_expand16(FakePtr<byte> dest, FakePtr<byte> src, uint x, int img_n)
+		private static void stbi__create_png_alpha_expand16(Span<byte> dest, ReadOnlySpan<byte> src, uint x, int img_n)
 		{
 			var i = 0;
 			if (img_n == 1)
@@ -322,9 +178,145 @@ namespace StbImageNext.Decoders
 				{
 					dest[i * 8 + 7] = 255;
 					dest[i * 8 + 6] = 255;
-					for (var k = 5; k >= 0; --k)
-						dest[i * 8 + k] = src[i * 6 + k];
+					src.Slice(i * 6, 6).CopyTo(dest.Slice(i * 8, 6));
 				}
+		}
+
+		private static void stbi__unfilter_png_row(int filter, ReadOnlySpan<byte> raw, Span<byte> cur, ReadOnlySpan<byte> prior, int filter_bytes)
+		{
+			var k = 0;
+			switch (filter)
+			{
+				case STBI__F_none:
+					raw.CopyTo(cur);
+					break;
+				case STBI__F_sub:
+					raw.Slice(0, filter_bytes).CopyTo(cur);
+					for (k = filter_bytes; k < cur.Length; ++k)
+						cur[k] = (byte)((raw[k] + cur[k - filter_bytes]) & 255);
+
+					break;
+				case STBI__F_up:
+					for (k = 0; k < cur.Length; ++k)
+						cur[k] = (byte)((raw[k] + prior[k]) & 255);
+
+					break;
+				case STBI__F_avg:
+					for (k = 0; k < filter_bytes; ++k)
+						cur[k] = (byte)((raw[k] + (prior[k] >> 1)) & 255);
+
+					for (k = filter_bytes; k < cur.Length; ++k)
+						cur[k] = (byte)((raw[k] + ((prior[k] + cur[k - filter_bytes]) >> 1)) & 255);
+
+					break;
+				case STBI__F_paeth:
+					for (k = 0; k < filter_bytes; ++k)
+						cur[k] = (byte)((raw[k] + prior[k]) & 255);
+
+					for (k = filter_bytes; k < cur.Length; ++k)
+						cur[k] = (byte)((raw[k] + stbi__paeth(cur[k - filter_bytes], prior[k], prior[k - filter_bytes])) & 255);
+
+					break;
+				case STBI__F_avg_first:
+					raw.Slice(0, filter_bytes).CopyTo(cur);
+					for (k = filter_bytes; k < cur.Length; ++k)
+						cur[k] = (byte)((raw[k] + (cur[k - filter_bytes] >> 1)) & 255);
+
+					break;
+			}
+		}
+
+		private static void stbi__create_png_image_raw(stbi__png a, Stream image_data, int out_n, uint x, uint y, int depth, int color)
+		{
+			var bytes = depth == 16 ? 2 : 1;
+			var img_n = a.img_n;
+			var stride = (int)(x * out_n * bytes);
+			var img_width_bytes = (int)((img_n * x * depth + 7) >> 3);
+			var filter_bytes = depth < 8 ? 1 : img_n * bytes;
+			a._out_ = new FakePtr<byte>(x * y * out_n * bytes);
+			var output = a._out_.Data;
+			// Rows (filter byte, then the filtered row) are inflated a block of about 64 KB at a time,
+			// so the whole decompressed image never needs to be in memory
+			var raw_row_len = img_width_bytes + 1;
+			var raw_block_rows = (int)Math.Min(y, (uint)Math.Max(1, 65536 / raw_row_len));
+			var raw_block = new byte[raw_block_rows * raw_row_len];
+			var raw_block_row = raw_block_rows;
+			var filter_buf = new byte[img_width_bytes * 2];
+
+			for (uint j = 0; j < y; ++j)
+			{
+				if (raw_block_row == raw_block_rows)
+				{
+					if (!stbi__read_fully(image_data, raw_block, (int)Math.Min(raw_block_rows, y - j) * raw_row_len))
+						throw new Exception("not enough pixels");
+					raw_block_row = 0;
+				}
+
+				var raw = new ReadOnlySpan<byte>(raw_block, raw_block_row++ * raw_row_len, raw_row_len);
+				int filter = raw[0];
+				if (filter > 4)
+				{
+					throw new Exception("invalid filter");
+				}
+
+				if (j == 0)
+					filter = first_row_filter[filter];
+
+				var cur = new Span<byte>(filter_buf, (int)(j & 1) * img_width_bytes, img_width_bytes);
+				var prior = new ReadOnlySpan<byte>(filter_buf, (int)(~j & 1) * img_width_bytes, img_width_bytes);
+				stbi__unfilter_png_row(filter, raw.Slice(1), cur, prior, filter_bytes);
+
+				var dest = new Span<byte>(output, (int)j * stride, stride);
+				if (depth < 8)
+				{
+					var scale = (byte)(color == 0 ? stbi__depth_scale_table[depth] : 1);
+					byte inb = 0;
+					var nsmp = (int)(x * img_n);
+					var src = 0;
+					if (depth == 4)
+						for (var i = 0; i < nsmp; ++i)
+						{
+							if ((i & 1) == 0)
+								inb = cur[src++];
+							dest[i] = (byte)(scale * (inb >> 4));
+							inb <<= 4;
+						}
+					else if (depth == 2)
+						for (var i = 0; i < nsmp; ++i)
+						{
+							if ((i & 3) == 0)
+								inb = cur[src++];
+							dest[i] = (byte)(scale * (inb >> 6));
+							inb <<= 2;
+						}
+					else
+						for (var i = 0; i < nsmp; ++i)
+						{
+							if ((i & 7) == 0)
+								inb = cur[src++];
+							dest[i] = (byte)(scale * (inb >> 7));
+							inb <<= 1;
+						}
+
+					if (img_n != out_n)
+						stbi__create_png_alpha_expand8(dest, dest, x, img_n);
+				}
+				else if (depth == 8)
+				{
+					if (img_n == out_n)
+						cur.CopyTo(dest);
+					else
+						stbi__create_png_alpha_expand8(dest, cur, x, img_n);
+				}
+				else if (depth == 16)
+				{
+					// Samples stay big-endian, two bytes each as in the file; stbi__do_png reduces them to 8 bits
+					if (img_n == out_n)
+						cur.CopyTo(dest);
+					else
+						stbi__create_png_alpha_expand16(dest, cur, x, img_n);
+				}
+			}
 		}
 
 		private static int stbi__create_png_image(stbi__png a, Stream image_data, int out_n, int depth, int color, int interlaced)
