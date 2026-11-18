@@ -1425,7 +1425,8 @@ namespace StbImageNext.Decoders
 				_out_[0] = (byte)r;
 				_out_[1] = (byte)g;
 				_out_[2] = (byte)b;
-				_out_[3] = 255;
+				if (step == 4)
+					_out_[3] = 255;
 				_out_ += step;
 			}
 		}
@@ -1502,14 +1503,7 @@ namespace StbImageNext.Decoders
 						r.resample = stbi__resample_row_generic;
 				}
 
-				var size = n * z.img_x * z.img_y;
-				if (n < 4)
-				{
-					// Since we always set the alpha channel to 255, we need 1 additional byte if n < 4
-					++size;
-				}
-
-				output = new FakePtr<byte>(size);
+				output = new FakePtr<byte>(n * z.img_x * z.img_y);
 				for (j = 0; j < z.img_y; ++j)
 				{
 					var _out_ = output + n * z.img_x * j;
@@ -1539,7 +1533,8 @@ namespace StbImageNext.Decoders
 									_out_[0] = y[i];
 									_out_[1] = coutput[1][i];
 									_out_[2] = coutput[2][i];
-									_out_[3] = 255;
+									if (n == 4)
+										_out_[3] = 255;
 									_out_ += n;
 								}
 							else
@@ -1555,7 +1550,8 @@ namespace StbImageNext.Decoders
 									_out_[0] = Utility.stbi__blinn_8x8(coutput[0][i], m);
 									_out_[1] = Utility.stbi__blinn_8x8(coutput[1][i], m);
 									_out_[2] = Utility.stbi__blinn_8x8(coutput[2][i], m);
-									_out_[3] = 255;
+									if (n == 4)
+										_out_[3] = 255;
 									_out_ += n;
 								}
 							}
@@ -1581,7 +1577,8 @@ namespace StbImageNext.Decoders
 							for (i = 0; i < z.img_x; ++i)
 							{
 								_out_[0] = _out_[1] = _out_[2] = y[i];
-								_out_[3] = 255;
+								if (n == 4)
+									_out_[3] = 255;
 								_out_ += n;
 							}
 						}

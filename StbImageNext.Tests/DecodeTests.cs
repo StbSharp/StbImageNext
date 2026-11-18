@@ -53,6 +53,23 @@ public class DecodeTests
 	}
 
 	[Theory]
+	[InlineData(null)]
+	[InlineData(ColorComponents.Grey)]
+	[InlineData(ColorComponents.GreyAlpha)]
+	[InlineData(ColorComponents.RedGreenBlue)]
+	[InlineData(ColorComponents.RedGreenBlueAlpha)]
+	public void LoadJpgHasExactSize(ColorComponents? requiredComponents)
+	{
+		ImageResult result;
+		using (var stream = _assembly.OpenResourceStream("DockPanes.jpg"))
+		{
+			result = ImageResult.FromStream(stream, requiredComponents);
+		}
+
+		Assert.Equal(result.Width * result.Height * (int)result.Comp, result.Data.Length);
+	}
+
+	[Theory]
 	[InlineData("sample_1280×853.hdr", 1280, 853, ColorComponents.RedGreenBlue)]
 	public void LoadHdr(string filename, int width, int height, ColorComponents colorComponents)
 	{
