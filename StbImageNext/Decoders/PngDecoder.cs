@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
@@ -161,14 +162,12 @@ namespace StbImageNext.Decoders
 		}
 
 
-		private static void stbi__create_png_image_raw(stbi__png a, FakePtr<byte> raw, uint raw_len, int out_n, uint x, uint y, int depth, int color)
+		private static void stbi__create_png_image_raw(stbi__png a, Stream image_data, int out_n, uint x, uint y, int depth, int color)
 		{
 			var bytes = depth == 16 ? 2 : 1;
-			var s = a.s;
 			uint i = 0;
 			uint j = 0;
 			var stride = (uint)(x * out_n * bytes);
-			uint img_len = 0;
 			uint img_width_bytes = 0;
 			var k = 0;
 			var img_n = a.img_n;
@@ -177,9 +176,12 @@ namespace StbImageNext.Decoders
 			var width = (int)x;
 			img_width_bytes = (uint)((img_n * x * depth + 7) >> 3);
 			a._out_ = new FakePtr<byte>(x * y * output_bytes);
-			img_len = (img_width_bytes + 1) * y;
-			if (raw_len < img_len)
-				throw new Exception("not enough pixels");
+			// Rows (filter byte, then the filtered row) are inflated a block of about 64 KB at a time,
+			// so the whole decompressed image never needs to be in memory
+			var raw_row_len = (int)img_width_bytes + 1;
+			var raw_block_rows = (int)Math.Min(y, (uint)Math.Max(1, 65536 / raw_row_len));
+			var raw_block = new byte[raw_block_rows * raw_row_len];
+			var raw_block_row = raw_block_rows;
 			var filter_buf = new FakePtr<byte>(img_width_bytes * 2);
 			if (depth < 8)
 			{
@@ -193,6 +195,14 @@ namespace StbImageNext.Decoders
 				var prior = filter_buf + (~j & 1) * img_width_bytes;
 				var dest = a._out_ + stride * j;
 				var nk = width * filter_bytes;
+				if (raw_block_row == raw_block_rows)
+				{
+					if (!stbi__read_fully(image_data, raw_block, (int)Math.Min(raw_block_rows, y - j) * raw_row_len))
+						throw new Exception("not enough pixels");
+					raw_block_row = 0;
+				}
+
+				var raw = new FakePtr<byte>(raw_block, raw_block_row++ * raw_row_len);
 				int filter = raw.Read();
 				if (filter > 4)
 				{
@@ -242,7 +252,6 @@ namespace StbImageNext.Decoders
 						break;
 				}
 
-				raw += nk;
 				if (depth < 8)
 				{
 					var scale = (byte)(color == 0 ? stbi__depth_scale_table[depth] : 1);
@@ -318,15 +327,14 @@ namespace StbImageNext.Decoders
 				}
 		}
 
-		private static int stbi__create_png_image(stbi__png a, FakePtr<byte> image_data, uint image_data_len, int out_n,
-			int depth, int color, int interlaced)
+		private static int stbi__create_png_image(stbi__png a, Stream image_data, int out_n, int depth, int color, int interlaced)
 		{
 			var bytes = depth == 16 ? 2 : 1;
 			var out_bytes = out_n * bytes;
 			var p = 0;
 			if (interlaced == 0)
 			{
-				stbi__create_png_image_raw(a, image_data, image_data_len, out_n, a.img_x, a.img_y, depth, color);
+				stbi__create_png_image_raw(a, image_data, out_n, a.img_x, a.img_y, depth, color);
 				return 1;
 			}
 
@@ -346,8 +354,7 @@ namespace StbImageNext.Decoders
 				y = (int)((a.img_y - yorig[p] + yspc[p] - 1) / yspc[p]);
 				if (x != 0 && y != 0)
 				{
-					var img_len = (uint)((((a.img_n * x * depth + 7) >> 3) + 1) * y);
-					stbi__create_png_image_raw(a, image_data, image_data_len, out_n, (uint)x, (uint)y, depth, color);
+					stbi__create_png_image_raw(a, image_data, out_n, (uint)x, (uint)y, depth, color);
 
 					for (j = 0; j < y; ++j)
 					{
@@ -359,9 +366,6 @@ namespace StbImageNext.Decoders
 							final.Copy(out_y * a.img_x * out_bytes + out_x * out_bytes, a._out_, (j * x + i) * out_bytes, out_bytes);
 						}
 					}
-
-					image_data += img_len;
-					image_data_len -= img_len;
 				}
 			}
 
@@ -543,8 +547,8 @@ namespace StbImageNext.Decoders
 			tc.Set((byte)0);
 
 			var tc16 = new ushort[3];
+			var idat_chunks = new List<stbi__idat_chunk>();
 			uint ioff = 0;
-			uint idata_limit = 0;
 			uint i = 0;
 			uint pal_len = 0;
 			var first = 1;
@@ -553,8 +557,6 @@ namespace StbImageNext.Decoders
 			var color = 0;
 			var is_iphone = 0;
 			var s = z.s;
-			z.expanded = null;
-			z.idata = FakePtr<byte>.Null;
 			z._out_ = FakePtr<byte>.Null;
 			if (stbi__check_png_header(s, true) == 0)
 				return 0;
@@ -647,7 +649,7 @@ namespace StbImageNext.Decoders
 						{
 							if (first != 0)
 								throw new Exception("first not IHDR");
-							if (!z.idata.IsNull)
+							if (idat_chunks.Count != 0)
 								throw new Exception("tRNS after IDAT");
 							if (pal_img_n != 0)
 							{
@@ -706,59 +708,38 @@ namespace StbImageNext.Decoders
 								throw new Exception("IDAT size limit");
 							if ((int)(ioff + c.length) < (int)ioff)
 								return 0;
-							if (ioff + c.length > idata_limit)
-							{
-								if (idata_limit == 0)
-									idata_limit = c.length > 4096 ? c.length : 4096;
-								while (ioff + c.length > idata_limit)
-									idata_limit *= 2;
 
-								if (z.idata.IsNull)
-								{
-									z.idata = new FakePtr<byte>(idata_limit);
-								}
-								else
-								{
-									z.idata = z.idata.Expand(idata_limit);
-								}
-							}
-
-							if (z.idata.IsNull)
-							{
-								z.idata = new FakePtr<byte>((int)(ioff + c.length));
-								idata_limit = (uint)z.idata.Length;
-							}
-
-							if (s.stbi__getn(z.idata + (int)ioff, (int)c.length) == 0)
-								throw new Exception("outofdata");
+							// The compressed data is read in place at IEND, rather than copied here
+							idat_chunks.Add(new stbi__idat_chunk(s.Position, (int)c.length));
 							ioff += c.length;
+							s.stbi__skip((int)c.length);
 							break;
 						}
 
 					case ((uint)73 << 24) + ((uint)69 << 16) + ((uint)78 << 8) + 68:
 						{
-							uint raw_len = 0;
-							uint bpl = 0;
 							if (first != 0)
 								throw new Exception("first not IHDR");
 							if (scan != Constants.STBI__SCAN_load)
 								return 1;
-							if (z.idata.IsNull)
+							if (idat_chunks.Count == 0)
 								throw new Exception("no IDAT");
-							bpl = (uint)((z.img_x * z.depth + 7) / 8);
-							raw_len = (uint)(bpl * z.img_y * z.img_n + z.img_y);
-							z.expanded = stbi_zlib_decode_malloc_guesssize_headerflag(z.idata, (int)ioff, (int)raw_len, is_iphone == 0 ? 1 : 0);
-							if (z.expanded == null)
+							// zlib format: 2 byte header + deflate data + 4 byte Adler32; CgBI (iPhone) PNGs have raw deflate data
+							var parse_header = is_iphone == 0;
+							if (ioff < (parse_header ? 6 : 1))
 								return 0;
-							z.idata = FakePtr<byte>.Null;
 							if ((req_comp == z.img_n + 1 && req_comp != 3 && pal_img_n == 0) || has_trans != 0)
 								z.img_out_n = z.img_n + 1;
 							else
 								z.img_out_n = z.img_n;
 
-							var ptr = new FakePtr<byte>(z.expanded);
-							if (stbi__create_png_image(z, ptr, (uint)z.expanded.Length, z.img_out_n, z.depth, color, interlace) == 0)
-								return 0;
+							var resume = s.Position;
+							using (var image_data = stbi__open_deflate(new stbi__idat_stream(s, idat_chunks), parse_header))
+							{
+								if (stbi__create_png_image(z, image_data, z.img_out_n, z.depth, color, interlace) == 0)
+									return 0;
+							}
+							s.Position = resume;
 
 							if (has_trans != 0)
 							{
@@ -790,7 +771,6 @@ namespace StbImageNext.Decoders
 								++z.img_n;
 							}
 
-							z.expanded = null;
 							s.stbi__get32be();
 							return 1;
 						}
@@ -839,8 +819,6 @@ namespace StbImageNext.Decoders
 			}
 
 			p._out_ = FakePtr<byte>.Null;
-			p.expanded = null;
-			p.idata = FakePtr<byte>.Null;
 			return result;
 		}
 
@@ -859,23 +837,13 @@ namespace StbImageNext.Decoders
 			return 1;
 		}
 
-		private static byte[] stbi_zlib_decode_malloc_guesssize_headerflag(FakePtr<byte> buffer, int len, int initial_size, int parse_header)
+		private static Stream stbi__open_deflate(Stream compressed, bool parse_header)
 		{
-			if (buffer.IsNull || len <= 0)
-				return null;
-
-			int deflateOffset = 0;
-			int deflateLength = len;
-
-			if (parse_header != 0)
+			if (parse_header)
 			{
-				// Zlib format: 2 byte header + deflate data + 4 byte Adler32
-				if (len < 6)
-					return null;
-
-				byte cmf = buffer[0];
-				byte flg = buffer[1];
-				int cm = cmf & 0x0F;
+				var cmf = compressed.ReadByte();
+				var flg = compressed.ReadByte();
+				var cm = cmf & 0x0F;
 				if (((cmf * 256 + flg) % 31) != 0)
 				{
 					throw new Exception("bad zlib header");
@@ -888,39 +856,97 @@ namespace StbImageNext.Decoders
 				{
 					throw new Exception("bad compression");
 				}
-
-				deflateOffset = 2;
-				deflateLength = len - 6; // exclude header and trailer
-				if (deflateLength < 0)
-					return null;
-			}
-			else
-			{
-				// Raw deflate (no header/trailer)
-				deflateOffset = 0;
-				deflateLength = len;
 			}
 
-			using (var ums = new MemoryStream(buffer.Data, (int)buffer.Offset + deflateOffset, deflateLength))
-			using (var deflateStream = new DeflateStream(ums, CompressionMode.Decompress))
-			using (var outMs = new MemoryStream(initial_size > 0 ? initial_size : 16384))
+			// The Adler32 trailer that follows the deflate data is not read
+			return new DeflateStream(compressed, CompressionMode.Decompress);
+		}
+
+		private static bool stbi__read_fully(Stream s, byte[] buffer, int count)
+		{
+			var read = 0;
+			while (read < count)
 			{
-				deflateStream.CopyTo(outMs);
-				return outMs.ToArray();
+				var n = s.Read(buffer, read, count - read);
+				if (n <= 0)
+					return false;
+				read += n;
 			}
+
+			return true;
 		}
 
 		private class stbi__png
 		{
 			public FakePtr<byte> _out_;
 			public int depth;
-			public byte[] expanded;
-			public FakePtr<byte> idata;
 			public Stream s;
 			public uint img_x;
 			public uint img_y;
 			public int img_n;
 			public int img_out_n;
+		}
+
+		private struct stbi__idat_chunk
+		{
+			public readonly long offset;
+			public readonly int length;
+
+			public stbi__idat_chunk(long offset, int length)
+			{
+				this.offset = offset;
+				this.length = length;
+			}
+		}
+
+		/// <summary>
+		/// Reads the data of the IDAT chunks of a PNG, one after the other, from the PNG stream itself.
+		/// </summary>
+		private sealed class stbi__idat_stream : Stream
+		{
+			private readonly Stream _s;
+			private readonly List<stbi__idat_chunk> _chunks;
+			private int _chunk;
+			private int _position;
+
+			public stbi__idat_stream(Stream s, List<stbi__idat_chunk> chunks)
+			{
+				_s = s;
+				_chunks = chunks;
+			}
+
+			public override int Read(byte[] buffer, int offset, int count)
+			{
+				while (_chunk < _chunks.Count)
+				{
+					var chunk = _chunks[_chunk];
+					if (_position == chunk.length)
+					{
+						++_chunk;
+						_position = 0;
+						continue;
+					}
+
+					_s.Position = chunk.offset + _position;
+					var n = _s.Read(buffer, offset, Math.Min(count, chunk.length - _position));
+					if (n <= 0)
+						return 0;
+					_position += n;
+					return n;
+				}
+
+				return 0;
+			}
+
+			public override bool CanRead => true;
+			public override bool CanSeek => false;
+			public override bool CanWrite => false;
+			public override long Length => throw new NotSupportedException();
+			public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+			public override void Flush() { }
+			public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+			public override void SetLength(long value) => throw new NotSupportedException();
+			public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
 		}
 
 		[StructLayout(LayoutKind.Sequential)]

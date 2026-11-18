@@ -92,16 +92,6 @@ namespace StbImageNext
 			Array.Copy(source, sourceOffset, _data, _offset + offset, size);
 		}
 
-		public FakePtr<T> Expand(long newSize)
-		{
-			if (newSize <= _data.Length)
-				return this;
-			var newBuffer = new FakePtr<T>(newSize);
-			Array.Copy(_data, 0, newBuffer._data, 0, _data.Length);
-			newBuffer._offset = _offset;
-			return newBuffer;
-		}
-
 		public static FakePtr<T> operator +(FakePtr<T> buffer, long offset)
 		{
 			return new FakePtr<T>(buffer._data, buffer._offset + offset);
