@@ -7,7 +7,7 @@ namespace StbImageNext.Decoders
 	/// <summary>
 	/// Provides methods to test, get information about and decode JPG images.
 	/// </summary>
-	public static class JpgDecoder
+	public static partial class JpgDecoder
 	{
 		private static readonly byte[] stbi__process_marker_tag = { 65, 100, 111, 98, 101, 0 };
 		private static readonly byte[] stbi__process_frame_header_rgb = { 82, 71, 66 };
@@ -1425,7 +1425,8 @@ namespace StbImageNext.Decoders
 				_out_[0] = (byte)r;
 				_out_[1] = (byte)g;
 				_out_[2] = (byte)b;
-				_out_[3] = 255;
+				if (step == 4)
+					_out_[3] = 255;
 				_out_ += step;
 			}
 		}
@@ -1435,6 +1436,9 @@ namespace StbImageNext.Decoders
 			j.idct_block_kernel = stbi__idct_block;
 			j.YCbCr_to_RGB_kernel = stbi__YCbCr_to_RGB_row;
 			j.resample_row_hv_2_kernel = stbi__resample_row_hv_2;
+#if NET8_0_OR_GREATER
+			stbi__setup_jpeg_simd(j);
+#endif
 		}
 
 		private static FakePtr<byte> load_jpeg_image(stbi__jpeg z, out int out_x, out int out_y, out int comp, int req_comp)
@@ -1502,14 +1506,7 @@ namespace StbImageNext.Decoders
 						r.resample = stbi__resample_row_generic;
 				}
 
-				var size = n * z.img_x * z.img_y;
-				if (n < 4)
-				{
-					// Since we always set the alpha channel to 255, we need 1 additional byte if n < 4
-					++size;
-				}
-
-				output = new FakePtr<byte>(size);
+				output = new FakePtr<byte>(n * z.img_x * z.img_y);
 				for (j = 0; j < z.img_y; ++j)
 				{
 					var _out_ = output + n * z.img_x * j;
@@ -1539,7 +1536,8 @@ namespace StbImageNext.Decoders
 									_out_[0] = y[i];
 									_out_[1] = coutput[1][i];
 									_out_[2] = coutput[2][i];
-									_out_[3] = 255;
+									if (n == 4)
+										_out_[3] = 255;
 									_out_ += n;
 								}
 							else
@@ -1555,7 +1553,8 @@ namespace StbImageNext.Decoders
 									_out_[0] = Utility.stbi__blinn_8x8(coutput[0][i], m);
 									_out_[1] = Utility.stbi__blinn_8x8(coutput[1][i], m);
 									_out_[2] = Utility.stbi__blinn_8x8(coutput[2][i], m);
-									_out_[3] = 255;
+									if (n == 4)
+										_out_[3] = 255;
 									_out_ += n;
 								}
 							}
@@ -1581,7 +1580,8 @@ namespace StbImageNext.Decoders
 							for (i = 0; i < z.img_x; ++i)
 							{
 								_out_[0] = _out_[1] = _out_[2] = y[i];
-								_out_[3] = 255;
+								if (n == 4)
+									_out_[3] = 255;
 								_out_ += n;
 							}
 						}
