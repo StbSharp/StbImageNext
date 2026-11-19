@@ -373,7 +373,6 @@ namespace StbImageNext.Decoders
 				stbi__grow_buffer_unsafe(j);
 			if (j.succ_high == 0)
 			{
-				data.Clear();
 				t = stbi__jpeg_huff_decode(j, hdc);
 				if (t < 0 || t > 15)
 					throw new Exception("can't merge dc and ac");
@@ -808,16 +807,20 @@ namespace StbImageNext.Decoders
 					for (i = 0; i < w; ++i)
 					{
 						var data = z.img_comp[n].coeff.AsSpan(64 * (i + j * z.img_comp[n].coeff_w), 64);
-						if (z.spec_start == 0)
+						// Out of data: skip the block. The coefficients start at zero, as the arrays are new
+						if (z.nomore == 0)
 						{
-							if (stbi__jpeg_decode_block_prog_dc(z, data, z.huff_dc[z.img_comp[n].hd], n) == 0)
-								return 0;
-						}
-						else
-						{
-							var ha = z.img_comp[n].ha;
-							if (stbi__jpeg_decode_block_prog_ac(z, data, z.huff_ac[ha], z.fast_ac[ha]) == 0)
-								return 0;
+							if (z.spec_start == 0)
+							{
+								if (stbi__jpeg_decode_block_prog_dc(z, data, z.huff_dc[z.img_comp[n].hd], n) == 0)
+									return 0;
+							}
+							else
+							{
+								var ha = z.img_comp[n].ha;
+								if (stbi__jpeg_decode_block_prog_ac(z, data, z.huff_ac[ha], z.fast_ac[ha]) == 0)
+									return 0;
+							}
 						}
 
 						if (--z.todo <= 0)
@@ -1297,7 +1300,7 @@ namespace StbImageNext.Decoders
 				else
 				{
 					if (stbi__process_marker(j, m) == 0)
-						return 1;
+						return 0;
 					m = stbi__get_marker(j);
 				}
 
