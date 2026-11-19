@@ -96,9 +96,22 @@ public class DecodeTests
 		Assert.Equal(colorComponents, info.ColorComponents);
 	}
 
-	// 16-bit images from PngSuite (http://www.schaik.com/pngsuite/). The expected hashes are the first
-	// 16 hex digits of the SHA-256 of the output of stb_image 2.30 and StbImageSharp 2.30.15, which agree.
+	// Images from PngSuite (http://www.schaik.com/pngsuite/). The expected hashes are the first 16 hex
+	// digits of the SHA-256 of the output of stb_image 2.30 and StbImageSharp 2.30.15, which agree.
 	[Theory]
+	[InlineData("basn0g02.png", null, ColorComponents.Grey, "c94bb4ae8f36ad2e")]
+	[InlineData("basn0g02.png", ColorComponents.RedGreenBlueAlpha, ColorComponents.Grey, "166bd68377b119b5")]
+	[InlineData("basn0g04.png", null, ColorComponents.Grey, "c263f47ced16e00f")]
+	[InlineData("basn0g04.png", ColorComponents.RedGreenBlueAlpha, ColorComponents.Grey, "b05a4bc8e7079c8a")]
+	[InlineData("basn3p02.png", null, ColorComponents.RedGreenBlue, "295fe76227f9704c")]
+	[InlineData("basn3p02.png", ColorComponents.Grey, ColorComponents.RedGreenBlue, "ff6d4debdb57ac5a")]
+	[InlineData("basn3p04.png", null, ColorComponents.RedGreenBlue, "93302575430e4e81")]
+	[InlineData("basn3p04.png", ColorComponents.Grey, ColorComponents.RedGreenBlue, "c0430e76999488d1")]
+	[InlineData("basn3p04.png", ColorComponents.GreyAlpha, ColorComponents.RedGreenBlue, "4191bcf8182febed")]
+	[InlineData("basn3p04.png", ColorComponents.RedGreenBlueAlpha, ColorComponents.RedGreenBlue, "a7abc212cf1a44c8")]
+	[InlineData("basi3p04.png", null, ColorComponents.RedGreenBlue, "93302575430e4e81")]
+	[InlineData("tbbn0g04.png", null, ColorComponents.GreyAlpha, "4d2c5f34535da31d")]
+	[InlineData("tbbn0g04.png", ColorComponents.RedGreenBlueAlpha, ColorComponents.GreyAlpha, "1c36e9d46fe44582")]
 	[InlineData("basn0g16.png", null, ColorComponents.Grey, "a9a8592f67f55de0")]
 	[InlineData("basn0g16.png", ColorComponents.RedGreenBlueAlpha, ColorComponents.Grey, "5f42df4fd50dbea3")]
 	[InlineData("basn2c16.png", null, ColorComponents.RedGreenBlue, "eb8706169d6bc8af")]
@@ -117,7 +130,7 @@ public class DecodeTests
 	[InlineData("tbwn0g16.png", null, ColorComponents.GreyAlpha, "32f3b213f33c232b")]
 	[InlineData("tbwn0g16.png", ColorComponents.RedGreenBlueAlpha, ColorComponents.GreyAlpha, "9b13bcf30183dec6")]
 	[InlineData("oi9n2c16.png", null, ColorComponents.RedGreenBlue, "eb8706169d6bc8af")]
-	public void Load16BitPng(string fileName, ColorComponents? requiredComponents, ColorComponents sourceComponents, string expectedHash)
+	public void LoadPngSuite(string fileName, ColorComponents? requiredComponents, ColorComponents sourceComponents, string expectedHash)
 	{
 		ImageResult result;
 		using (var stream = _assembly.OpenResourceStream("PngSuite." + fileName))
