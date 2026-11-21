@@ -100,7 +100,7 @@ namespace StbImageNext.Decoders
 			};
 
 			result.Comp = req_comp ?? result.SourceComp;
-			result.Data = data.Data;
+			result.Data = data;
 
 			return result;
 		}
@@ -233,8 +233,8 @@ namespace StbImageNext.Decoders
 			var stride = (int)(x * out_n * bytes);
 			var img_width_bytes = (int)((img_n * x * depth + 7) >> 3);
 			var filter_bytes = depth < 8 ? 1 : img_n * bytes;
-			a._out_ = new FakePtr<byte>(x * y * out_n * bytes);
-			var output = a._out_.Data;
+			a._out_ = new byte[x * y * out_n * bytes];
+			var output = a._out_;
 			// Rows (filter byte, then the filtered row) are inflated a block of about 64 KB at a time,
 			// so the whole decompressed image never needs to be in memory
 			var raw_row_len = img_width_bytes + 1;
@@ -330,7 +330,7 @@ namespace StbImageNext.Decoders
 				return 1;
 			}
 
-			var final = new FakePtr<byte>(a.img_x * a.img_y * out_bytes);
+			var final = new byte[a.img_x * a.img_y * out_bytes];
 
 			var xorig = new int[] { 0, 4, 0, 2, 0, 1, 0 };
 			var yorig = new int[] { 0, 0, 4, 0, 2, 0, 1 };
@@ -355,7 +355,7 @@ namespace StbImageNext.Decoders
 							var out_y = j * yspc[p] + yorig[p];
 							var out_x = i * xspc[p] + xorig[p];
 
-							final.Copy(out_y * a.img_x * out_bytes + out_x * out_bytes, a._out_, (j * x + i) * out_bytes, out_bytes);
+							Array.Copy(a._out_, (j * x + i) * out_bytes, final, out_y * a.img_x * out_bytes + out_x * out_bytes, out_bytes);
 						}
 					}
 				}
@@ -370,12 +370,13 @@ namespace StbImageNext.Decoders
 			var s = z.s;
 			uint i = 0;
 			var pixel_count = z.img_x * z.img_y;
-			var p = z._out_;
+			var o = z._out_;
+			var p = 0;
 			if (out_n == 2)
 			{
 				for (i = 0; i < pixel_count; ++i)
 				{
-					p[1] = (byte)(p[0] == tc[0] ? 0 : 255);
+					o[p + 1] = (byte)(o[p + 0] == tc[0] ? 0 : 255);
 					p += 2;
 				}
 			}
@@ -383,8 +384,8 @@ namespace StbImageNext.Decoders
 			{
 				for (i = 0; i < pixel_count; ++i)
 				{
-					if (p[0] == tc[0] && p[1] == tc[1] && p[2] == tc[2])
-						p[3] = 0;
+					if (o[p + 0] == tc[0] && o[p + 1] == tc[1] && o[p + 2] == tc[2])
+						o[p + 3] = 0;
 					p += 4;
 				}
 			}
@@ -394,14 +395,15 @@ namespace StbImageNext.Decoders
 		{
 			uint i = 0;
 			var pixel_count = z.img_x * z.img_y;
-			var p = z._out_;
+			var o = z._out_;
+			var p = 0;
 			if (out_n == 2)
 			{
 				for (i = 0; i < pixel_count; ++i)
 				{
-					var alpha = (byte)(((p[0] << 8) | p[1]) == tc[0] ? 0 : 255);
-					p[2] = alpha;
-					p[3] = alpha;
+					var alpha = (byte)(((o[p + 0] << 8) | o[p + 1]) == tc[0] ? 0 : 255);
+					o[p + 2] = alpha;
+					o[p + 3] = alpha;
 					p += 4;
 				}
 			}
@@ -409,23 +411,23 @@ namespace StbImageNext.Decoders
 			{
 				for (i = 0; i < pixel_count; ++i)
 				{
-					if (((p[0] << 8) | p[1]) == tc[0] && ((p[2] << 8) | p[3]) == tc[1] && ((p[4] << 8) | p[5]) == tc[2])
+					if (((o[p + 0] << 8) | o[p + 1]) == tc[0] && ((o[p + 2] << 8) | o[p + 3]) == tc[1] && ((o[p + 4] << 8) | o[p + 5]) == tc[2])
 					{
-						p[6] = 0;
-						p[7] = 0;
+						o[p + 6] = 0;
+						o[p + 7] = 0;
 					}
 					p += 8;
 				}
 			}
 		}
 
-		private static FakePtr<byte> stbi__convert_png16_to_8(stbi__png p, FakePtr<byte> data, int req_comp)
+		private static byte[] stbi__convert_png16_to_8(stbi__png p, byte[] data, int req_comp)
 		{
 			// Like stb_image: convert the format at 16 bits, then keep the high byte of each sample
 			if (req_comp != 0 && req_comp != p.img_out_n)
 			{
 				var count = p.img_x * p.img_y * p.img_out_n;
-				var samples = new FakePtr<ushort>(count);
+				var samples = new ushort[count];
 				for (long i = 0; i < count; ++i)
 					samples[i] = (ushort)((data[i * 2] << 8) | data[i * 2 + 1]);
 
@@ -434,7 +436,7 @@ namespace StbImageNext.Decoders
 				return Utility.stbi__convert_16_to_8(samples);
 			}
 
-			var reduced = new FakePtr<byte>(p.img_x * p.img_y * p.img_out_n);
+			var reduced = new byte[p.img_x * p.img_y * p.img_out_n];
 			for (long i = 0; i < reduced.Length; ++i)
 				reduced[i] = data[i * 2];
 
@@ -447,16 +449,16 @@ namespace StbImageNext.Decoders
 			var pixel_count = a.img_x * a.img_y;
 			var orig = a._out_;
 
-			var p = new FakePtr<byte>(pixel_count * pal_img_n);
-			var temp_out = p;
+			var expanded = new byte[pixel_count * pal_img_n];
+			var p = 0;
 			if (pal_img_n == 3)
 			{
 				for (i = 0; i < pixel_count; ++i)
 				{
 					var n = orig[i] * 4;
-					p[0] = palette[n];
-					p[1] = palette[n + 1];
-					p[2] = palette[n + 2];
+					expanded[p + 0] = palette[n];
+					expanded[p + 1] = palette[n + 1];
+					expanded[p + 2] = palette[n + 2];
 					p += 3;
 				}
 			}
@@ -465,15 +467,15 @@ namespace StbImageNext.Decoders
 				for (i = 0; i < pixel_count; ++i)
 				{
 					var n = orig[i] * 4;
-					p[0] = palette[n];
-					p[1] = palette[n + 1];
-					p[2] = palette[n + 2];
-					p[3] = palette[n + 3];
+					expanded[p + 0] = palette[n];
+					expanded[p + 1] = palette[n + 1];
+					expanded[p + 2] = palette[n + 2];
+					expanded[p + 3] = palette[n + 3];
 					p += 4;
 				}
 			}
 
-			a._out_ = temp_out;
+			a._out_ = expanded;
 			return 1;
 		}
 
@@ -482,14 +484,15 @@ namespace StbImageNext.Decoders
 			var s = z.s;
 			uint i = 0;
 			var pixel_count = z.img_x * z.img_y;
-			var p = z._out_;
+			var o = z._out_;
+			var p = 0;
 			if (z.img_out_n == 3)
 			{
 				for (i = 0; i < pixel_count; ++i)
 				{
-					var t = p[0];
-					p[0] = p[2];
-					p[2] = t;
+					var t = o[p + 0];
+					o[p + 0] = o[p + 2];
+					o[p + 2] = t;
 					p += 3;
 				}
 			}
@@ -499,19 +502,19 @@ namespace StbImageNext.Decoders
 				{
 					for (i = 0; i < pixel_count; ++i)
 					{
-						var a = p[3];
-						var t = p[0];
+						var a = o[p + 3];
+						var t = o[p + 0];
 						if (a != 0)
 						{
 							var half = (byte)(a / 2);
-							p[0] = (byte)((p[2] * 255 + half) / a);
-							p[1] = (byte)((p[1] * 255 + half) / a);
-							p[2] = (byte)((t * 255 + half) / a);
+							o[p + 0] = (byte)((o[p + 2] * 255 + half) / a);
+							o[p + 1] = (byte)((o[p + 1] * 255 + half) / a);
+							o[p + 2] = (byte)((t * 255 + half) / a);
 						}
 						else
 						{
-							p[0] = p[2];
-							p[2] = t;
+							o[p + 0] = o[p + 2];
+							o[p + 2] = t;
 						}
 
 						p += 4;
@@ -521,9 +524,9 @@ namespace StbImageNext.Decoders
 				{
 					for (i = 0; i < pixel_count; ++i)
 					{
-						var t = p[0];
-						p[0] = p[2];
-						p[2] = t;
+						var t = o[p + 0];
+						o[p + 0] = o[p + 2];
+						o[p + 2] = t;
 						p += 4;
 					}
 				}
@@ -549,7 +552,7 @@ namespace StbImageNext.Decoders
 			var color = 0;
 			var is_iphone = 0;
 			var s = z.s;
-			z._out_ = FakePtr<byte>.Null;
+			z._out_ = null;
 			if (stbi__check_png_header(s, true) == 0)
 				return 0;
 			if (scan == Constants.STBI__SCAN_type)
@@ -787,16 +790,16 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		private static FakePtr<byte> stbi__do_png(stbi__png p, int req_comp)
+		private static byte[] stbi__do_png(stbi__png p, int req_comp)
 		{
-			FakePtr<byte> result = FakePtr<byte>.Null;
+			byte[] result = null;
 			if (req_comp < 0 || req_comp > 4)
 				throw new Exception("bad req_comp");
 
 			if (stbi__parse_png_file(p, Constants.STBI__SCAN_load, req_comp) != 0)
 			{
 				result = p._out_;
-				p._out_ = FakePtr<byte>.Null;
+				p._out_ = null;
 				if (p.depth == 16)
 				{
 					result = stbi__convert_png16_to_8(p, result, req_comp);
@@ -810,7 +813,7 @@ namespace StbImageNext.Decoders
 				}
 			}
 
-			p._out_ = FakePtr<byte>.Null;
+			p._out_ = null;
 			return result;
 		}
 
@@ -870,7 +873,7 @@ namespace StbImageNext.Decoders
 
 		private class stbi__png
 		{
-			public FakePtr<byte> _out_;
+			public byte[] _out_;
 			public int depth;
 			public Stream s;
 			public uint img_x;

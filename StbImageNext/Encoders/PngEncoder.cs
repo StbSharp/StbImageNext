@@ -93,23 +93,24 @@ namespace StbImageNext.Encoders
 			}
 		}
 
-		private static uint stbiw__crc32(FakePtr<byte> buffer, int len)
+		private static uint stbiw__crc32(byte[] buffer, int offset, int len)
 		{
 			var crc = ~0u;
 			var i = 0;
 			for (i = 0; i < len; ++i)
-				crc = (crc >> 8) ^ stbiw__crc32_crc_table[buffer[i] ^ (crc & 0xff)];
+				crc = (crc >> 8) ^ stbiw__crc32_crc_table[buffer[offset + i] ^ (crc & 0xff)];
 			return ~crc;
 		}
 
-		private static void stbiw__wpcrc(ref FakePtr<byte> data, int len)
+		// Writes the CRC of the chunk that ends at pos (its type and its len bytes of data)
+		private static void stbiw__wpcrc(byte[] data, ref int pos, int len)
 		{
-			var crc = stbiw__crc32(data - len - 4, len + 4);
-			data[0] = (byte)((crc >> 24) & 0xff);
-			data[1] = (byte)((crc >> 16) & 0xff);
-			data[2] = (byte)((crc >> 8) & 0xff);
-			data[3] = (byte)(crc & 0xff);
-			data += 4;
+			var crc = stbiw__crc32(data, pos - len - 4, len + 4);
+			data[pos] = (byte)((crc >> 24) & 0xff);
+			data[pos + 1] = (byte)((crc >> 16) & 0xff);
+			data[pos + 2] = (byte)((crc >> 8) & 0xff);
+			data[pos + 3] = (byte)(crc & 0xff);
+			pos += 4;
 		}
 
 		private static byte stbiw__paeth(int a, int b, int c)
@@ -131,11 +132,11 @@ namespace StbImageNext.Encoders
 			var mymap = y != 0 ? stbiw__encode_png_line_mapping : stbiw__encode_png_line_firstmap;
 			var i = 0;
 			var type = mymap[filter_type];
-			var z = new FakePtr<byte>(pixels, stride_bytes * (EncodingOptions.FlipVerticallyOnWrite ? height - 1 - y : y));
+			var z = stride_bytes * (EncodingOptions.FlipVerticallyOnWrite ? height - 1 - y : y);
 			var signed_stride = EncodingOptions.FlipVerticallyOnWrite ? -stride_bytes : stride_bytes;
 			if (type == 0)
 			{
-				Array.Copy(z.Data, z.Offset, line_buffer, 0, width * n);
+				Array.Copy(pixels, z, line_buffer, 0, width * n);
 				return;
 			}
 
@@ -143,22 +144,22 @@ namespace StbImageNext.Encoders
 				switch (type)
 				{
 					case 1:
-						line_buffer[i] = (sbyte)z[i];
+						line_buffer[i] = (sbyte)pixels[z + i];
 						break;
 					case 2:
-						line_buffer[i] = (sbyte)(z[i] - z[i - signed_stride]);
+						line_buffer[i] = (sbyte)(pixels[z + i] - pixels[z + i - signed_stride]);
 						break;
 					case 3:
-						line_buffer[i] = (sbyte)(z[i] - (z[i - signed_stride] >> 1));
+						line_buffer[i] = (sbyte)(pixels[z + i] - (pixels[z + i - signed_stride] >> 1));
 						break;
 					case 4:
-						line_buffer[i] = (sbyte)(z[i] - stbiw__paeth(0, z[i - signed_stride], 0));
+						line_buffer[i] = (sbyte)(pixels[z + i] - stbiw__paeth(0, pixels[z + i - signed_stride], 0));
 						break;
 					case 5:
-						line_buffer[i] = (sbyte)z[i];
+						line_buffer[i] = (sbyte)pixels[z + i];
 						break;
 					case 6:
-						line_buffer[i] = (sbyte)z[i];
+						line_buffer[i] = (sbyte)pixels[z + i];
 						break;
 				}
 
@@ -166,28 +167,28 @@ namespace StbImageNext.Encoders
 			{
 				case 1:
 					for (i = n; i < width * n; ++i)
-						line_buffer[i] = (sbyte)(z[i] - z[i - n]);
+						line_buffer[i] = (sbyte)(pixels[z + i] - pixels[z + i - n]);
 					break;
 				case 2:
 					for (i = n; i < width * n; ++i)
-						line_buffer[i] = (sbyte)(z[i] - z[i - signed_stride]);
+						line_buffer[i] = (sbyte)(pixels[z + i] - pixels[z + i - signed_stride]);
 					break;
 				case 3:
 					for (i = n; i < width * n; ++i)
-						line_buffer[i] = (sbyte)(z[i] - ((z[i - n] + z[i - signed_stride]) >> 1));
+						line_buffer[i] = (sbyte)(pixels[z + i] - ((pixels[z + i - n] + pixels[z + i - signed_stride]) >> 1));
 					break;
 				case 4:
 					for (i = n; i < width * n; ++i)
 						line_buffer[i] =
-							(sbyte)(z[i] - stbiw__paeth(z[i - n], z[i - signed_stride], z[i - signed_stride - n]));
+							(sbyte)(pixels[z + i] - stbiw__paeth(pixels[z + i - n], pixels[z + i - signed_stride], pixels[z + i - signed_stride - n]));
 					break;
 				case 5:
 					for (i = n; i < width * n; ++i)
-						line_buffer[i] = (sbyte)(z[i] - (z[i - n] >> 1));
+						line_buffer[i] = (sbyte)(pixels[z + i] - (pixels[z + i - n] >> 1));
 					break;
 				case 6:
 					for (i = n; i < width * n; ++i)
-						line_buffer[i] = (sbyte)(z[i] - stbiw__paeth(z[i - n], 0, 0));
+						line_buffer[i] = (sbyte)(pixels[z + i] - stbiw__paeth(pixels[z + i - n], 0, 0));
 					break;
 			}
 		}
@@ -255,60 +256,62 @@ namespace StbImageNext.Encoders
 
 			var zlen = zlib.Length;
 			var _out_ = new byte[8 + 12 + 13 + 12 + zlen + 12];
-			var o = new FakePtr<byte>(_out_);
-			o.Write(sig);
-			o[0] = (13 >> 24) & 0xff;
-			o[1] = (13 >> 16) & 0xff;
-			o[2] = (13 >> 8) & 0xff;
-			o[3] = 13 & 0xff;
+			var o = 0;
+			Array.Copy(sig, 0, _out_, o, sig.Length);
+			o += sig.Length;
+			_out_[o + 0] = (13 >> 24) & 0xff;
+			_out_[o + 1] = (13 >> 16) & 0xff;
+			_out_[o + 2] = (13 >> 8) & 0xff;
+			_out_[o + 3] = 13 & 0xff;
 			o += 4;
-			o[0] = (byte)("IHDR"[0] & 0xff);
-			o[1] = (byte)("IHDR"[1] & 0xff);
-			o[2] = (byte)("IHDR"[2] & 0xff);
-			o[3] = (byte)("IHDR"[3] & 0xff);
+			_out_[o + 0] = (byte)("IHDR"[0] & 0xff);
+			_out_[o + 1] = (byte)("IHDR"[1] & 0xff);
+			_out_[o + 2] = (byte)("IHDR"[2] & 0xff);
+			_out_[o + 3] = (byte)("IHDR"[3] & 0xff);
 			o += 4;
-			o[0] = (byte)((width >> 24) & 0xff);
-			o[1] = (byte)((width >> 16) & 0xff);
-			o[2] = (byte)((width >> 8) & 0xff);
-			o[3] = (byte)(width & 0xff);
+			_out_[o + 0] = (byte)((width >> 24) & 0xff);
+			_out_[o + 1] = (byte)((width >> 16) & 0xff);
+			_out_[o + 2] = (byte)((width >> 8) & 0xff);
+			_out_[o + 3] = (byte)(width & 0xff);
 			o += 4;
-			o[0] = (byte)((height >> 24) & 0xff);
-			o[1] = (byte)((height >> 16) & 0xff);
-			o[2] = (byte)((height >> 8) & 0xff);
-			o[3] = (byte)(height & 0xff);
-			o += 4;
-
-			o.Write(8);
-			o.Write((byte)(ctype[n] & 0xff));
-			o.Write(0);
-			o.Write(0);
-			o.Write(0);
-			stbiw__wpcrc(ref o, 13);
-			o[0] = (byte)((zlen >> 24) & 0xff);
-			o[1] = (byte)((zlen >> 16) & 0xff);
-			o[2] = (byte)((zlen >> 8) & 0xff);
-			o[3] = (byte)(zlen & 0xff);
-			o += 4;
-			o[0] = (byte)("IDAT"[0] & 0xff);
-			o[1] = (byte)("IDAT"[1] & 0xff);
-			o[2] = (byte)("IDAT"[2] & 0xff);
-			o[3] = (byte)("IDAT"[3] & 0xff);
+			_out_[o + 0] = (byte)((height >> 24) & 0xff);
+			_out_[o + 1] = (byte)((height >> 16) & 0xff);
+			_out_[o + 2] = (byte)((height >> 8) & 0xff);
+			_out_[o + 3] = (byte)(height & 0xff);
 			o += 4;
 
-			o.Write(zlib);
+			_out_[o++] = 8;
+			_out_[o++] = (byte)(ctype[n] & 0xff);
+			_out_[o++] = 0;
+			_out_[o++] = 0;
+			_out_[o++] = 0;
+			stbiw__wpcrc(_out_, ref o, 13);
+			_out_[o + 0] = (byte)((zlen >> 24) & 0xff);
+			_out_[o + 1] = (byte)((zlen >> 16) & 0xff);
+			_out_[o + 2] = (byte)((zlen >> 8) & 0xff);
+			_out_[o + 3] = (byte)(zlen & 0xff);
+			o += 4;
+			_out_[o + 0] = (byte)("IDAT"[0] & 0xff);
+			_out_[o + 1] = (byte)("IDAT"[1] & 0xff);
+			_out_[o + 2] = (byte)("IDAT"[2] & 0xff);
+			_out_[o + 3] = (byte)("IDAT"[3] & 0xff);
+			o += 4;
 
-			stbiw__wpcrc(ref o, zlen);
-			o[0] = (0 >> 24) & 0xff;
-			o[1] = (0 >> 16) & 0xff;
-			o[2] = (0 >> 8) & 0xff;
-			o[3] = 0 & 0xff;
+			Array.Copy(zlib, 0, _out_, o, zlib.Length);
+			o += zlib.Length;
+
+			stbiw__wpcrc(_out_, ref o, zlen);
+			_out_[o + 0] = (0 >> 24) & 0xff;
+			_out_[o + 1] = (0 >> 16) & 0xff;
+			_out_[o + 2] = (0 >> 8) & 0xff;
+			_out_[o + 3] = 0 & 0xff;
 			o += 4;
-			o[0] = (byte)("IEND"[0] & 0xff);
-			o[1] = (byte)("IEND"[1] & 0xff);
-			o[2] = (byte)("IEND"[2] & 0xff);
-			o[3] = (byte)("IEND"[3] & 0xff);
+			_out_[o + 0] = (byte)("IEND"[0] & 0xff);
+			_out_[o + 1] = (byte)("IEND"[1] & 0xff);
+			_out_[o + 2] = (byte)("IEND"[2] & 0xff);
+			_out_[o + 3] = (byte)("IEND"[3] & 0xff);
 			o += 4;
-			stbiw__wpcrc(ref o, 0);
+			stbiw__wpcrc(_out_, ref o, 0);
 			return _out_;
 		}
 

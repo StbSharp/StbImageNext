@@ -62,22 +62,22 @@ namespace StbImageNext.Encoders
 
 			for (; j != jend; j += jdir)
 			{
-				var row = new FakePtr<byte>(data, +j * width * compInt);
+				var row = new ReadOnlySpan<byte>(data, j * width * compInt, width * compInt);
 				var len = 0;
 				for (i = 0; i < width; i += len)
 				{
-					var begin = row + i * compInt;
+					var begin = i * compInt;
 					var diff = 1;
 					len = 1;
 					if (i < width - 1)
 					{
 						++len;
-						diff = begin.Compare(row + (i + 1) * compInt, compInt);
+						diff = SamePixel(row, begin, (i + 1) * compInt, compInt) ? 0 : 1;
 						if (diff != 0)
 						{
 							var prev = begin;
 							for (k = i + 2; k < width && len < 128; ++k)
-								if (prev.Compare(row + k * compInt, compInt) != 0)
+								if (!SamePixel(row, prev, k * compInt, compInt))
 								{
 									prev += compInt;
 									++len;
@@ -91,7 +91,7 @@ namespace StbImageNext.Encoders
 						else
 						{
 							for (k = i + 2; k < width && len < 128; ++k)
-								if (begin.Compare(row + k * compInt, compInt) == 0)
+								if (SamePixel(row, begin, k * compInt, compInt))
 									++len;
 								else
 									break;
@@ -103,13 +103,13 @@ namespace StbImageNext.Encoders
 						var header = (byte)((len - 1) & 0xff);
 						s.Write(header);
 						for (k = 0; k < len; ++k)
-							BmpEncoder.stbiw__write_pixel(s, -1, compInt, has_alpha, 0, begin + k * compInt);
+							BmpEncoder.stbiw__write_pixel(s, -1, compInt, has_alpha, 0, row.Slice(begin + k * compInt, compInt));
 					}
 					else
 					{
 						var header = (byte)((len - 129) & 0xff);
 						s.Write(header);
-						BmpEncoder.stbiw__write_pixel(s, -1, compInt, has_alpha, 0, begin);
+						BmpEncoder.stbiw__write_pixel(s, -1, compInt, has_alpha, 0, row.Slice(begin, compInt));
 					}
 				}
 			}
@@ -142,6 +142,11 @@ namespace StbImageNext.Encoders
 				EncodeToStream(ms, data, width, height, comp);
 				return ms.ToArray();
 			}
+		}
+
+		private static bool SamePixel(ReadOnlySpan<byte> row, int a, int b, int comp)
+		{
+			return row.Slice(a, comp).SequenceEqual(row.Slice(b, comp));
 		}
 	}
 }

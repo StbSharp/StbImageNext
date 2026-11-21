@@ -33,14 +33,14 @@ namespace StbImageNext.Encoders
 			s.Write(databyte);
 		}
 
-		private static void stbiw__write_dump_data(BinaryWriter s, int length, FakePtr<byte> data)
+		private static void stbiw__write_dump_data(BinaryWriter s, int length, byte[] data, int offset)
 		{
 			var lengthbyte = (byte)(length & 0xff);
 			s.Write(lengthbyte);
-			s.Write(data.Data, (int)data.Offset, length);
+			s.Write(data, offset, length);
 		}
 
-		private static void stbiw__write_hdr_scanline(BinaryWriter output, int width, int ncomp, byte[] scratch, FakePtr<float> scanline)
+		private static void stbiw__write_hdr_scanline(BinaryWriter output, int width, int ncomp, byte[] scratch, ReadOnlySpan<float> scanline)
 		{
 			var scanlineheader = new byte[] { 2, 2, 0, 0 };
 			var rgbe = new byte[4];
@@ -98,14 +98,14 @@ namespace StbImageNext.Encoders
 				output.Write(scanlineheader);
 				for (c = 0; c < 4; c++)
 				{
-					var comp = new FakePtr<byte>(scratch, width * c);
+					var plane = width * c;
 					x = 0;
 					while (x < width)
 					{
 						r = x;
 						while (r + 2 < width)
 						{
-							if (comp[r] == comp[r + 1] && comp[r] == comp[r + 2])
+							if (scratch[plane + r] == scratch[plane + r + 1] && scratch[plane + r] == scratch[plane + r + 2])
 								break;
 							++r;
 						}
@@ -117,20 +117,20 @@ namespace StbImageNext.Encoders
 							var len = r - x;
 							if (len > 128)
 								len = 128;
-							stbiw__write_dump_data(output, len, comp + x);
+							stbiw__write_dump_data(output, len, scratch, plane + x);
 							x += len;
 						}
 
 						if (r + 2 < width)
 						{
-							while (r < width && comp[r] == comp[x])
+							while (r < width && scratch[plane + r] == scratch[plane + x])
 								++r;
 							while (x < r)
 							{
 								var len = r - x;
 								if (len > 127)
 									len = 127;
-								stbiw__write_run_data(output, len, comp[x]);
+								stbiw__write_run_data(output, len, scratch[plane + x]);
 								x += len;
 							}
 						}
@@ -177,7 +177,7 @@ namespace StbImageNext.Encoders
 			var comp = (int)compEnum;
 			for (i = 0; i < height; i++)
 			{
-				stbiw__write_hdr_scanline(s, width, comp, scratch, new FakePtr<float>(data, comp * i * width));
+				stbiw__write_hdr_scanline(s, width, comp, scratch, new ReadOnlySpan<float>(data, comp * i * width, comp * width));
 			}
 		}
 

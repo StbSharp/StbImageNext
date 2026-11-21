@@ -47,7 +47,7 @@ namespace StbImageNext.Encoders
 			}
 		}
 
-		internal static void stbiw__write_pixel(BinaryWriter output, int rgb_dir, int comp, int write_alpha, int expand_mono, FakePtr<byte> d)
+		internal static void stbiw__write_pixel(BinaryWriter output, int rgb_dir, int comp, int write_alpha, int expand_mono, ReadOnlySpan<byte> d)
 		{
 			var bg = new byte[] { 255, 0, 255 };
 			var px = new byte[3];
@@ -123,7 +123,7 @@ namespace StbImageNext.Encoders
 			{
 				for (i = 0; i < x; ++i)
 				{
-					var d = new FakePtr<byte>(data, (j * x + i) * comp);
+					var d = new ReadOnlySpan<byte>(data, (j * x + i) * comp, comp);
 					stbiw__write_pixel(output, rgb_dir, comp, write_alpha, expand_mono, d);
 				}
 

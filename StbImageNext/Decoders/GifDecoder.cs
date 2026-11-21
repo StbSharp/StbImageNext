@@ -69,7 +69,7 @@ namespace StbImageNext.Decoders
 		{
 			var g = new stbi__gif();
 			var u = stbi__gif_load_next(s, g, req_comp.ToInternalValue());
-			if (u.IsNull)
+			if (u == null)
 			{
 				throw new Exception("Unknown GIF loading error");
 			}
@@ -87,7 +87,7 @@ namespace StbImageNext.Decoders
 			};
 
 			result.Comp = req_comp ?? result.SourceComp;
-			result.Data = u.Data;
+			result.Data = u;
 			return result;
 		}
 
@@ -143,15 +143,14 @@ namespace StbImageNext.Decoders
 			if (g.cur_y >= g.max_y)
 				return;
 			idx = g.cur_x + g.cur_y;
-			var p = g._out_.SubBuffer(idx);
 			g.history[idx / 4] = 1;
 			var c = g.color_table[g.codes[code].suffix];
 			if (c[3] > 128)
 			{
-				p[0] = c[2];
-				p[1] = c[1];
-				p[2] = c[0];
-				p[3] = c[3];
+				g._out_[idx] = c[2];
+				g._out_[idx + 1] = c[1];
+				g._out_[idx + 2] = c[0];
+				g._out_[idx + 3] = c[3];
 			}
 
 			g.cur_x += 4;
@@ -273,24 +272,21 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		internal static FakePtr<byte> stbi__gif_load_next(Stream s, stbi__gif g, int req_comp)
+		internal static byte[] stbi__gif_load_next(Stream s, stbi__gif g, int req_comp)
 		{
 			var dispose = 0;
 			var first_frame = 0;
 			var pi = 0;
 			var pcount = 0;
 			first_frame = 0;
-			if (g._out_.IsNull)
+			if (g._out_ == null)
 			{
 				ParseHeader(s, g, false);
 
 				pcount = g.w * g.h;
-				g._out_ = new FakePtr<byte>(4 * pcount);
-				g.background = new FakePtr<byte>(4 * pcount);
-				g.history = new FakePtr<byte>(pcount);
-				g._out_.Set(0);
-				g.background.Set(0);
-				g.history.Set(0);
+				g._out_ = new byte[4 * pcount];
+				g.background = new byte[4 * pcount];
+				g.history = new byte[pcount];
 				first_frame = 1;
 			}
 			else
@@ -305,14 +301,14 @@ namespace StbImageNext.Decoders
 					for (pi = 0; pi < pcount; ++pi)
 						if (g.history[pi] != 0)
 						{
-							g._out_.Copy(pi * 4, g.background, pi * 4, 4);
+							Array.Copy(g.background, pi * 4, g._out_, pi * 4, 4);
 						}
 				}
 
-				g.background.Copy(g._out_, 4 * g.w * g.h);
+				Array.Copy(g._out_, g.background, 4 * g.w * g.h);
 			}
 
-			g.history.Set(0);
+			Array.Clear(g.history, 0, g.history.Length);
 			for (; ; )
 			{
 				int tag = s.stbi__get8();
@@ -368,7 +364,7 @@ namespace StbImageNext.Decoders
 
 							if (!stbi__process_gif_raster(s, g))
 							{
-								return FakePtr<byte>.Null;
+								return null;
 							}
 
 							pcount = g.w * g.h;
@@ -377,7 +373,7 @@ namespace StbImageNext.Decoders
 									if (g.history[pi] == 0)
 									{
 										g.pal[g.bgindex][3] = 255;
-										g._out_.Copy(pi * 4, g.pal[g.bgindex], 0, 4);
+										Array.Copy(g.pal[g.bgindex], 0, g._out_, pi * 4, 4);
 									}
 
 							return g._out_;
@@ -421,7 +417,7 @@ namespace StbImageNext.Decoders
 						}
 
 					case 0x3B:
-						return FakePtr<byte>.Null;
+						return null;
 					default:
 						throw new Exception("unknown code");
 				}
@@ -431,8 +427,8 @@ namespace StbImageNext.Decoders
 
 		internal class stbi__gif
 		{
-			public FakePtr<byte> _out_;
-			public FakePtr<byte> background;
+			public byte[] _out_;
+			public byte[] background;
 			public int bgindex;
 			public stbi__gif_lzw[] codes = new stbi__gif_lzw[8192];
 			public byte[][] color_table;
@@ -442,7 +438,7 @@ namespace StbImageNext.Decoders
 			public int eflags;
 			public int flags;
 			public int h;
-			public FakePtr<byte> history;
+			public byte[] history;
 			public int lflags;
 			public int line_size;
 			public byte[][] lpal = Utility.CreateArray<byte>(256, 4);

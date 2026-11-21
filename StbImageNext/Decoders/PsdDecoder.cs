@@ -110,7 +110,7 @@ namespace StbImageNext.Decoders
 			if (compression > 1)
 				throw new Exception("bad compression");
 
-			var _out_ = new FakePtr<byte>(4 * w * h);
+			var _out_ = new byte[4 * w * h];
 
 			pixelCount = w * h;
 			if (compression != 0)
@@ -118,15 +118,15 @@ namespace StbImageNext.Decoders
 				s.stbi__skip(h * channelCount * 2);
 				for (channel = 0; channel < 4; channel++)
 				{
-					var p = _out_ + channel;
+					var p = channel;
 					if (channel >= channelCount)
 					{
 						for (i = 0; i < pixelCount; i++, p += 4)
-							p[0] = (byte)(channel == 3 ? 255 : 0);
+							_out_[p] = (byte)(channel == 3 ? 255 : 0);
 					}
 					else
 					{
-						if (stbi__psd_decode_rle(s, p, pixelCount) == 0)
+						if (stbi__psd_decode_rle(s, _out_, p, pixelCount) == 0)
 						{
 							throw new Exception("corrupt");
 						}
@@ -139,28 +139,28 @@ namespace StbImageNext.Decoders
 				{
 					if (channel >= channelCount)
 					{
-						var p = _out_ + channel;
+						var p = channel;
 						var val = (byte)(channel == 3 ? 255 : 0);
 						for (i = 0; i < pixelCount; i++, p += 4)
 						{
-							p[0] = val;
+							_out_[p] = val;
 						}
 					}
 					else
 					{
-						var p = _out_ + channel;
+						var p = channel;
 						if (bitdepth == 16)
 						{
 							for (i = 0; i < pixelCount; i++, p += 4)
 							{
-								p[0] = (byte)(s.stbi__get16be() >> 8);
+								_out_[p] = (byte)(s.stbi__get16be() >> 8);
 							}
 						}
 						else
 						{
 							for (i = 0; i < pixelCount; i++, p += 4)
 							{
-								p[0] = s.stbi__get8();
+								_out_[p] = s.stbi__get8();
 							}
 						}
 					}
@@ -171,7 +171,7 @@ namespace StbImageNext.Decoders
 			{
 				for (i = 0; i < w * h; ++i)
 				{
-					var pixel = _out_ + 4 * i;
+					var pixel = new Span<byte>(_out_, 4 * i, 4);
 					if (pixel[3] != 0 && pixel[3] != 255)
 					{
 						var a = pixel[3] / 255.0f;
@@ -194,7 +194,7 @@ namespace StbImageNext.Decoders
 				Width = w,
 				Height = h,
 				SourceComp = ColorComponents.RedGreenBlueAlpha,
-				Data = _out_.Data
+				Data = _out_
 			};
 
 			result.Comp = req_comp ?? result.SourceComp;
@@ -202,7 +202,8 @@ namespace StbImageNext.Decoders
 			return result;
 		}
 
-		private static int stbi__psd_decode_rle(Stream s, FakePtr<byte> p, int pixelCount)
+		// Writes every fourth byte of output from p: one channel of the pixels
+		private static int stbi__psd_decode_rle(Stream s, byte[] output, int p, int pixelCount)
 		{
 			var count = 0;
 			var nleft = 0;
@@ -222,7 +223,7 @@ namespace StbImageNext.Decoders
 					count += len;
 					while (len != 0)
 					{
-						p[0] = s.stbi__get8();
+						output[p] = s.stbi__get8();
 						p += 4;
 						len--;
 					}
@@ -237,7 +238,7 @@ namespace StbImageNext.Decoders
 					count += len;
 					while (len != 0)
 					{
-						p[0] = val;
+						output[p] = val;
 						p += 4;
 						len--;
 					}

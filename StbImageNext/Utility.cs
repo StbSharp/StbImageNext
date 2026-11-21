@@ -83,9 +83,9 @@ namespace StbImageNext
 			s.Seek(skip, SeekOrigin.Current);
 		}
 
-		public static int stbi__getn(this Stream s, FakePtr<byte> buf, int size)
+		public static int stbi__getn(this Stream s, byte[] buf, int offset, int size)
 		{
-			return s.Read(buf.Data, (int)buf.Offset, size);
+			return s.Read(buf, offset, size);
 		}
 
 		public static bool stbi__at_eof(this Stream s)
@@ -99,101 +99,101 @@ namespace StbImageNext
 		}
 
 
-		public static FakePtr<byte> stbi__convert_format(FakePtr<byte> data, int img_n, int req_comp, uint x, uint y)
+		public static byte[] stbi__convert_format(byte[] data, int img_n, int req_comp, uint x, uint y)
 		{
-			var i = 0;
-			var j = 0;
 			if (req_comp == img_n)
 				return data;
 
-			var good = new FakePtr<byte>(req_comp * x * y);
-			for (j = 0; j < (int)y; ++j)
+			var w = (int)x;
+			var good = new byte[req_comp * x * y];
+			for (var j = 0; j < (int)y; ++j)
 			{
-				var src = data + j * x * img_n;
-				var dest = good + j * x * req_comp;
+				var src = new ReadOnlySpan<byte>(data, j * w * img_n, w * img_n);
+				var dest = new Span<byte>(good, j * w * req_comp, w * req_comp);
+				var i = 0;
 				switch (img_n * 8 + req_comp)
 				{
 					case 1 * 8 + 2:
-						for (i = (int)(x - 1); i >= 0; --i, src += 1, dest += 2)
+						for (i = 0; i < w; ++i)
 						{
-							dest[0] = src[0];
-							dest[1] = 255;
+							dest[i * 2] = src[i];
+							dest[i * 2 + 1] = 255;
 						}
 
 						break;
 					case 1 * 8 + 3:
-						for (i = (int)(x - 1); i >= 0; --i, src += 1, dest += 3)
-							dest[0] = dest[1] = dest[2] = src[0];
+						for (i = 0; i < w; ++i)
+							dest[i * 3] = dest[i * 3 + 1] = dest[i * 3 + 2] = src[i];
 
 						break;
 					case 1 * 8 + 4:
-						for (i = (int)(x - 1); i >= 0; --i, src += 1, dest += 4)
+						for (i = 0; i < w; ++i)
 						{
-							dest[0] = dest[1] = dest[2] = src[0];
-							dest[3] = 255;
+							dest[i * 4] = dest[i * 4 + 1] = dest[i * 4 + 2] = src[i];
+							dest[i * 4 + 3] = 255;
 						}
 
 						break;
 					case 2 * 8 + 1:
-						for (i = (int)(x - 1); i >= 0; --i, src += 2, dest += 1)
-							dest[0] = src[0];
+						for (i = 0; i < w; ++i)
+							dest[i] = src[i * 2];
 
 						break;
 					case 2 * 8 + 3:
-						for (i = (int)(x - 1); i >= 0; --i, src += 2, dest += 3)
-							dest[0] = dest[1] = dest[2] = src[0];
+						for (i = 0; i < w; ++i)
+							dest[i * 3] = dest[i * 3 + 1] = dest[i * 3 + 2] = src[i * 2];
 
 						break;
 					case 2 * 8 + 4:
-						for (i = (int)(x - 1); i >= 0; --i, src += 2, dest += 4)
+						for (i = 0; i < w; ++i)
 						{
-							dest[0] = dest[1] = dest[2] = src[0];
-							dest[3] = src[1];
+							dest[i * 4] = dest[i * 4 + 1] = dest[i * 4 + 2] = src[i * 2];
+							dest[i * 4 + 3] = src[i * 2 + 1];
 						}
 
 						break;
 					case 3 * 8 + 4:
-						for (i = (int)(x - 1); i >= 0; --i, src += 3, dest += 4)
+						for (i = 0; i < w; ++i)
 						{
-							dest[0] = src[0];
-							dest[1] = src[1];
-							dest[2] = src[2];
-							dest[3] = 255;
+							dest[i * 4] = src[i * 3];
+							dest[i * 4 + 1] = src[i * 3 + 1];
+							dest[i * 4 + 2] = src[i * 3 + 2];
+							dest[i * 4 + 3] = 255;
 						}
 
 						break;
 					case 3 * 8 + 1:
-						for (i = (int)(x - 1); i >= 0; --i, src += 3, dest += 1)
-							dest[0] = stbi__compute_y(src[0], src[1], src[2]);
+						for (i = 0; i < w; ++i)
+							dest[i] = stbi__compute_y(src[i * 3], src[i * 3 + 1], src[i * 3 + 2]);
 
 						break;
 					case 3 * 8 + 2:
-						for (i = (int)(x - 1); i >= 0; --i, src += 3, dest += 2)
+						for (i = 0; i < w; ++i)
 						{
-							dest[0] = stbi__compute_y(src[0], src[1], src[2]);
-							dest[1] = 255;
+							dest[i * 2] = stbi__compute_y(src[i * 3], src[i * 3 + 1], src[i * 3 + 2]);
+							dest[i * 2 + 1] = 255;
 						}
 
 						break;
 					case 4 * 8 + 1:
-						for (i = (int)(x - 1); i >= 0; --i, src += 4, dest += 1)
-							dest[0] = stbi__compute_y(src[0], src[1], src[2]);
+						for (i = 0; i < w; ++i)
+							dest[i] = stbi__compute_y(src[i * 4], src[i * 4 + 1], src[i * 4 + 2]);
 
 						break;
 					case 4 * 8 + 2:
-						for (i = (int)(x - 1); i >= 0; --i, src += 4, dest += 2)
+						for (i = 0; i < w; ++i)
 						{
-							dest[0] = stbi__compute_y(src[0], src[1], src[2]);
-							dest[1] = src[3];
+							dest[i * 2] = stbi__compute_y(src[i * 4], src[i * 4 + 1], src[i * 4 + 2]);
+							dest[i * 2 + 1] = src[i * 4 + 3];
 						}
 
 						break;
 					case 4 * 8 + 3:
-						for (i = (int)(x - 1); i >= 0; --i, src += 4, dest += 3)
+						for (i = 0; i < w; ++i)
 						{
-							dest[0] = src[0];
-							dest[1] = src[1];
-							dest[2] = src[2];
+							dest[i * 3] = src[i * 4];
+							dest[i * 3 + 1] = src[i * 4 + 1];
+							dest[i * 3 + 2] = src[i * 4 + 2];
 						}
 
 						break;
@@ -210,101 +210,101 @@ namespace StbImageNext
 			return (ushort)((r * 77 + g * 150 + 29 * b) >> 8);
 		}
 
-		public static FakePtr<ushort> stbi__convert_format16(FakePtr<ushort> data, int img_n, int req_comp, uint x, uint y)
+		public static ushort[] stbi__convert_format16(ushort[] data, int img_n, int req_comp, uint x, uint y)
 		{
-			var i = 0;
-			var j = 0;
 			if (req_comp == img_n)
 				return data;
 
-			var good = new FakePtr<ushort>(req_comp * x * y);
-			for (j = 0; j < (int)y; ++j)
+			var w = (int)x;
+			var good = new ushort[req_comp * x * y];
+			for (var j = 0; j < (int)y; ++j)
 			{
-				var src = data + j * x * img_n;
-				var dest = good + j * x * req_comp;
+				var src = new ReadOnlySpan<ushort>(data, j * w * img_n, w * img_n);
+				var dest = new Span<ushort>(good, j * w * req_comp, w * req_comp);
+				var i = 0;
 				switch (img_n * 8 + req_comp)
 				{
 					case 1 * 8 + 2:
-						for (i = (int)(x - 1); i >= 0; --i, src += 1, dest += 2)
+						for (i = 0; i < w; ++i)
 						{
-							dest[0] = src[0];
-							dest[1] = 0xffff;
+							dest[i * 2] = src[i];
+							dest[i * 2 + 1] = 0xffff;
 						}
 
 						break;
 					case 1 * 8 + 3:
-						for (i = (int)(x - 1); i >= 0; --i, src += 1, dest += 3)
-							dest[0] = dest[1] = dest[2] = src[0];
+						for (i = 0; i < w; ++i)
+							dest[i * 3] = dest[i * 3 + 1] = dest[i * 3 + 2] = src[i];
 
 						break;
 					case 1 * 8 + 4:
-						for (i = (int)(x - 1); i >= 0; --i, src += 1, dest += 4)
+						for (i = 0; i < w; ++i)
 						{
-							dest[0] = dest[1] = dest[2] = src[0];
-							dest[3] = 0xffff;
+							dest[i * 4] = dest[i * 4 + 1] = dest[i * 4 + 2] = src[i];
+							dest[i * 4 + 3] = 0xffff;
 						}
 
 						break;
 					case 2 * 8 + 1:
-						for (i = (int)(x - 1); i >= 0; --i, src += 2, dest += 1)
-							dest[0] = src[0];
+						for (i = 0; i < w; ++i)
+							dest[i] = src[i * 2];
 
 						break;
 					case 2 * 8 + 3:
-						for (i = (int)(x - 1); i >= 0; --i, src += 2, dest += 3)
-							dest[0] = dest[1] = dest[2] = src[0];
+						for (i = 0; i < w; ++i)
+							dest[i * 3] = dest[i * 3 + 1] = dest[i * 3 + 2] = src[i * 2];
 
 						break;
 					case 2 * 8 + 4:
-						for (i = (int)(x - 1); i >= 0; --i, src += 2, dest += 4)
+						for (i = 0; i < w; ++i)
 						{
-							dest[0] = dest[1] = dest[2] = src[0];
-							dest[3] = src[1];
+							dest[i * 4] = dest[i * 4 + 1] = dest[i * 4 + 2] = src[i * 2];
+							dest[i * 4 + 3] = src[i * 2 + 1];
 						}
 
 						break;
 					case 3 * 8 + 4:
-						for (i = (int)(x - 1); i >= 0; --i, src += 3, dest += 4)
+						for (i = 0; i < w; ++i)
 						{
-							dest[0] = src[0];
-							dest[1] = src[1];
-							dest[2] = src[2];
-							dest[3] = 0xffff;
+							dest[i * 4] = src[i * 3];
+							dest[i * 4 + 1] = src[i * 3 + 1];
+							dest[i * 4 + 2] = src[i * 3 + 2];
+							dest[i * 4 + 3] = 0xffff;
 						}
 
 						break;
 					case 3 * 8 + 1:
-						for (i = (int)(x - 1); i >= 0; --i, src += 3, dest += 1)
-							dest[0] = stbi__compute_y_16(src[0], src[1], src[2]);
+						for (i = 0; i < w; ++i)
+							dest[i] = stbi__compute_y_16(src[i * 3], src[i * 3 + 1], src[i * 3 + 2]);
 
 						break;
 					case 3 * 8 + 2:
-						for (i = (int)(x - 1); i >= 0; --i, src += 3, dest += 2)
+						for (i = 0; i < w; ++i)
 						{
-							dest[0] = stbi__compute_y_16(src[0], src[1], src[2]);
-							dest[1] = 0xffff;
+							dest[i * 2] = stbi__compute_y_16(src[i * 3], src[i * 3 + 1], src[i * 3 + 2]);
+							dest[i * 2 + 1] = 0xffff;
 						}
 
 						break;
 					case 4 * 8 + 1:
-						for (i = (int)(x - 1); i >= 0; --i, src += 4, dest += 1)
-							dest[0] = stbi__compute_y_16(src[0], src[1], src[2]);
+						for (i = 0; i < w; ++i)
+							dest[i] = stbi__compute_y_16(src[i * 4], src[i * 4 + 1], src[i * 4 + 2]);
 
 						break;
 					case 4 * 8 + 2:
-						for (i = (int)(x - 1); i >= 0; --i, src += 4, dest += 2)
+						for (i = 0; i < w; ++i)
 						{
-							dest[0] = stbi__compute_y_16(src[0], src[1], src[2]);
-							dest[1] = src[3];
+							dest[i * 2] = stbi__compute_y_16(src[i * 4], src[i * 4 + 1], src[i * 4 + 2]);
+							dest[i * 2 + 1] = src[i * 4 + 3];
 						}
 
 						break;
 					case 4 * 8 + 3:
-						for (i = (int)(x - 1); i >= 0; --i, src += 4, dest += 3)
+						for (i = 0; i < w; ++i)
 						{
-							dest[0] = src[0];
-							dest[1] = src[1];
-							dest[2] = src[2];
+							dest[i * 3] = src[i * 4];
+							dest[i * 3 + 1] = src[i * 4 + 1];
+							dest[i * 3 + 2] = src[i * 4 + 2];
 						}
 
 						break;
@@ -316,10 +316,10 @@ namespace StbImageNext
 			return good;
 		}
 
-		public static FakePtr<byte> stbi__convert_16_to_8(FakePtr<ushort> orig)
+		public static byte[] stbi__convert_16_to_8(ushort[] orig)
 		{
-			var reduced = new FakePtr<byte>(orig.Length - orig.Offset);
-			for (long i = 0; i < reduced.Length; ++i)
+			var reduced = new byte[orig.Length];
+			for (var i = 0; i < reduced.Length; ++i)
 				reduced[i] = (byte)((orig[i] >> 8) & 0xFF);
 
 			return reduced;
@@ -441,20 +441,6 @@ namespace StbImageNext
 			a = a + (a >> 8);
 			a = a + (a >> 16);
 			return (int)(a & 0xff);
-		}
-
-		public static int Compare(this FakePtr<byte> a, FakePtr<byte> b, int size)
-		{
-			var result = 0;
-			for(var i = 0; i < size; ++i)
-			{
-				if (a[i] != b[i])
-				{
-					++result;
-				}
-			}
-
-			return result;
 		}
 
 		/// <summary>

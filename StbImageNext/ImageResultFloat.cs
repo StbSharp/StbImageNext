@@ -48,7 +48,7 @@ namespace StbImageNext
 		public ImageResult ToLdr(float stbi__h2l_gamma_i = 1.0f / 2.2f, float stbi__h2l_scale_i = 1.0f)
 		{
 			var comp = (int)Comp;
-			var output = new FakePtr<byte>(Width * Height * comp);
+			var output = new byte[Width * Height * comp];
 
 			int n;
 			if ((comp & 1) != 0)
@@ -90,7 +90,7 @@ namespace StbImageNext
 				Height = Height,
 				SourceComp = SourceComp,
 				Comp = Comp,
-				Data = output.Data
+				Data = output
 			};
 		}
 	}
