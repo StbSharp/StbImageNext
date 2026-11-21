@@ -19,15 +19,15 @@ namespace StbImageNext.Decoders
 			j.resample_row_hv_2_kernel = stbi__resample_row_hv_2_simd;
 		}
 
-		private static void stbi__YCbCr_to_RGB_simd(FakePtr<byte> _out_, FakePtr<byte> y, FakePtr<byte> pcb, FakePtr<byte> pcr, int count, int step)
+		private static void stbi__YCbCr_to_RGB_simd(Span<byte> _out_, ReadOnlySpan<byte> y, ReadOnlySpan<byte> pcb, ReadOnlySpan<byte> pcr, int count, int step)
 		{
 			var i = 0;
 			if (step == 4)
 			{
-				var output = new Span<byte>(_out_.Data, (int)_out_.Offset, count * 4);
-				var ys = new ReadOnlySpan<byte>(y.Data, (int)y.Offset, count);
-				var cbs = new ReadOnlySpan<byte>(pcb.Data, (int)pcb.Offset, count);
-				var crs = new ReadOnlySpan<byte>(pcr.Data, (int)pcr.Offset, count);
+				var output = _out_.Slice(0, count * 4);
+				var ys = y.Slice(0, count);
+				var cbs = pcb.Slice(0, count);
+				var crs = pcr.Slice(0, count);
 				var alpha = Vector128.Create(unchecked((int)0xff000000));
 				for (; i + 16 <= count; i += 16)
 				{
@@ -42,7 +42,7 @@ namespace StbImageNext.Decoders
 			}
 
 			if (i < count)
-				stbi__YCbCr_to_RGB_row(_out_ + i * step, y + i, pcb + i, pcr + i, count - i, step);
+				stbi__YCbCr_to_RGB_row(_out_.Slice(i * step), y.Slice(i), pcb.Slice(i), pcr.Slice(i), count - i, step);
 		}
 
 		// Four pixels of stbi__YCbCr_to_RGB_row, as RGBA in the bytes of each int lane
@@ -64,14 +64,14 @@ namespace StbImageNext.Decoders
 			return r | Vector128.ShiftLeft(g, 8) | Vector128.ShiftLeft(b, 16) | alpha;
 		}
 
-		private static FakePtr<byte> stbi__resample_row_hv_2_simd(FakePtr<byte> _out_, FakePtr<byte> in_near, FakePtr<byte> in_far, int w, int hs)
+		private static ReadOnlyMemory<byte> stbi__resample_row_hv_2_simd(Memory<byte> _out_, ReadOnlyMemory<byte> in_near, ReadOnlyMemory<byte> in_far, int w, int hs)
 		{
 			if (w < 17)
 				return stbi__resample_row_hv_2(_out_, in_near, in_far, w, hs);
 
-			var output = new Span<byte>(_out_.Data, (int)_out_.Offset, w * 2);
-			var near = new ReadOnlySpan<byte>(in_near.Data, (int)in_near.Offset, w);
-			var far = new ReadOnlySpan<byte>(in_far.Data, (int)in_far.Offset, w);
+			var output = _out_.Span.Slice(0, w * 2);
+			var near = in_near.Span.Slice(0, w);
+			var far = in_far.Span.Slice(0, w);
 
 			output[0] = (byte)((3 * near[0] + far[0] + 2) >> 2);
 
@@ -108,9 +108,9 @@ namespace StbImageNext.Decoders
 			return before | Vector128.ShiftLeft(after, 8);
 		}
 
-		private static void stbi__idct_simd(FakePtr<byte> _out_, int out_stride, FakePtr<short> data)
+		private static void stbi__idct_simd(Span<byte> _out_, int out_stride, Span<short> data)
 		{
-			var d = new ReadOnlySpan<short>(data.Data, (int)data.Offset, 64);
+			ReadOnlySpan<short> d = data.Slice(0, 64);
 			Span<int> val = stackalloc int[64];
 
 			// Columns: a lane per column, the left four columns then the right four
@@ -146,7 +146,7 @@ namespace StbImageNext.Decoders
 			}
 
 			// Rows: a lane per row, the top four rows then the bottom four
-			var output = new Span<byte>(_out_.Data, (int)_out_.Offset, 7 * out_stride + 8);
+			var output = _out_.Slice(0, 7 * out_stride + 8);
 			var zero = Vector128<int>.Zero;
 			var max = Vector128.Create(255);
 			for (var top = 0; top < 64; top += 32)

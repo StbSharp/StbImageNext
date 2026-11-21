@@ -183,8 +183,7 @@ namespace StbImageNext.Decoders
 			int tga_inverted = s.stbi__get8();
 			var i = 0;
 			var j = 0;
-			var raw_data = new FakePtr<byte>(4);
-			raw_data.Set(0);
+			var raw_data = new byte[4];
 
 			var RLE_count = 0;
 			var RLE_repeating = 0;
@@ -218,7 +217,7 @@ namespace StbImageNext.Decoders
 
 			result.Comp = req_comp ?? result.SourceComp;
 
-			var tga_data = new FakePtr<byte>(tga_width * tga_height * tga_comp);
+			var tga_data = new byte[tga_width * tga_height * tga_comp];
 
 			s.stbi__skip(tga_offset);
 			if (tga_indexed == 0 && tga_is_RLE == 0 && !tga_rgb16)
@@ -226,13 +225,12 @@ namespace StbImageNext.Decoders
 				for (i = 0; i < tga_height; ++i)
 				{
 					var row = tga_inverted != 0 ? tga_height - i - 1 : i;
-					var tga_row = tga_data + row * tga_width * tga_comp;
-					s.stbi__getn(tga_row, tga_width * tga_comp);
+					s.stbi__getn(tga_data, row * tga_width * tga_comp, tga_width * tga_comp);
 				}
 			}
 			else
 			{
-				FakePtr<byte> tga_palette = FakePtr<byte>.Null;
+				byte[] tga_palette = null;
 				if (tga_indexed != 0)
 				{
 					if (tga_palette_len == 0)
@@ -241,17 +239,13 @@ namespace StbImageNext.Decoders
 					}
 
 					s.stbi__skip(tga_palette_start);
-					tga_palette = new FakePtr<byte>(tga_palette_len * tga_comp);
+					tga_palette = new byte[tga_palette_len * tga_comp];
 					if (tga_rgb16)
 					{
-						var pal_entry = tga_palette;
 						for (i = 0; i < tga_palette_len; ++i)
-						{
-							stbi__tga_read_rgb16(s, pal_entry);
-							pal_entry += tga_comp;
-						}
+							stbi__tga_read_rgb16(s, tga_palette.AsSpan(i * tga_comp));
 					}
-					else if (s.stbi__getn(tga_palette, tga_palette_len * tga_comp) == 0)
+					else if (s.stbi__getn(tga_palette, 0, tga_palette_len * tga_comp) == 0)
 					{
 						throw new Exception("bad palette");
 					}
@@ -327,13 +321,12 @@ namespace StbImageNext.Decoders
 
 			if (tga_comp >= 3 && !tga_rgb16)
 			{
-				var tga_pixel = tga_data;
 				for (i = 0; i < tga_width * tga_height; ++i)
 				{
-					var temp = tga_pixel[0];
-					tga_pixel[0] = tga_pixel[2];
-					tga_pixel[2] = temp;
-					tga_pixel += tga_comp;
+					var tga_pixel = i * tga_comp;
+					var temp = tga_data[tga_pixel];
+					tga_data[tga_pixel] = tga_data[tga_pixel + 2];
+					tga_data[tga_pixel + 2] = temp;
 				}
 			}
 
@@ -341,7 +334,7 @@ namespace StbImageNext.Decoders
 				tga_data = Utility.stbi__convert_format(tga_data, tga_comp, (int)req_comp.Value, (uint)tga_width, (uint)tga_height);
 			tga_palette_start = tga_palette_len = tga_palette_bits = tga_x_origin = tga_y_origin = 0;
 
-			result.Data = tga_data.Data;
+			result.Data = tga_data;
 
 			return result;
 		}
@@ -367,7 +360,7 @@ namespace StbImageNext.Decoders
 			}
 		}
 
-		private static void stbi__tga_read_rgb16(Stream s, FakePtr<byte> _out_)
+		private static void stbi__tga_read_rgb16(Stream s, Span<byte> _out_)
 		{
 			var px = (ushort)s.stbi__get16le();
 			ushort fiveBitMask = 31;

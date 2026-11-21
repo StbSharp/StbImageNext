@@ -100,12 +100,12 @@ namespace StbImageNext.Decoders
 		/// <returns>The decoded image result with floating-point data.</returns>
 		public static ImageResultFloat Decode(Stream s, ColorComponents? req_comp2 = null)
 		{
-			var rgbe = new FakePtr<byte>(4);
+			var rgbe = new byte[4];
 			string token;
 			var valid = 0;
 			var width = 0;
 			var height = 0;
-			FakePtr<byte> scanline = FakePtr<byte>.Null;
+			byte[] scanline = null;
 			var len = 0;
 			byte count = 0;
 			byte value = 0;
@@ -175,15 +175,15 @@ namespace StbImageNext.Decoders
 			if (req_comp == 0)
 				req_comp = 3;
 
-			var hdr_data = new FakePtr<float>(width * height * req_comp);
+			var hdr_data = new float[width * height * req_comp];
 			if (width < 8 || width >= 32768)
 			{
 				for (; j < height; ++j)
 				{
 					for (; i < width; ++i)
 					{
-						s.stbi__getn(rgbe, 4);
-						stbi__hdr_convert(hdr_data + j * width * req_comp + i * req_comp, rgbe, req_comp);
+						s.stbi__getn(rgbe, 0, 4);
+						stbi__hdr_convert(hdr_data.AsSpan(j * width * req_comp + i * req_comp), rgbe, req_comp);
 					}
 				}
 			}
@@ -210,8 +210,8 @@ namespace StbImageNext.Decoders
 						for (i = 1; i < width; ++i)
 						{
 							//var rgbe = stackalloc byte[4];
-							s.stbi__getn(rgbe, 4);
-							stbi__hdr_convert(hdr_data + j * width * req_comp + i * req_comp, rgbe, req_comp);
+							s.stbi__getn(rgbe, 0, 4);
+							stbi__hdr_convert(hdr_data.AsSpan(j * width * req_comp + i * req_comp), rgbe, req_comp);
 						}
 
 						// Do the rest of the rows.
@@ -220,8 +220,8 @@ namespace StbImageNext.Decoders
 							for (i = 0; i < width; ++i)
 							{
 								//var rgbe = stackalloc byte[4];
-								s.stbi__getn(rgbe, 4);
-								stbi__hdr_convert(hdr_data + j * width * req_comp + i * req_comp, rgbe, req_comp);
+								s.stbi__getn(rgbe, 0, 4);
+								stbi__hdr_convert(hdr_data.AsSpan(j * width * req_comp + i * req_comp), rgbe, req_comp);
 							}
 						}
 
@@ -235,9 +235,9 @@ namespace StbImageNext.Decoders
 						throw new Exception("invalid decoded scanline length");
 					}
 
-					if (scanline.IsNull)
+					if (scanline == null)
 					{
-						scanline = new FakePtr<byte>(width * 4);
+						scanline = new byte[width * 4];
 					}
 
 					for (k = 0; k < 4; ++k)
@@ -273,12 +273,12 @@ namespace StbImageNext.Decoders
 					}
 
 					for (i = 0; i < width; ++i)
-						stbi__hdr_convert(hdr_data + (j * width + i) * req_comp, scanline + i * 4, req_comp);
+						stbi__hdr_convert(hdr_data.AsSpan((j * width + i) * req_comp), scanline.AsSpan(i * 4), req_comp);
 				}
 			}
 
 		finish:
-			result.Data = hdr_data.Data;
+			result.Data = hdr_data;
 			return result;
 		}
 
@@ -313,7 +313,7 @@ namespace StbImageNext.Decoders
 			return string.IsNullOrEmpty(result) ? null : result;
 		}
 
-		private static void stbi__hdr_convert(FakePtr<float> output, FakePtr<byte> input, int req_comp)
+		private static void stbi__hdr_convert(Span<float> output, ReadOnlySpan<byte> input, int req_comp)
 		{
 			if (input[3] != 0)
 			{

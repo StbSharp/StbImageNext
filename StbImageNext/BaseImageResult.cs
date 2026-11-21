@@ -1,4 +1,6 @@
-﻿namespace StbImageNext
+﻿using System;
+
+namespace StbImageNext
 {
 	/// <summary>
 	/// Base class for image result data containing pixel information and raw image data.
@@ -36,17 +38,16 @@
 		/// </summary>
 		public void VerticalFlip()
 		{
-			var row = 0;
 			var values_per_row = Width * (int)Comp;
-			var temp = new FakePtr<T>(values_per_row);
-			for (row = 0; row < Height >> 1; row++)
+			var temp = new T[values_per_row];
+			for (var row = 0; row < Height >> 1; row++)
 			{
-				var row0 = new FakePtr<T>(Data, row * values_per_row);
-				var row1 = new FakePtr<T>(Data, (Height - row - 1) * values_per_row);
+				var row0 = new Span<T>(Data, row * values_per_row, values_per_row);
+				var row1 = new Span<T>(Data, (Height - row - 1) * values_per_row, values_per_row);
 
-				temp.Copy(row0, values_per_row);
-				row0.Copy(row1, values_per_row);
-				row1.Copy(temp, values_per_row);
+				row0.CopyTo(temp);
+				row1.CopyTo(row0);
+				temp.CopyTo(row1);
 			}
 		}
 	}

@@ -138,7 +138,7 @@ namespace StbImageNext.Decoders
 			else
 				target = img_n;
 
-			var _out_ = new FakePtr<byte>(target * info.img_x * info.img_y);
+			var _out_ = new byte[target * info.img_x * info.img_y];
 			if (info.bpp < 16)
 			{
 				var z = 0;
@@ -325,13 +325,13 @@ namespace StbImageNext.Decoders
 				byte t = 0;
 				for (j = 0; j < (int)info.img_y >> 1; ++j)
 				{
-					var p1 = _out_ + j * info.img_x * target;
-					var p2 = _out_ + (info.img_y - 1 - j) * info.img_x * target;
+					var p1 = (int)(j * info.img_x * target);
+					var p2 = (int)((info.img_y - 1 - j) * info.img_x * target);
 					for (i = 0; i < (int)info.img_x * target; ++i)
 					{
-						t = p1[i];
-						p1[i] = p2[i];
-						p2[i] = t;
+						t = _out_[p1 + i];
+						_out_[p1 + i] = _out_[p2 + i];
+						_out_[p2 + i] = t;
 					}
 				}
 			}
@@ -348,7 +348,7 @@ namespace StbImageNext.Decoders
 				SourceComp = (ColorComponents)img_n
 			};
 			result.Comp = req_comp ?? result.SourceComp;
-			result.Data = _out_.Data;
+			result.Data = _out_;
 
 			return result;
 		}

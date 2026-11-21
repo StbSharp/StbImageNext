@@ -188,6 +188,24 @@ public class DecodeTests
 		Assert.Equal(expectedHash, hash);
 	}
 
+	// Progressive JPEGs that stb_image 2.30 and 2.32 decode differently (2.31 stopped decoding blocks
+	// once the data runs out). The expected hashes are the first 16 hex digits of the SHA-256 of the
+	// RGBA output of stb_image 2.32.
+	[Theory]
+	[InlineData("synth_17x9_prog_420.jpg", "21ad62d5e85615b6")]
+	[InlineData("synth_33x17_prog_gray.jpg", "8b1828bdffc81306")]
+	public void LoadProgressiveJpg(string fileName, string expectedHash)
+	{
+		ImageResult result;
+		using (var stream = _assembly.OpenResourceStream(fileName))
+		{
+			result = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
+		}
+
+		var hash = Convert.ToHexString(SHA256.HashData(result.Data)).Substring(0, 16).ToLowerInvariant();
+		Assert.Equal(expectedHash, hash);
+	}
+
 	[Theory]
 	[InlineData("somersault.gif", 384, 480, ColorComponents.RedGreenBlueAlpha, 43)]
 	public void AnimatedGifFrames(string fileName, int width, int height, ColorComponents colorComponents, int originalFrameCount)

@@ -53,7 +53,7 @@ namespace StbImageNext
 		{
 			// Read next frame
 			var result = stbi__gif_load_next(_stream, _gif, ColorComponents.ToInternalValue());
-			if (result.IsNull) return false;
+			if (result == null) return false;
 
 			if (Current == null)
 			{
@@ -69,7 +69,7 @@ namespace StbImageNext
 
 			Current.DelayInMs = _gif.delay;
 
-			Current.Data = result.Data;
+			Current.Data = result;
 
 			return true;
 		}

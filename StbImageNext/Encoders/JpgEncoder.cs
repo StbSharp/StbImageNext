@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Text;
 
 namespace StbImageNext.Encoders
@@ -240,7 +241,7 @@ namespace StbImageNext.Encoders
 		}
 
 
-		private static int stbiw__jpg_processDU(BinaryWriter output, ref int bitBuf, ref int bitCnt, FakePtr<float> CDU,
+		private static int stbiw__jpg_processDU(BinaryWriter output, ref int bitBuf, ref int bitCnt, Span<float> CDU,
 			int du_stride, float[] fdtbl, int DC, ushort[,] HTDC, ushort[,] HTAC)
 		{
 			var EOB = new ushort[] { HTAC[0x00, 0], HTAC[0x00, 1] };
@@ -255,23 +256,23 @@ namespace StbImageNext.Encoders
 			var y = 0;
 			var DU = new int[64];
 			for (dataOff = 0, n = du_stride * 8; dataOff < n; dataOff += du_stride)
-				stbiw__jpg_DCT(ref CDU.Data[CDU.Offset + dataOff],
-					ref CDU.Data[CDU.Offset + dataOff + 1],
-					ref CDU.Data[CDU.Offset + dataOff + 2],
-					ref CDU.Data[CDU.Offset + dataOff + 3],
-					ref CDU.Data[CDU.Offset + dataOff + 4],
-					ref CDU.Data[CDU.Offset + dataOff + 5],
-					ref CDU.Data[CDU.Offset + dataOff + 6],
-					ref CDU.Data[CDU.Offset + dataOff + 7]);
+				stbiw__jpg_DCT(ref CDU[dataOff],
+					ref CDU[dataOff + 1],
+					ref CDU[dataOff + 2],
+					ref CDU[dataOff + 3],
+					ref CDU[dataOff + 4],
+					ref CDU[dataOff + 5],
+					ref CDU[dataOff + 6],
+					ref CDU[dataOff + 7]);
 			for (dataOff = 0; dataOff < 8; ++dataOff)
-				stbiw__jpg_DCT(ref CDU.Data[CDU.Offset + dataOff],
-					ref CDU.Data[CDU.Offset + dataOff + du_stride],
-					ref CDU.Data[CDU.Offset + dataOff + du_stride * 2],
-					ref CDU.Data[CDU.Offset + dataOff + du_stride * 3],
-					ref CDU.Data[CDU.Offset + dataOff + du_stride * 4],
-					ref CDU.Data[CDU.Offset + dataOff + du_stride * 5],
-					ref CDU.Data[CDU.Offset + dataOff + du_stride * 6],
-					ref CDU.Data[CDU.Offset + dataOff + du_stride * 7]);
+				stbiw__jpg_DCT(ref CDU[dataOff],
+					ref CDU[dataOff + du_stride],
+					ref CDU[dataOff + du_stride * 2],
+					ref CDU[dataOff + du_stride * 3],
+					ref CDU[dataOff + du_stride * 4],
+					ref CDU[dataOff + du_stride * 5],
+					ref CDU[dataOff + du_stride * 6],
+					ref CDU[dataOff + du_stride * 7]);
 			for (y = 0, j = 0; y < 8; ++y)
 				for (x = 0; x < 8; ++x, ++j)
 				{
@@ -435,19 +436,16 @@ namespace StbImageNext.Encoders
 				var comp = (int)compEnum;
 				var ofsG = comp > 2 ? 1 : 0;
 				var ofsB = comp > 2 ? 2 : 0;
-				var dataR = new FakePtr<byte>(data);
-				var dataG = dataR + ofsG;
-				var dataB = dataR + ofsB;
 				var x = 0;
 				var y = 0;
 				var pos = 0;
 				if (subsample != 0)
 				{
-					var Y = new FakePtr<float>(256);
-					var U = new FakePtr<float>(256);
-					var V = new FakePtr<float>(256);
-					var subU = new FakePtr<float>(64);
-					var subV = new FakePtr<float>(64);
+					var Y = new float[256];
+					var U = new float[256];
+					var V = new float[256];
+					var subU = new float[64];
+					var subV = new float[64];
 					for (y = 0; y < height; y += 16)
 						for (x = 0; x < width; x += 16)
 						{
@@ -460,22 +458,22 @@ namespace StbImageNext.Encoders
 								for (col = x; col < x + 16; ++col, ++pos)
 								{
 									var p = base_p + (col < width ? col : width - 1) * comp;
-									float r = dataR[p];
-									float g = dataG[p];
-									float b = dataB[p];
+									float r = data[p];
+									float g = data[p + ofsG];
+									float b = data[p + ofsB];
 									Y[pos] = +0.29900f * r + 0.58700f * g + 0.11400f * b - 128;
 									U[pos] = -0.16874f * r - 0.33126f * g + 0.50000f * b;
 									V[pos] = +0.50000f * r - 0.41869f * g - 0.08131f * b;
 								}
 							}
 
-							DCY = stbiw__jpg_processDU(output, ref bitBuf, ref bitCnt, Y + 0, 16, fdtbl_Y, DCY,
+							DCY = stbiw__jpg_processDU(output, ref bitBuf, ref bitCnt, Y, 16, fdtbl_Y, DCY,
 								stbi_write_jpg_core_YDC_HT, stbi_write_jpg_core_YAC_HT);
-							DCY = stbiw__jpg_processDU(output, ref bitBuf, ref bitCnt, Y + 8, 16, fdtbl_Y, DCY,
+							DCY = stbiw__jpg_processDU(output, ref bitBuf, ref bitCnt, Y.AsSpan(8), 16, fdtbl_Y, DCY,
 								stbi_write_jpg_core_YDC_HT, stbi_write_jpg_core_YAC_HT);
-							DCY = stbiw__jpg_processDU(output, ref bitBuf, ref bitCnt, Y + 128, 16, fdtbl_Y, DCY,
+							DCY = stbiw__jpg_processDU(output, ref bitBuf, ref bitCnt, Y.AsSpan(128), 16, fdtbl_Y, DCY,
 								stbi_write_jpg_core_YDC_HT, stbi_write_jpg_core_YAC_HT);
-							DCY = stbiw__jpg_processDU(output, ref bitBuf, ref bitCnt, Y + 136, 16, fdtbl_Y, DCY,
+							DCY = stbiw__jpg_processDU(output, ref bitBuf, ref bitCnt, Y.AsSpan(136), 16, fdtbl_Y, DCY,
 								stbi_write_jpg_core_YDC_HT, stbi_write_jpg_core_YAC_HT);
 							{
 								var yy = 0;
@@ -497,9 +495,9 @@ namespace StbImageNext.Encoders
 				}
 				else
 				{
-					var Y = new FakePtr<float>(64);
-					var U = new FakePtr<float>(64);
-					var V = new FakePtr<float>(64);
+					var Y = new float[64];
+					var U = new float[64];
+					var V = new float[64];
 					for (y = 0; y < height; y += 8)
 						for (x = 0; x < width; x += 8)
 						{
@@ -512,9 +510,9 @@ namespace StbImageNext.Encoders
 								for (col = x; col < x + 8; ++col, ++pos)
 								{
 									var p = base_p + (col < width ? col : width - 1) * comp;
-									float r = dataR[p];
-									float g = dataG[p];
-									float b = dataB[p];
+									float r = data[p];
+									float g = data[p + ofsG];
+									float b = data[p + ofsB];
 									Y[pos] = +0.29900f * r + 0.58700f * g + 0.11400f * b - 128;
 									U[pos] = -0.16874f * r - 0.33126f * g + 0.50000f * b;
 									V[pos] = +0.50000f * r - 0.41869f * g - 0.08131f * b;
