@@ -1451,9 +1451,7 @@ namespace StbImageNext.Decoders
 			j.idct_block_kernel = stbi__idct_block;
 			j.YCbCr_to_RGB_kernel = stbi__YCbCr_to_RGB_row;
 			j.resample_row_hv_2_kernel = stbi__resample_row_hv_2;
-#if NET8_0_OR_GREATER
 			stbi__setup_jpeg_simd(j);
-#endif
 		}
 
 		private static byte[] load_jpeg_image(stbi__jpeg z, out int out_x, out int out_y, out int comp, int req_comp)
