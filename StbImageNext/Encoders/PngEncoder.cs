@@ -49,45 +49,14 @@ namespace StbImageNext.Encoders
 		/// <summary>Gets or sets the forced PNG filter (or -1 for automatic).</summary>
 		public static int WriteForcePngFilter { get; set; } = -1;
 
-		private static void WriteUInt32BigEndian(Stream stream, uint value)
-		{
-			stream.WriteByte((byte)(value >> 24));
-			stream.WriteByte((byte)(value >> 16));
-			stream.WriteByte((byte)(value >> 8));
-			stream.WriteByte((byte)value);
-		}
-
-		private static uint CalculateAdler32(byte[] data)
-		{
-			uint a = 1, b = 0;
-			for (int i = 0; i < data.Length; i++)
-			{
-				a = (a + data[i]) % 65521;
-				b = (b + a) % 65521;
-			}
-			return (b << 16) | a;
-		}
-
 		private static byte[] CompressStbStyle(byte[] data)
 		{
 			using (var outputStream = new MemoryStream())
 			{
-				outputStream.WriteByte(0x78);
-				outputStream.WriteByte(0x01);
-
-				using (var deflateMs = new MemoryStream())
+				using (var zlibStream = new ZLibStream(outputStream, CompressionMode.Compress, leaveOpen: true))
 				{
-					using (var deflateStream = new DeflateStream(deflateMs, CompressionMode.Compress, leaveOpen: true))
-					{
-						deflateStream.Write(data, 0, data.Length);
-					}
-
-					deflateMs.Position = 0;
-					deflateMs.CopyTo(outputStream);
+					zlibStream.Write(data, 0, data.Length);
 				}
-
-				uint adler = CalculateAdler32(data);
-				WriteUInt32BigEndian(outputStream, adler);
 
 				return outputStream.ToArray();
 			}
