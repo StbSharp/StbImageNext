@@ -539,7 +539,6 @@ namespace StbImageNext.Decoders
 			byte pal_img_n = 0;
 			byte has_trans = 0;
 			var tc = new byte[3];
-			tc.Set((byte)0);
 
 			var tc16 = new ushort[3];
 			var idat_chunks = new List<stbi__idat_chunk>();
