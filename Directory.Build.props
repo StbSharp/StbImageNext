@@ -4,7 +4,7 @@
     <Product>StbImageNext</Product>
     <PackageLicenseExpression>Unlicense OR MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/StbSharp/StbImageNext</PackageProjectUrl>
-    <Version>1.2.0</Version>
+    <Version>1.2.1</Version>
     <LangVersion>12</LangVersion>
   </PropertyGroup>
 </Project>
