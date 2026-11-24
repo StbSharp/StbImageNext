@@ -145,7 +145,7 @@ namespace StbImageNext.Decoders
 			}
 
 			h.maxcode[j] = 0xffffffff;
-			h.fast.Set((byte)255);
+			Array.Fill(h.fast, (byte)255);
 			for (i = 0; i < k; ++i)
 			{
 				int s = h.size[i];
