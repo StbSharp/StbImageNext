@@ -105,6 +105,53 @@ namespace StbImageNext.Decoders
 			return result;
 		}
 
+		/// <summary>
+		/// Tests whether the PNG image in the specified stream has 16 bits per channel.
+		/// </summary>
+		/// <param name="s">Stream containing the image data.</param>
+		/// <returns><c>true</c> if the image has 16 bits per channel, otherwise <c>false</c>.</returns>
+		public static bool Is16Bit(Stream s)
+		{
+			try
+			{
+				var p = new stbi__png
+				{
+					s = s,
+				};
+
+				return stbi__png_info_raw(p, out _, out _, out _) != 0 && p.depth == 16;
+			}
+			finally
+			{
+				s.stbi__rewind();
+			}
+		}
+
+		/// <summary>Decodes a PNG image from the specified stream, with 16 bits per channel.</summary>
+		/// <param name="s">Stream containing the image data.</param>
+		/// <param name="req_comp">Requested color components, or <c>null</c> for default.</param>
+		/// <returns>The decoded image result.</returns>
+		public static ImageResult16 Decode16(Stream s, ColorComponents? req_comp = null)
+		{
+			var p = new stbi__png
+			{
+				s = s,
+			};
+
+			var data = stbi__do_png16(p, req_comp.ToInternalValue());
+			var result = new ImageResult16
+			{
+				Width = (int)p.img_x,
+				Height = (int)p.img_y,
+				SourceComp = (ColorComponents)p.img_n
+			};
+
+			result.Comp = req_comp ?? result.SourceComp;
+			result.Data = data;
+
+			return result;
+		}
+
 		private static stbi__pngchunk stbi__get_chunk_header(Stream s)
 		{
 			var c = new stbi__pngchunk();
@@ -310,7 +357,7 @@ namespace StbImageNext.Decoders
 				}
 				else if (depth == 16)
 				{
-					// Samples stay big-endian, two bytes each as in the file; stbi__do_png reduces them to 8 bits
+					// Samples stay big-endian, two bytes each as in the file; stbi__do_png reduces them to 8 bits, stbi__do_png16 reads them as ushort
 					if (img_n == out_n)
 						cur.CopyTo(dest);
 					else
@@ -426,11 +473,7 @@ namespace StbImageNext.Decoders
 			// Like stb_image: convert the format at 16 bits, then keep the high byte of each sample
 			if (req_comp != 0 && req_comp != p.img_out_n)
 			{
-				var count = p.img_x * p.img_y * p.img_out_n;
-				var samples = new ushort[count];
-				for (long i = 0; i < count; ++i)
-					samples[i] = (ushort)((data[i * 2] << 8) | data[i * 2 + 1]);
-
+				var samples = stbi__png16_samples(p, data);
 				samples = Utility.stbi__convert_format16(samples, p.img_out_n, req_comp, p.img_x, p.img_y);
 				p.img_out_n = req_comp;
 				return Utility.stbi__convert_16_to_8(samples);
@@ -441,6 +484,16 @@ namespace StbImageNext.Decoders
 				reduced[i] = data[i * 2];
 
 			return reduced;
+		}
+
+		private static ushort[] stbi__png16_samples(stbi__png p, byte[] data)
+		{
+			var count = p.img_x * p.img_y * p.img_out_n;
+			var samples = new ushort[count];
+			for (long i = 0; i < count; ++i)
+				samples[i] = (ushort)((data[i * 2] << 8) | data[i * 2 + 1]);
+
+			return samples;
 		}
 
 		private static int stbi__expand_png_palette(stbi__png a, byte[] palette, int len, int pal_img_n)
@@ -814,6 +867,42 @@ namespace StbImageNext.Decoders
 
 			p._out_ = null;
 			return result;
+		}
+
+		private static ushort[] stbi__do_png16(stbi__png p, int req_comp)
+		{
+			if (req_comp < 0 || req_comp > 4)
+				throw new Exception("bad req_comp");
+
+			if (stbi__parse_png_file(p, Constants.STBI__SCAN_load, req_comp) == 0)
+			{
+				p._out_ = null;
+				return null;
+			}
+
+			var data = p._out_;
+			p._out_ = null;
+
+			// Like stb_image: convert the format at the depth of the file, then widen 8-bit samples to 16 bits
+			if (p.depth == 16)
+			{
+				var samples = stbi__png16_samples(p, data);
+				if (req_comp != 0 && req_comp != p.img_out_n)
+				{
+					samples = Utility.stbi__convert_format16(samples, p.img_out_n, req_comp, p.img_x, p.img_y);
+					p.img_out_n = req_comp;
+				}
+
+				return samples;
+			}
+
+			if (req_comp != 0 && req_comp != p.img_out_n)
+			{
+				data = Utility.stbi__convert_format(data, p.img_out_n, req_comp, p.img_x, p.img_y);
+				p.img_out_n = req_comp;
+			}
+
+			return Utility.stbi__convert_8_to_16(data);
 		}
 
 		private static int stbi__png_info_raw(stbi__png p, out int x, out int y, out int comp)

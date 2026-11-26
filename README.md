@@ -81,6 +81,19 @@ var info = ImageInfo.FromStream(stream);
 Console.WriteLine($"{info.Width}x{info.Height}, {info.ColorComponents}");
 ```
 
+### Load an image with 16 bits per channel
+
+`ImageResult` always gives 8 bits per channel: it keeps the high byte of 16-bit PNG samples. `ImageResult16` gives 16 bits per channel, like `stbi_load_16`: 16-bit PNG images keep their samples, and other images are widened from 8 bits (255 becomes 65535). `ImageInfo.Is16Bit` reads the header only, to choose between them:
+
+```csharp
+using var stream = File.OpenRead("heightmap.png");
+if (ImageInfo.Is16Bit(stream))
+{
+    var image = ImageResult16.FromStream(stream, ColorComponents.Grey);
+    ushort[] samples = image.Data;
+}
+```
+
 ## Encoding
 
 StbImageNext provides encoders for several image formats. Each encoder exposes static methods to write to a `Stream`, a `BinaryWriter`, or directly to a `byte[]`.

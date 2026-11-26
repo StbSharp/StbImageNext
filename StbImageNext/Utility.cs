@@ -309,6 +309,15 @@ namespace StbImageNext
 			return reduced;
 		}
 
+		public static ushort[] stbi__convert_8_to_16(byte[] orig)
+		{
+			var enlarged = new ushort[orig.Length];
+			for (var i = 0; i < enlarged.Length; ++i)
+				enlarged[i] = (ushort)((orig[i] << 8) + orig[i]); // replicate to high and low byte, maps 0->0, 255->0xffff
+
+			return enlarged;
+		}
+
 		public static double ldexp(double number, int exponent)
 		{
 			return number * Math.Pow(2, exponent);

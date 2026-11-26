@@ -67,5 +67,19 @@ namespace StbImageNext
 
 			throw new NotSupportedException("Image format is not supported");
 		}
+
+		/// <summary>
+		/// Tests whether the image in the specified stream has 16 bits per channel, from its header only.
+		/// </summary>
+		/// <remarks>
+		/// Like stbi_is_16_bit of stb_image, except that only PNG images are checked: <see cref="ImageResult16"/>
+		/// keeps 16 bits for PNG only, and reads the other images at 8 bits.
+		/// </remarks>
+		/// <param name="stream">Stream containing the image data.</param>
+		/// <returns><c>true</c> if the image has 16 bits per channel, otherwise <c>false</c>.</returns>
+		public static bool Is16Bit(Stream stream)
+		{
+			return PngDecoder.Test(stream) && PngDecoder.Is16Bit(stream);
+		}
 	}
 }
