@@ -1,6 +1,7 @@
 ﻿using StbImageNext.Tests.Utility;
 using System;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using Xunit;
 
@@ -81,5 +82,73 @@ public class PngDecodeTests
 
 		var hash = Convert.ToHexString(SHA256.HashData(result.Data)).Substring(0, 16).ToLowerInvariant();
 		Assert.Equal(expectedHash, hash);
+	}
+
+	// The expected hashes are the first 16 hex digits of the SHA-256 of the output of stbi_load_16 of
+	// stb_image 2.32, as little-endian 16-bit samples. 8-bit images are widened to 16 bits.
+	[Theory]
+	[InlineData("basn0g04.png", null, ColorComponents.Grey, "b8de0d95efb8e858")]
+	[InlineData("basn0g04.png", ColorComponents.RedGreenBlueAlpha, ColorComponents.Grey, "555b53e3757fc2e3")]
+	[InlineData("basn3p04.png", null, ColorComponents.RedGreenBlue, "c988971cbf4e8622")]
+	[InlineData("basn3p04.png", ColorComponents.RedGreenBlueAlpha, ColorComponents.RedGreenBlue, "619eafebd15dadab")]
+	[InlineData("tbbn0g04.png", null, ColorComponents.GreyAlpha, "25dc426d13f7aae6")]
+	[InlineData("tbbn0g04.png", ColorComponents.RedGreenBlueAlpha, ColorComponents.GreyAlpha, "6445028951aaaa18")]
+	[InlineData("basn0g16.png", null, ColorComponents.Grey, "9802a57a53e41f9e")]
+	[InlineData("basn0g16.png", ColorComponents.RedGreenBlueAlpha, ColorComponents.Grey, "36e84ef71301ec18")]
+	[InlineData("basn2c16.png", null, ColorComponents.RedGreenBlue, "057654d06147541f")]
+	[InlineData("basn2c16.png", ColorComponents.RedGreenBlueAlpha, ColorComponents.RedGreenBlue, "0a417081238b53f4")]
+	[InlineData("basn4a16.png", null, ColorComponents.GreyAlpha, "82e3f5b295438c1a")]
+	[InlineData("basn4a16.png", ColorComponents.Grey, ColorComponents.GreyAlpha, "e7c666a0ba8b05bf")]
+	[InlineData("basn4a16.png", ColorComponents.RedGreenBlueAlpha, ColorComponents.GreyAlpha, "4532d5c838b72db1")]
+	[InlineData("basn6a16.png", null, ColorComponents.RedGreenBlueAlpha, "f4808aeadd7d1d8e")]
+	[InlineData("basn6a16.png", ColorComponents.Grey, ColorComponents.RedGreenBlueAlpha, "7e64b90fa277f8fe")]
+	[InlineData("basn6a16.png", ColorComponents.RedGreenBlue, ColorComponents.RedGreenBlueAlpha, "20c9aa1026e0f796")]
+	[InlineData("basi0g16.png", null, ColorComponents.Grey, "9802a57a53e41f9e")]
+	[InlineData("basi6a16.png", null, ColorComponents.RedGreenBlueAlpha, "f4808aeadd7d1d8e")]
+	[InlineData("tbbn2c16.png", null, ColorComponents.RedGreenBlueAlpha, "3606db98b97090b5")]
+	[InlineData("tbbn2c16.png", ColorComponents.GreyAlpha, ColorComponents.RedGreenBlueAlpha, "cf0b25134d515b83")]
+	[InlineData("tbwn0g16.png", null, ColorComponents.GreyAlpha, "de800495799d5876")]
+	[InlineData("tbwn0g16.png", ColorComponents.RedGreenBlueAlpha, ColorComponents.GreyAlpha, "645057c611536922")]
+	[InlineData("oi9n2c16.png", null, ColorComponents.RedGreenBlue, "057654d06147541f")]
+	public void LoadPngSuite16(string fileName, ColorComponents? requiredComponents, ColorComponents sourceComponents, string expectedHash)
+	{
+		ImageResult16 result;
+		using (var stream = _assembly.OpenResourceStream("PngSuite." + fileName))
+		{
+			result = ImageResult16.FromStream(stream, requiredComponents);
+		}
+
+		var components = requiredComponents ?? sourceComponents;
+		Assert.Equal(32, result.Width);
+		Assert.Equal(32, result.Height);
+		Assert.Equal(sourceComponents, result.SourceComp);
+		Assert.Equal(components, result.Comp);
+		Assert.Equal(32 * 32 * (int)components, result.Data.Length);
+
+		var hash = Convert.ToHexString(SHA256.HashData(MemoryMarshal.AsBytes(result.Data.AsSpan()))).Substring(0, 16).ToLowerInvariant();
+		Assert.Equal(expectedHash, hash);
+	}
+
+	[Fact]
+	public void Load16KeepsTheLowByte()
+	{
+		ImageResult16 result16;
+		ImageResult result8;
+		using (var stream = _assembly.OpenResourceStream("PngSuite.basn0g16.png"))
+		{
+			result16 = ImageResult16.FromStream(stream);
+		}
+
+		using (var stream = _assembly.OpenResourceStream("PngSuite.basn0g16.png"))
+		{
+			result8 = ImageResult.FromStream(stream);
+		}
+
+		// ImageResult keeps the high byte of each sample, ImageResult16 the whole sample
+		Assert.Equal(result8.Data.Length, result16.Data.Length);
+		for (var i = 0; i < result8.Data.Length; ++i)
+			Assert.Equal(result8.Data[i], (byte)(result16.Data[i] >> 8));
+
+		Assert.Contains(result16.Data, sample => (sample & 0xff) != (sample >> 8));
 	}
 }

@@ -32,4 +32,29 @@ public class ImageInfoTests
 		Assert.Equal(height, info.Height);
 		Assert.Equal(colorComponents, info.ColorComponents);
 	}
+
+	[Theory]
+	[InlineData("panel.bmp", false)]
+	[InlineData("AgedPavement_specular.png", false)]
+	[InlineData("Normal.psd", false)]
+	[InlineData("sample_1280×853.hdr", false)]
+	[InlineData("DockPanes.jpg", false)]
+	[InlineData("head.tga", false)]
+	[InlineData("somersault.gif", false)]
+	[InlineData("PngSuite.basn0g04.png", false)]
+	[InlineData("PngSuite.basn3p04.png", false)]
+	[InlineData("PngSuite.basn0g16.png", true)]
+	[InlineData("PngSuite.basn6a16.png", true)]
+	[InlineData("PngSuite.basi0g16.png", true)]
+	[InlineData("PngSuite.tbwn0g16.png", true)]
+	public void Is16Bit(string filename, bool expected)
+	{
+		using (var stream = _assembly.OpenResourceStream(filename))
+		{
+			Assert.Equal(expected, ImageInfo.Is16Bit(stream));
+
+			// The stream is rewound, so the image can be decoded next
+			Assert.Equal(0, stream.Position);
+		}
+	}
 }
